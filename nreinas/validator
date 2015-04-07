@@ -1,0 +1,98 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution: the solution reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   english: string
+//   spanish: string
+//   catalan: string
+// }
+main {
+     out.valid = 0;
+     out.catalan = "Només disponible en anglès.";
+     out.spanish = "Sólo disponible en inglés.";
+     //check that the solution has the correct format
+     n = in.input;
+     if(in.solution.size!=n){
+       out.english="The in.solution only has "+in.solution.size+" rows, but it should have n ("+n+").";
+       stop;
+     }
+     for(i=0;i<n;i++){
+       if(in.solution[i].size!=n){
+	 out.english="The "+i+" row only has "+in.solution[i].size+" columns, but it should hae n ("+n+").";
+	 stop;
+       }
+     }
+     for(i=0;i<n;i++){
+       for(j=0;j<n;j++){
+	 if(in.solution[i][j]!=0 and in.solution[i][j]!=1){
+	   out.english="The cell ("+i+","+j+") contains a "+in.solution[i][j]+", but it should contain either 1 or 0.";
+	   stop;
+	 }
+       }
+     }
+     //check rows
+     for(i=0;i<n;i++){
+       queens=0;
+       for(j=0;j<n;j++){
+	 if(in.solution[i][j]==1)queens++;
+       }
+       if(queens>1){
+	 out.english="There are "+queens+" queens in the row "+i+".";
+	 stop;
+       }
+     }
+     //check cols
+     for(i=0;i<n;i++){
+       queens=0;
+       for(j=0;j<n;j++){
+	 if(in.solution[j][i]==1)queens++;
+       }
+       if(queens>1){
+	 out.english="There are "+queens+" queens in the column "+i+".";
+	 stop;
+       }
+     }
+     //check diagonals \
+     for(i=-n;i<n;i++){
+       queens=0;
+       for(j=0;j<n;j++){
+	 if(i+j>=0 and i+j<n){
+	   if(in.solution[i+j][j]==1)queens++;
+	 }
+       }
+       if(queens>1){
+	 out.english="There are "+queens+" queens in a '\' diagonal.";
+	 stop;
+       }
+     }
+     //check diagonals /
+     for(i=-n;i<n;i++){
+       queens=0;
+       for(j=0;j<n;j++){
+	 if(i+j>=0 and i+j<n){
+	   if(in.solution[i+j][n-1-j]==1)queens++;
+	 }
+       }
+       if(queens>1){
+	 out.english="There are "+queens+" queens in a '/' diagonal.";
+	 stop;
+       }
+     }
+     //check n queens
+     queens=0;
+     for(i=0;i<n;i++){
+       for(j=0;j<n;j++){
+	 if(in.solution[i][j]==1)queens++;
+       }
+     }
+     if(queens != n){
+       out.english="There are "+queens+" queens in the board, but there should be n ("+n+").";
+       stop;
+     }
+     out.valid=1;
+     out.english="And it is correct.";
+     out.spanish="Y es correcta.";
+     out.catalan="I és correcta";
+}
