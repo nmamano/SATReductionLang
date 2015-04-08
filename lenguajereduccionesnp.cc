@@ -2730,6 +2730,7 @@ void saltarblancos(string &s,int &i)
 }
 */
 
+
 void leerentradaformat(string &s, vector<ttoken> &vt, int linea)
 {
   int is = 0;
@@ -3078,12 +3079,11 @@ void leerprograma(string ficheroprograma, tnodo &nodo,
     errorcosasdespuesdelprograma(vt[ivt].linea, vt[ivt].columna);
 }
 
-void leerprogramas(string ficheroprograma, tnodo &nodo1, tnodo &nodo2,
-                   string internalerroringles, string internalerrorespanyol, string internalerrorcatalan)
+void leerprogramas(string ficheroprograma, tnodo &nodo1, tnodo &nodo2)
 {
-  prefijoerroringles = internalerroringles;
-  prefijoerrorespanyol = internalerrorespanyol;
-  prefijoerrorcatalan = internalerrorcatalan;
+  prefijoerroringles = "";
+  prefijoerrorespanyol = "";
+  prefijoerrorcatalan = "";
   vector<string> vs = leerfichero(ficheroprograma);
   vector<ttoken> vt;
   leerentrada(vs, vt);
@@ -3137,358 +3137,153 @@ string minusculas(string const &s)
 
 int main(int argc, char *argv[])
 {
-  if (argc<5 or argc>8)
-    morir("rejected", "Internal error: the number of arguments received by the judge is not correct.",
-          "rechazado", "Error interno: el numero de argumentos recibido por el juez no es correcto.",
-          "rebutjat", "Error intern: el nombre d'arguments rebuts pel jutge no es correcte.");
-  if (argc == 6 or argc == 7) {
-    string ficherojp = argv[1];
-    string ficherojp2input = argv[2];
-    string ficheroinput2sat = argv[3];
-    string ficheropropuestasolucion = argv[4];
-    string ficherovalidador = (argc == 7) ? argv[5] : "";
-    string ficheroformat = argv[argc - 1];
-    timer tlectura;
-    tnodo formatjp, formatinput, formatsat, formatsolucion, formatvalidador;
-    leerformat(sformatjp, formatjp,
-               "Internal error reading format: " + sformatjp + "\n",
-               "Error interno leyendo format: " + sformatjp + "\n",
-               "Error intern llegint format: " + sformatjp + "\n");
-    leerformat(sformatsat, formatsat,
-               "Internal error reading format: " + sformatsat + "\n",
-               "Error interno leyendo format: " + sformatsat + "\n",
-               "Error intern llegint format: " + sformatsat + "\n");
-    if (argc == 7) {
-      leerformat(ficheroformat, formatinput, formatsolucion,
-                 "Internal error reading format: " + ficheroformat + "\n",
-                 "Error interno leyendo format: " + ficheroformat + "\n",
-                 "Error intern llegint format: " + ficheroformat + "\n");
-      leerformat(sformatvalidador, formatvalidador,
-                 "Internal error reading format: " + sformatvalidador + "\n",
-                 "Error interno leyendo format: " + sformatvalidador + "\n",
-                 "Error intern llegint format: " + sformatvalidador + "\n");
-    } else {
-      leerformat(leerfichero(ficheroformat), formatinput,
-                 "Internal error reading format: " + ficheroformat + "\n",
-                 "Error interno leyendo format: " + ficheroformat + "\n",
-                 "Error intern llegint format: " + ficheroformat + "\n");
-    }
-    vector<tvalor> vjp;
-    leerjps(ficherojp, vjp, formatjp);
-    tnodo nodojp2input, nodoinput2sat, nodopropuestasolucion2sat, nodopropuestasolucion2solucion, nodovalidador;
-    leerprograma(ficherojp2input, nodojp2input,
-                 "Internal error reading jp2input: " + ficherojp2input + "\n",
-                 "Error interno leyendo jp2input: " + ficherojp2input + "\n",
-                 "Error intern llegint jp2input: " + ficherojp2input + "\n");
-    leerprograma(ficheroinput2sat, nodoinput2sat,
-                 "Internal error reading input2sat: " + ficheroinput2sat + "\n",
-                 "Error interno leyendo input2sat: " + ficheroinput2sat + "\n",
-                 "Error intern llegint input2sat: " + ficheroinput2sat + "\n");
-    if (argc == 7) {
-      leerprograma(ficherovalidador, nodovalidador,
-                   "Internal error reading validator: " + ficherovalidador + "\n",
-                   "Error interno leyendo validator: " + ficherovalidador + "\n",
-                   "Error intern llegint validator: " + ficherovalidador + "\n");
-      leerprogramas(ficheropropuestasolucion, nodopropuestasolucion2sat, nodopropuestasolucion2solucion,
-                    "", "", "");
-      if (nodopropuestasolucion2sat.texto != "")
-        morir("rejected", "The format of the program reducing to SAT should be: \"main { <instructions> }\".",
-              "rechazado", "El formato del programa que reduce a SAT deberia ser: \"main { <instrucciones> }\".",
-              "rebutjat", "El format del programa que redueix cap a SAT hauria de ser: \"main { <instruccions> }\".");
-      if (nodopropuestasolucion2solucion.texto != "model")
-        morir("rejected", "The format of the program that reconstructs the solution by analyzing the model should be: \"main(model) { <instructions> }\".",
-              "rechazado", "El formato del programa que reconstruye la solucion a partir del model deberia ser: \"main(model) { <instrucciones> }\".",
-              "rebutjat", "El format del programa que reconstrueix la solucio a partir del model hauria de ser: \"main(model) { <instruccions> }\".");
-    } else {
-      leerprograma(ficheropropuestasolucion, nodopropuestasolucion2sat,
-                   "", "", "");
-      if (nodopropuestasolucion2sat.texto != "")
-        morir("rejected", "The format of the program reducing to SAT should be: \"main { <instructions> }\".",
-              "rechazado", "El formato del programa que reduce a SAT deberia ser: \"main { <instrucciones> }\".",
-              "rebutjat", "El format del programa que redueix cap a SAT hauria de ser: \"main { <instruccions> }\".");
-    }
-    comprobarnoseusatipo(nodopropuestasolucion2sat, "out",
-                         "the \"out\" variable cannot be directly accessed in a reduction to SAT,\nuse \"insertsat\" instead to create your formula.",
-                         "la variable \"out\" no puede ser accedida directamente en una reduccion a SAT,\nen su lugar, utiliza \"insertsat\" para crear tu formula.",
-                         "la variable \"out\" no pot ser accedida directament en una reduccio a SAT,\nen comptes d'aixo, utilitza \"insertsat\" per a crear la teva formula.");
-    cout << "TIEMPO LECTURA Y PARSING = " << tlectura.elapsedstring() << endl;
-    timer tejecucion1a;
-    vector<tvalor> vinput, vsat1, vsat2;
-    vector<string> muestrainput, muestraoutput;
-    ejecuta(nodojp2input, vjp, vinput, formatinput,
-            "Internal error running jp2input: " + ficherojp2input + "\n",
-            "Error interno ejecutando jp2input: " + ficherojp2input + "\n",
-            "Error intern executant jp2input: " + ficherojp2input + "\n",
-            infinito);
-    generamuestra(vinput, muestrainput, "  in");
-    ejecuta(nodoinput2sat, vinput, vsat1, formatsat,
-            "Internal error running input2sat: " + ficheroinput2sat + "\n",
-            "Error interno ejecutando input2sat: " + ficheroinput2sat + "\n",
-            "Error intern executant input2sat: " + ficheroinput2sat + "\n",
-            infinito);
-    vector<vector<string> > historialesinsertsat;
-    timer tejecucion1b;
-    ejecuta(nodopropuestasolucion2sat, vinput, vsat2, formatsat, "", "", "",
-            finito, &historialesinsertsat);
-    generamuestra(historialesinsertsat, muestraoutput, "  ");
-    cout << "TIEMPO EJECUCION (to sat) = " << tejecucion1a.elapsedstring()
-         << " (" << tejecucion1b.elapsedstring() << " en propuestasolucion, de los cuales " << fixed << setprecision(3) << tiempoinsertsat << "s son por los " << ejecucionesinsertsat << " insertsat)" << endl;
-    sat_solver S1[vsat1.size()];
-    sat_solver S2[vsat2.size()];
-    vector<bool> resultados;
-    ostringstream infoextensa[vjp.size()];
-    double segaccum = 0.0;
-    for (int i = 0; i < int(vjp.size()); i++) {
-      timer t1;
-      S1[i].add(vsat1[i]);
-      bool respuestain = S1[i].solve();
-      double segresolverin = t1.elapsed();
-      timer t2;
-      S2[i].add(vsat2[i]);
-      bool respuestaout = S2[i].solve();
-      double segresolverout = t2.elapsed();
-      segaccum += segresolverin + segresolverout;
-      infoextensa[i] << endl;
-      infoextensa[i] << "############ JP " << (i + 1) << " ############" << endl;
-      infoextensa[i] << "input is " << (respuestain ? "SAT" : "UNSAT")
-                     << " vars=" << S1[i].numvars() << " clauses=" << vsat1[i].v.size()
-                     << " time=" << fixed << setprecision(3) << segresolverin << "s" << endl;
-      infoextensa[i] << "output is " << (respuestaout ? "SAT" : "UNSAT")
-                     << " vars=" << S2[i].numvars() << " clauses=" << vsat2[i].v.size()
-                     << " time=" << fixed << setprecision(3) << segresolverout << "s" << endl;
-      infoextensa[i] << "vinput:" << endl;
-      infoextensa[i] << muestrainput[i];
-      if (respuestain != respuestaout) {
-        cout << "TIEMPO SATSOLVING = " << fixed << setprecision(3) << segaccum << "s" << endl;
-        for (int j = 0; j <= i; ++j)
-          cout << infoextensa[j].str();
-        if (respuestain and not respuestaout)
-          errorrespuesta2SAT("positive", "positiva", "positiva", muestrainput[i], muestraoutput[i]);
-        if (not respuestain and respuestaout) {
-          if (argc == 7) {
-            string muestrasolucion;
-            tvalor validado;
-            ejecutareconstruccion(nodopropuestasolucion2solucion, vinput[i], formatsolucion, &S2[i], muestrasolucion,
-                                  ficherovalidador, nodovalidador, formatvalidador, validado);
-            errorrespuesta2SAT("negative", "negativa", "negativa", muestrainput[i], muestraoutput[i],
-                               muestrasolucion, validado.m["english"].s, validado.m["spanish"].s, validado.m["catalan"].s);
-          } else
-            errorrespuesta2SAT("negative", "negativa", "negativa", muestrainput[i], muestraoutput[i]);
-        }
-      }
-      resultados.push_back(respuestain);
-    }
-    cout << "TIEMPO SATSOLVING = " << fixed << setprecision(3) << segaccum << "s" << endl;
-    if (argc == 7) {
-      timer tejecucion2;
-      for (int i = 0; i < int(vjp.size()); i++) {
-        if (not resultados[i]) continue;
-        string muestrasolucion;
-        tvalor validado;
-        ejecutareconstruccion(nodopropuestasolucion2solucion, vinput[i], formatsolucion, &S2[i], muestrasolucion,
-                              ficherovalidador, nodovalidador, formatvalidador, validado);
-        infoextensa[i] << "reconstruccion:" << endl;
-        infoextensa[i] << muestrasolucion << endl;
-        if (not validado.m["valid"].x)
-          errorreconstruccion(validado.m["english"].s, validado.m["spanish"].s, validado.m["catalan"].s,
-                              muestrainput[i], muestrasolucion);
-      }
-      cout << "TIEMPO EJECUCION (reconstruccion, validacion) = " << tejecucion2.elapsedstring() << endl;
-      for (int j = 0; j < int(vjp.size()); ++j)
-        cout << infoextensa[j].str();
-      prefijoerroringles = prefijoerrorespanyol = prefijoerrorcatalan = "";
-      mensajeaceptacionconreconstruccion();
-    } else {
-      for (int j = 0; j < int(vjp.size()); ++j)
-        cout << infoextensa[j].str();
-      mensajeaceptacion();
-    }
-  }
+  if (argc!=7)
+    rechazar("Internal error: the number of arguments received by the judge is not correct.");
+
+  string ficherojp = argv[1];
+  string ficherojp2input = argv[2];
+  string ficheroinput2sat = argv[3];
+  string ficheropropuestasolucion = argv[4];
+  string ficherovalidador = argv[5];
+  string ficheroformat = argv[6];
 
   timer tlectura;
-  string ficherojp, ficherojp2input, ficheroinput2sat, ficheropropuestasolucion, ficherooutput2rich, ficherorich2sat, ficheroformat;
-  tnodo formatjp, formatinput, formatoutput, formatrich, formatsat;
-  tnodo nodopropuestasolucion;
-  if (argc == 8) {
-    ficherojp = argv[1];
-    ficherojp2input = argv[2];
-    ficheroinput2sat = argv[3];
-    ficheropropuestasolucion = argv[4];
-    ficherooutput2rich = argv[5];
-    ficherorich2sat = argv[6];
-    ficheroformat = argv[7];
-    leerprograma(ficheropropuestasolucion, nodopropuestasolucion,
-                 "", "", "");
-    if (nodopropuestasolucion.texto != "")
-      morir("rejected", "This program is not expected to receive a name of problem as parameter.",
-            "rechazado", "No se espera que este programa reciba un nombre de problema como parametro.",
-            "rebutjat", "No s'espera que aquest programa rebi un nom de problema com a parametre.");
-    leerformat(ficheroformat, formatjp, formatinput, formatoutput, formatrich, formatsat,
-               "Internal error reading format: " + ficheroformat + "\n",
-               "Error interno leyendo format: " + ficheroformat + "\n",
-               "Error intern llegint format: " + ficheroformat + "\n");
-  } else {
-    string listanombres;
-    set<string> nombresproblemas;
-    vector<string> choose = leerfichero("choose");
-    for (int i = 0; i < int(choose.size()); ++i) {
-      if (choose[i].size() < 2 or choose[i][0] != '/' or choose[i][1] != '/') {
-        nombresproblemas.insert(mayusculas(choose[i]));
-        if (not listanombres.empty()) listanombres += ", ";
-        listanombres += mayusculas(choose[i]);
-      }
-    }
-
-    ficheropropuestasolucion = argv[1];
-    leerprograma(ficheropropuestasolucion, nodopropuestasolucion,
-                 "", "", "");
-    if (nodopropuestasolucion.texto == "")
-      morir("rejected", "This program is expected to receive a name of problem as parameter: \"main(problem_name) { <instructions> }\".",
-            "rechazado", "Se espera que este programa reciba un nombre de problema como parametro: \"main(nombre_problema) { <instrucciones> }\".",
-            "rebutjat", "S'espera que aquest programa rebi un nom de problema com a parametre: \"main(nom_problem) { <instruccions> }\".");
-    else if (nombresproblemas.count(nodopropuestasolucion.texto) == 0)
-      morir("rejected", "The problem name received as parameter should be one of these: " + listanombres + ".",
-            "rechazado", "El nombre de problema recibido como parametro deberia ser uno de estos: " + listanombres + ".",
-            "rebutjat", "El nom de problema rebut com a parametre hauria de ser un d'aquests:" + listanombres + ".");
-    ficherojp = minusculas(nodopropuestasolucion.texto) + "_jp";
-    ficherojp2input = minusculas(nodopropuestasolucion.texto) + "_jp2input";
-    ficheroinput2sat = minusculas(nodopropuestasolucion.texto) + "_2sat";
-    ficheroformat = argv[4];
-    leerformat(sformatjp, formatjp,
-               "Internal error reading format: " + sformatjp + "\n",
-               "Error interno leyendo format: " + sformatjp + "\n",
-               "Error intern llegint format: " + sformatjp + "\n");
-    leerformat(sformatsat, formatsat,
-               "Internal error reading format: " + sformatsat + "\n",
-               "Error interno leyendo format: " + sformatsat + "\n",
-               "Error intern llegint format: " + sformatsat + "\n");
-    leerformat(leerfichero(ficherojp2input + ".formatout"), formatinput,
-               "Internal error reading format: " + ficherojp2input + ".formatout" + "\n",
-               "Error interno leyendo format: " + ficherojp2input + ".formatout" + "\n",
-               "Error intern llegint format: " + ficherojp2input + ".formatout" + "\n");
-    leerformat(ficheroformat, formatoutput, formatrich,
-               "Internal error reading format: " + ficheroformat + "\n",
-               "Error interno leyendo format: " + ficheroformat + "\n",
-               "Error intern llegint format: " + ficheroformat + "\n");
-    ficherooutput2rich = argv[2];
-    ficherorich2sat = argv[3];
-  }
-
+  tnodo formatjp, formatinput, formatsat, formatsolucion, formatvalidador;
+  leerformat(sformatjp, formatjp,
+             "Internal error reading format: " + sformatjp + "\n",
+             "Error interno leyendo format: " + sformatjp + "\n",
+             "Error intern llegint format: " + sformatjp + "\n");
+  leerformat(sformatsat, formatsat,
+             "Internal error reading format: " + sformatsat + "\n",
+             "Error interno leyendo format: " + sformatsat + "\n",
+             "Error intern llegint format: " + sformatsat + "\n");
+  leerformat(ficheroformat, formatinput, formatsolucion,
+             "Internal error reading format: " + ficheroformat + "\n",
+             "Error interno leyendo format: " + ficheroformat + "\n",
+             "Error intern llegint format: " + ficheroformat + "\n");
+  leerformat(sformatvalidador, formatvalidador,
+             "Internal error reading format: " + sformatvalidador + "\n",
+             "Error interno leyendo format: " + sformatvalidador + "\n",
+             "Error intern llegint format: " + sformatvalidador + "\n");
+  
   vector<tvalor> vjp;
-  //cout<<"leerjp"<<endl;
   leerjps(ficherojp, vjp, formatjp);
-  tnodo nodojp2input, nodoinput2sat, nodooutput2rich, nodorich2sat;
-  //cout<<"leerjp2input"<<endl;
+  tnodo nodojp2input, nodoinput2sat, nodopropuestasolucion2sat, nodopropuestasolucion2solucion, nodovalidador;
   leerprograma(ficherojp2input, nodojp2input,
                "Internal error reading jp2input: " + ficherojp2input + "\n",
                "Error interno leyendo jp2input: " + ficherojp2input + "\n",
                "Error intern llegint jp2input: " + ficherojp2input + "\n");
-  //cout<<"leerinput2sat"<<endl;
   leerprograma(ficheroinput2sat, nodoinput2sat,
                "Internal error reading input2sat: " + ficheroinput2sat + "\n",
                "Error interno leyendo input2sat: " + ficheroinput2sat + "\n",
                "Error intern llegint input2sat: " + ficheroinput2sat + "\n");
-  //cout<<"leeroutput2rich"<<endl;
-  leerprograma(ficherooutput2rich, nodooutput2rich,
-               "Internal error reading output2rich: " + ficherooutput2rich + "\n",
-               "Error interno leyendo output2rich: " + ficherooutput2rich + "\n",
-               "Error intern llegint output2rich: " + ficherooutput2rich + "\n");
-  //cout<<"leerrich2sat"<<endl;
-  leerprograma(ficherorich2sat, nodorich2sat,
-               "Internal error reading rich2sat: " + ficherorich2sat + "\n",
-               "Error interno leyendo rich2sat: " + ficherorich2sat + "\n",
-               "Error intern llegint rich2sat: " + ficherorich2sat + "\n");
-  vector<tvalor> vinput, vsat1, voutput, vrich, vsat2;
-  vector<string> muestrainput, muestraoutput;
+  leerprograma(ficherovalidador, nodovalidador,
+               "Internal error reading validator: " + ficherovalidador + "\n",
+               "Error interno leyendo validator: " + ficherovalidador + "\n",
+               "Error intern llegint validator: " + ficherovalidador + "\n");
+  leerprogramas(ficheropropuestasolucion, nodopropuestasolucion2sat, nodopropuestasolucion2solucion);
+
+  if (nodopropuestasolucion2sat.texto != "")
+    morir("rejected", "The format of the program reducing to SAT should be: \"main { <instructions> }\".",
+          "rechazado", "El formato del programa que reduce a SAT deberia ser: \"main { <instrucciones> }\".",
+          "rebutjat", "El format del programa que redueix cap a SAT hauria de ser: \"main { <instruccions> }\".");
+  if (nodopropuestasolucion2solucion.texto != "model")
+    morir("rejected", "The format of the program that reconstructs the solution by analyzing the model should be: \"main(model) { <instructions> }\".",
+          "rechazado", "El formato del programa que reconstruye la solucion a partir del model deberia ser: \"main(model) { <instrucciones> }\".",
+          "rebutjat", "El format del programa que reconstrueix la solucio a partir del model hauria de ser: \"main(model) { <instruccions> }\".");  
+  comprobarnoseusatipo(nodopropuestasolucion2sat, "out",
+                       "the \"out\" variable cannot be directly accessed in a reduction to SAT,\nuse \"insertsat\" instead to create your formula.",
+                       "la variable \"out\" no puede ser accedida directamente en una reduccion a SAT,\nen su lugar, utiliza \"insertsat\" para crear tu formula.",
+                       "la variable \"out\" no pot ser accedida directament en una reduccio a SAT,\nen comptes d'aixo, utilitza \"insertsat\" per a crear la teva formula.");
+  
   cout << "TIEMPO LECTURA Y PARSING = " << tlectura.elapsedstring() << endl;
 
-  timer tejecucion;
-  //cout<<"ejecutajp2input"<<endl;
+  timer tejecucion1a;
+  vector<tvalor> vinput, vsat1, vsat2;
+  vector<string> muestrainput, muestraoutput;
   ejecuta(nodojp2input, vjp, vinput, formatinput,
           "Internal error running jp2input: " + ficherojp2input + "\n",
           "Error interno ejecutando jp2input: " + ficherojp2input + "\n",
           "Error intern executant jp2input: " + ficherojp2input + "\n",
           infinito);
   generamuestra(vinput, muestrainput, "  in");
-  //cout<<"ejecutainput2sat"<<endl;
   ejecuta(nodoinput2sat, vinput, vsat1, formatsat,
           "Internal error running input2sat: " + ficheroinput2sat + "\n",
           "Error interno ejecutando input2sat: " + ficheroinput2sat + "\n",
           "Error intern executant input2sat: " + ficheroinput2sat + "\n",
           infinito);
-  //cout<<"ejecutapropuestasolucion"<<endl;
-  ejecuta(nodopropuestasolucion, vinput, voutput, formatoutput, "", "", "", finito);
-  generamuestra(voutput, muestraoutput, "  out");
-  aplicamapping(voutput);
-  //cout<<"ejecutaoutput2rich"<<endl;
-  ejecuta(nodooutput2rich, voutput, vrich, formatrich,
-          "Internal error running output2rich: " + ficherooutput2rich + "\n",
-          "Error interno ejecutando output2rich: " + ficherooutput2rich + "\n",
-          "Error intern executant output2rich: " + ficherooutput2rich + "\n", infinito);
-  //cout<<"ejecutarich2sat"<<endl;
-  ejecuta(nodorich2sat, vrich, vsat2, formatsat,
-          "Internal error running rich2sat: " + ficherorich2sat + "\n",
-          "Error interno ejecutando rich2sat: " + ficherorich2sat + "\n",
-          "Error intern executant rich2sat: " + ficherorich2sat + "\n", infinito);
-  prefijoerroringles = prefijoerrorespanyol = prefijoerrorcatalan = "";
-  cout << "TIEMPO EJECUCION = " << tejecucion.elapsedstring() << endl;
-
-  ostringstream infoextensa;
-  timer tvalidacion;
+  vector<vector<string> > historialesinsertsat;
+  timer tejecucion1b;
+  ejecuta(nodopropuestasolucion2sat, vinput, vsat2, formatsat, "", "", "",
+          finito, &historialesinsertsat);
+  generamuestra(historialesinsertsat, muestraoutput, "  ");
+  cout << "TIEMPO EJECUCION (to sat) = " << tejecucion1a.elapsedstring()
+       << " (" << tejecucion1b.elapsedstring() << " en propuestasolucion, de los cuales " << fixed << setprecision(3) << tiempoinsertsat << "s son por los " << ejecucionesinsertsat << " insertsat)" << endl;
+  sat_solver S1[vsat1.size()];
+  sat_solver S2[vsat2.size()];
+  vector<bool> resultados;
+  ostringstream infoextensa[vjp.size()];
   double segaccum = 0.0;
   for (int i = 0; i < int(vjp.size()); i++) {
-    int varsin, clausesin, varsout, clausesout;
-    double segresolverin, segresolverout;
-    bool respuestain = compruebasatisfactibilidad(vsat1[i], varsin, clausesin, segresolverin);
-    bool respuestaout = compruebasatisfactibilidad(vsat2[i], varsout, clausesout, segresolverout);
+    timer t1;
+    S1[i].add(vsat1[i]);
+    bool respuestain = S1[i].solve();
+    double segresolverin = t1.elapsed();
+    timer t2;
+    S2[i].add(vsat2[i]);
+    bool respuestaout = S2[i].solve();
+    double segresolverout = t2.elapsed();
     segaccum += segresolverin + segresolverout;
-    infoextensa << endl;
-    infoextensa << "############ JP " << (i + 1) << " ############" << endl;
-    infoextensa << "input is " << (respuestain ? "SAT" : "UNSAT")
-                << " vars=" << varsin << " clauses=" << clausesin
-                << " time=" << fixed << setprecision(3) << segresolverin << "s" << endl;
-    infoextensa << "output is " << (respuestaout ? "SAT" : "UNSAT")
-                << " vars=" << varsout << " clauses=" << clausesout
-                << " time=" << fixed << setprecision(3) << segresolverout << "s" << endl;
-    infoextensa << "vinput:" << endl;
-    infoextensa << muestrainput[i];
-    //infoextensa<<"vsat1:"<<endl;
-    //infoextensa<<muestratvalorchivato(vsat1[i],"  intput2sat.out");
-    //infoextensa<<"voutput:"<<endl;
-    //infoextensa<<muestraoutput[i];
-    //infoextensa<<"voutput[mapping]:"<<endl;
-    //infoextensa<<muestratvalorchivato(voutput[i],"  output2rich.in");
-    //infoextensa<<"vrich:"<<endl;
-    //infoextensa<<muestratvalorchivato(vrich[i],"  output2rich.out");
-    //infoextensa<<"vsat2:"<<endl;
-    //infoextensa<<muestratvalorchivato(vsat2[i],"  rich2sat.out");
+    infoextensa[i] << endl;
+    infoextensa[i] << "############ JP " << (i + 1) << " ############" << endl;
+    infoextensa[i] << "input is " << (respuestain ? "SAT" : "UNSAT")
+                   << " vars=" << S1[i].numvars() << " clauses=" << vsat1[i].v.size()
+                   << " time=" << fixed << setprecision(3) << segresolverin << "s" << endl;
+    infoextensa[i] << "output is " << (respuestaout ? "SAT" : "UNSAT")
+                   << " vars=" << S2[i].numvars() << " clauses=" << vsat2[i].v.size()
+                   << " time=" << fixed << setprecision(3) << segresolverout << "s" << endl;
+    infoextensa[i] << "vinput:" << endl;
+    infoextensa[i] << muestrainput[i];
     if (respuestain != respuestaout) {
-      cout << "TIEMPO SATSOLVING = " << tvalidacion.elapsedstring();
-      cout << " (en minisat = " << fixed << setprecision(3) << segaccum << "s)" << endl;
-      cout << infoextensa.str();
+      cout << "TIEMPO SATSOLVING = " << fixed << setprecision(3) << segaccum << "s" << endl;
+      for (int j = 0; j <= i; ++j)
+        cout << infoextensa[j].str();
       if (respuestain and not respuestaout)
-        errorrespuesta("positive", "positiva", "positiva", muestrainput[i], muestraoutput[i]);
-      if (not respuestain and respuestaout)
-        errorrespuesta("negative", "negativa", "negativa", muestrainput[i], muestraoutput[i]);
+        errorrespuesta2SAT("positive", "positiva", "positiva", muestrainput[i], muestraoutput[i]);
+      if (not respuestain and respuestaout) {
+        if (argc == 7) {
+          string muestrasolucion;
+          tvalor validado;
+          ejecutareconstruccion(nodopropuestasolucion2solucion, vinput[i], formatsolucion, &S2[i], muestrasolucion,
+                                ficherovalidador, nodovalidador, formatvalidador, validado);
+          errorrespuesta2SAT("negative", "negativa", "negativa", muestrainput[i], muestraoutput[i],
+                             muestrasolucion, validado.m["english"].s, validado.m["spanish"].s, validado.m["catalan"].s);
+        } else
+          errorrespuesta2SAT("negative", "negativa", "negativa", muestrainput[i], muestraoutput[i]);
+      }
     }
+    resultados.push_back(respuestain);
   }
-  cout << "TIEMPO SATSOLVING = " << tvalidacion.elapsedstring();
-  cout << " (en minisat = " << fixed << setprecision(3) << segaccum << "s)" << endl;
-  cout << infoextensa.str();
-  mensajeaceptacion();
-  /*
-  for (int i=0;i<int(jp.size());i++) {
-    cout<<endl<<endl<<endl;
-    cout<<"----"<<endl;
-    cout<<muestratvalor(insat[i])<<endl;
-    cout<<"----"<<endl;
-    cout<<muestratvalor(inpropuestasolucion[i])<<endl;
-    cout<<"----"<<endl;
-    cout<<muestratvalor(outpropuestasolucion[i])<<endl;
-    cout<<"----"<<endl;
-    cout<<muestratvalor(outsat[i])<<endl;
+  cout << "TIEMPO SATSOLVING = " << fixed << setprecision(3) << segaccum << "s" << endl;
+
+  timer tejecucion2;
+  for (int i = 0; i < int(vjp.size()); i++) {
+    if (not resultados[i]) continue;
+    string muestrasolucion;
+    tvalor validado;
+    ejecutareconstruccion(nodopropuestasolucion2solucion, vinput[i], formatsolucion, &S2[i], muestrasolucion,
+                          ficherovalidador, nodovalidador, formatvalidador, validado);
+    infoextensa[i] << "reconstruccion:" << endl;
+    infoextensa[i] << muestrasolucion << endl;
+    if (not validado.m["valid"].x)
+      errorreconstruccion(validado.m["english"].s, validado.m["spanish"].s, validado.m["catalan"].s,
+                          muestrainput[i], muestrasolucion);
   }
-  */
+  cout << "TIEMPO EJECUCION (reconstruccion, validacion) = " << tejecucion2.elapsedstring() << endl;
+  for (int j = 0; j < int(vjp.size()); ++j)
+    cout << infoextensa[j].str();
+  prefijoerroringles = prefijoerrorespanyol = prefijoerrorcatalan = "";
+  mensajeaceptacionconreconstruccion();
 }
 
 /*
