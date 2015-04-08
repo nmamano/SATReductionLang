@@ -37,20 +37,7 @@ ll stollsat(string s)
 
 string itos(ll x)
 {
-  if (x == 0) return "0";
-  string s;
-  bool signo = false;
-  if (x < 0) {
-    signo = true;
-    x = -x;
-  }
-  while (x > 0) {
-    s = string(1, char(x % 10 + '0')) + s;
-    x /= 10;
-  }
-  if (signo)
-    s = "-" + s;
-  return s;
+  return static_cast<ostringstream*>( &(ostringstream() << x) )->str();
 }
 
 bool esentero(string s)
