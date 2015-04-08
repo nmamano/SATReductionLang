@@ -1,0 +1,22 @@
+//row 1:nCourses,nRooms,nTeachrs,nSubjs.1 row x teachr: nForbid. hrs, hrs. 3 rows x subj: row1: course,hrs,nRooms,nTechrs. row2:rooms. row3:teachers
+main
+{
+  out.courses = in[0][0];
+  out.classrooms = in[0][1];
+  for(i=0;i<in[0][2];i++){
+    out.teachers.push;
+    for(j=0;j<in[1+i][0];j++){
+      out.teachers[i][j]=in[1+i][1+j];
+    }
+  }
+  for(i=0;i<in[0][3];i++){
+    out.subjects[i].course=in[1+in[0][2]+3*i][0];
+    out.subjects[i].hours=in[1+in[0][2]+3*i][1];
+    for(j=0;j<in[1+in[0][2]+3*i][2];j++){
+      out.subjects[i].classrooms[j]=in[1+in[0][2]+3*i+1][j];
+    }
+    for(j=0;j<in[1+in[0][2]+3*i][3];j++){
+      out.subjects[i].teachers[j]=in[1+in[0][2]+3*i+2][j];
+    }
+  }
+}

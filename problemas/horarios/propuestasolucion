@@ -1,0 +1,91 @@
+main
+{
+  foreach(i,s ; in.subjects){
+    // specific number of session of the subject
+    numsessions = "exactly {s.hours}";
+    for(d=0 ; d<5 ; ++d)
+      numsessions = numsessions + " {i}atday{d}";
+    insertsat(numsessions);
+    // with no more than one session per day
+    for(d=0 ; d<5 ; ++d){
+      daybound = "";
+      for(h=0 ; h<12 ; ++h)
+	daybound = daybound + " {i}at{d*12+h}";
+      insertsat("{i}atday{d} => exactly 1"+daybound);
+      insertsat("{i}atday{d} <= atleast 1"+daybound);
+    }
+    // with one specific teacher
+    oneteacher = "exactly 1";
+    foreach(t ; s.teachers)
+      oneteacher = oneteacher + " {i}by{t}";
+    insertsat(oneteacher);
+    // with one specific classroom
+    oneclassroom = "exactly 1";
+    foreach(c ; s.classrooms)
+      oneclassroom = oneclassroom + " {i}in{c}";
+    insertsat(oneclassroom);
+  }
+  // the teacher can attend all the sessions
+  foreach(i,s ; in.subjects)
+    foreach(t ; s.teachers)
+      foreach(h ; in.teachers[t])
+	insertsat("{i}by{t} => -{i}at{h}");
+  // sessions from the same course do not overlap, and overlaping
+  // sessions (from different courses) have distinct teacher/classroom
+  insertsat("true");
+  foreach(i,s0 ; in.subjects)
+    foreach(j,s1 ; in.subjects)
+      if (j>i)
+	if (s0.course == s1.course){
+	  nooverlap = "true";
+	  for(h=0 ; h<60 ; ++h)
+	    nooverlap = nooverlap + " & -({i}at{h} & {j}at{h})";
+	  insertsat(nooverlap);
+	}else
+	  for(h=0 ; h<60 ; ++h){
+	    nooverlap = "{i}at{h} & {j}at{h} => true";
+	    for(c=0 ; c<in.classrooms ; ++c)
+	      nooverlap = nooverlap + " & -({i}in{c} & {j}in{c})";
+	    for(t=0 ; t<in.teachers.size ; ++t)
+	      nooverlap = nooverlap + " & -({i}by{t} & {j}by{t})";
+	    insertsat(nooverlap);
+	  }
+  // at most 6 hours/day per course, and no spare hours between classes
+  insertsat("-false");
+  for(c=0 ; c<in.courses ; ++c){
+    for(h=0 ; h<60 ; ++h){
+      coursehour = "course{c}at{h} <=> false";
+      foreach(i,s ; in.subjects)
+	if (s.course == c)
+	  coursehour = coursehour + " | {i}at{h}";
+      insertsat(coursehour);
+    }
+    for(d=0 ; d<5 ; ++d){
+      daybound = "atmost 6";
+      for(h=0 ; h<12 ; ++h)
+	daybound = daybound + " course{c}at{d*12+h}";
+      insertsat(daybound);
+      for(h1=1 ; h1<12-1 ; ++h1){
+	compact = "course{c}at{d*12+h1-1} & -course{c}at{d*12+h1} => true";
+	for(h2=h1+1 ; h2<12 ; ++h2)
+	  compact = compact + " & -course{c}at{d*12+h2}";
+	insertsat(compact);
+      }
+    }
+  }
+}
+
+main(model)
+{
+  foreach(i,s ; in.subjects){
+    foreach(c ; s.classrooms)
+      if (model["{i}in{c}"])
+	out[i].classroom = c;
+    foreach(t ; s.teachers)
+      if (model["{i}by{t}"])
+	out[i].teacher = t;
+    for(h=0 ; h<60 ; ++h)
+      if (model["{i}at{h}"])
+	out[i].hours.push = h;
+  }
+}

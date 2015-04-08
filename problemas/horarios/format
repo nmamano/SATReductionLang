@@ -1,0 +1,16 @@
+struct {
+   courses: int
+   classrooms: int
+   teachers: array of array of int
+   subjects: array of struct {
+     course: int
+     hours: int
+     classrooms: array of int
+     teachers: array of int
+   }
+}
+array of struct {
+  classroom: int
+  teacher: int
+  hours: array of int
+}
