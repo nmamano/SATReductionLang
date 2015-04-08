@@ -128,12 +128,6 @@ void rechazar(int linea, int columna, string mensajelargoingles) {
   rechazar("Error line " + itos(linea) + " column " + itos(columna) + ": " + mensajelargoingles);
 }
 
-bool comando(string const &s)
-{
-  int const res = system(s.c_str());
-  return (res != -1) and (WEXITSTATUS(res) == 0);
-}
-
 vector<string> leerfichero(string nombrefichero)
 {
   vector<string> v;
@@ -155,13 +149,10 @@ vector<string> leerfichero(string nombrefichero)
   return v;
 }
 
-
-////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 // Analisis lexico del programa de entrada:
-
 
 struct ttoken {
   string tipo, texto;
@@ -175,7 +166,6 @@ struct ttoken {
     tipo = intipo; texto = intexto, linea = inlinea, columna = incolumna;
   }
 };
-
 
 set<string> palabrasclaveprograma = {"main", "in", "out", "stop",
                                  "if", "else", "while", "for", "foreach",
