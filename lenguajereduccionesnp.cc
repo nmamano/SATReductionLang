@@ -2301,13 +2301,6 @@ void errorreconstruccion(string ingles, string espanyol, string catalan, string 
         (not ingles.empty() ? "\n" + ingles + "\n" : string()));
 }
 
-void mensajeaceptacion()
-{
-  morirpuro("accepted", "Reduction apparently correct.",
-        "aceptado", "Reduccion aparentemente correcta.",
-        "acceptat", "Reduccio aparentment correcta.");
-}
-
 void mensajeaceptacionconreconstruccion()
 {
   morirpuro("accepted", "Reduction and solution reconstruction apparently correct.",
