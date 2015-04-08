@@ -2775,7 +2775,7 @@ void leerlineajp(string &s, tvalor &valor, tnodo &format)
   int x;
   while (ci >> x) {
     valor.v.back().v.push_back(x);
-    valor.v.back().v.back().format = &format;
+    valor.v.back().v.back().format = &(format.hijo[0]);
   }
 }
 
