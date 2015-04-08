@@ -2768,15 +2768,16 @@ void separarjps(vector<string> &vs, vector<vector<string> > &vvs)
 void leerlineajp(string &s, tvalor &valor, tnodo &format)
 {
   if (eliminaespaciosycomentarios(s) == "") return;
-  valor.v.push_back(tvalor());
-  valor.v.back().kind = 2;
-  valor.v.back().format = &format;
+  tvalor lista;
+  lista.kind = 2;
+  lista.format = &format;
   istringstream ci(s);
   int x;
   while (ci >> x) {
-    valor.v.back().v.push_back(x);
-    valor.v.back().v.back().format = &(format.hijo[0]);
+    lista.v.push_back(x);
+    lista.v.back().format = &(format.hijo[0]);
   }
+  valor.v.push_back(lista);
 }
 
 void leerjp(vector<string> &vs, tvalor &valor, tnodo &format)
