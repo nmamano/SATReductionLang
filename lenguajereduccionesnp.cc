@@ -130,8 +130,8 @@ void morir(string mensajecortoingles, string mensajelargoingles,
            string mensajecortocatalan, string mensajelargocatalan)
 {
   morirpuro(mensajecortoingles, prefijoerroringles + mensajelargoingles,
-            mensajecortoespanyol, prefijoerrorespanyol + mensajelargoespanyol,
-            mensajecortocatalan, prefijoerrorcatalan + mensajelargocatalan);
+            mensajecortoespanyol, prefijoerroringles + mensajelargoespanyol,
+            mensajecortocatalan, prefijoerroringles + mensajelargocatalan);
 }
 
 void rechazar(string mensajelargoingles) {
