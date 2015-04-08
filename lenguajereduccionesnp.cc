@@ -61,6 +61,14 @@ bool esentero(string s)
   return true;
 }
 
+bool esletra(char c) {
+  return (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z');
+}
+
+bool esnumero(char c) {
+  return (c >= '0' and c <= '9');
+}
+
 bool esenterosat(string s)
 {
   if (s.size() > 2 and s[0] == '{' and s[s.size() - 1] == '}')
@@ -2637,10 +2645,7 @@ void leeridentificadorformat(string &s, int &is, vector<ttoken> &vt, int linea)
 {
   int nextis = is;
   while (nextis < int(s.size()) and
-         ((s[nextis] >= 'a' and s[nextis] <= 'z') or
-          (s[nextis] >= 'A' and s[nextis] <= 'Z') or
-          (s[nextis] >= '0' and s[nextis] <= '9') or
-          (s[nextis] == '_')))
+         (esletra(s[nextis]) or esnumero(s[nextis]) or s[nextis] == '_'))
     nextis++;
   string id = s.substr(is, nextis - is);
   if (palabrasclaveformat.count(id))
@@ -2660,23 +2665,24 @@ void leerconstanteformat(string &s, int &is, vector<ttoken> &vt, int linea)
 
 void leertokenformat(string &s, int &is, vector<ttoken> &vt, int linea)
 {
-  if ((s[is] >= 'a' and s[is] <= 'z') or (s[is] >= 'A' and s[is] <= 'Z') or (s[is] == '_')) {
+  if (esletra(s[is]) or (s[is] == '_')) {
     leeridentificadorformat(s, is, vt, linea);
     return;
   }
-  else if (s[is] >= '0' and s[is] <= '9') {
+  else if (esnumero(s[is])) {
     leerconstanteformat(s, is, vt, linea);
     return;
   }
   else {
     for (string c : cadenasclaveformat) {
-      if (int(s.size()) - is >= int(c.size()) and s.substr(is, int(c.size())) == c) {
+      if (int(s.size()) >= is + int(c.size()) and s.substr(is, int(c.size())) == c) {
         if (c == "//") {
           is = int(s.size());
-          return;
         }
-        vt.push_back(ttoken(c, "", linea, is + 1));
-        is += int(c.size());
+        else {
+          vt.push_back(ttoken(c, "", linea, is + 1));
+          is += int(c.size());
+        }
         return;
       }
     }
