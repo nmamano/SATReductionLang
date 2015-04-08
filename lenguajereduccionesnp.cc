@@ -201,20 +201,15 @@ void leeridentificador(string &s, int &is, vector<ttoken> &vt, int linea,
   is = nextis;
 }
 
+int limitenumdigitos = 9;
+
 void leerconstante(string &s, int &is, vector<ttoken> &vt, int linea)
 {
   int nextis = is;
-  while (nextis<int(s.size()) and s[nextis] >= '0' and s[nextis] <= '9') nextis++;
-  if (nextis - is >= 9)
-    morir("rejected", "Error line " + itos(linea) + " column " + itos(is + 1) +
-          ": the constant \"" + s.substr(is, nextis - is) + "\" is too big.\n" +
-          "This does not mean that your reduction is wrong, but you should find a simpler one.",
-          "rechazado", "Error linea " + itos(linea) + " columna " + itos(is + 1) +
-          ": la constante \"" + s.substr(is, nextis - is) + "\" es demasiado grande.\n" +
-          "Eso no significa que la reduccion este mal, pero si conviene buscar una reduccion mas sencilla.",
-          "rebutjat", "Error linea " + itos(linea) + " columna " + itos(is + 1) +
-          ": la constant \"" + s.substr(is, nextis - is) + "\" es massa gran.\n" +
-          "Aixo no significa que la reduccio estigui malament, pero si conve buscar una solucio mes senzilla.");
+  while (nextis<int(s.size()) and esnumero(s[nextis])) nextis++;
+  if (nextis - is >= limitenumdigitos)
+    rechazar(linea, is + 1, "the constant \"" + s.substr(is, nextis - is) + "\" is too big.\n" +
+          "This does not mean that your program is wrong, but you should find a simpler one.");
   vt.push_back(ttoken("constante", s.substr(is, nextis - is), linea, is + 1));
   is = nextis;
 }
@@ -225,12 +220,7 @@ void leerstring(string &s, int &is, vector<ttoken> &vt, int linea)
   while (nextis < int(s.size()) and s[nextis] != '"')
     nextis++;
   if (nextis == int(s.size()))
-    morir("rejected", "Error line " + itos(linea) + " column " + itos(is + 1) +
-          ": the string constant should end in this line with '\"'.",
-          "rechazado", "Error linea " + itos(linea) + " columna " + itos(is + 1) +
-          ": la constante string deberia terminar en esta misma linea con '\"'.",
-          "rebutjat", "Error linea " + itos(linea) + " columna " + itos(is + 1) +
-          ": la constant string hauria d'acabar en aquesta mateixa linia amb '\"'.");
+    rechazar(linea, is + 1, "the string constant should end in this line with '\"'.");
   nextis++;
   vt.push_back(ttoken("string", s.substr(is + 1, nextis - is - 2), linea, is + 1));
   is = nextis;
@@ -274,28 +264,26 @@ void saltarblancos(string &s, int &i)
   while (i < int(s.size()) and (s[i] == ' ' or s[i] == '\t')) i++;
 }
 
+//forces expressions inside parametrized strings to be evaluated
+//before being concatenated with the string
 void precompilarlinea(string &s)
 {
   string nexts;
   bool comillas = false;
-  for (int i = 0; i < int(s.size()); i++) {
-    if (not comillas or (s[i] != '{' and s[i] != '}'))
-      nexts += string(1, s[i]);
-    //else if (s[i]=='<')
-    //nexts+="\"+(";
-    //else if (s[i]=='>')
-    //nexts+=")+\"";
-    else if (s[i] == '{')
+  for (char c : s) {
+    if (not comillas or (c != '{' and c != '}'))
+      nexts += string(1, c);
+    else if (c == '{')
       nexts += "{\"+(";
-    else if (s[i] == '}')
+    else if (c == '}')
       nexts += ")+\"}";
-    if (s[i] == '"')
+    if (c == '"')
       comillas = not comillas;
   }
   s = nexts;
 }
 
-void leerentrada(string &s, vector<ttoken> &vt, int linea)
+void leerlineaentrada(string &s, vector<ttoken> &vt, int linea)
 {
   int is = 0;
   saltarblancos(s, is);
@@ -309,20 +297,15 @@ void leerentrada(vector<string> &vs, vector<ttoken> &vt)
 {
   for (int i = 0; i < int(vs.size()); i++) {
     precompilarlinea(vs[i]);
-    leerentrada(vs[i], vt, i + 1);
+    leerlineaentrada(vs[i], vt, i + 1);
   }
 }
 
-void verificarquenoseusa(string &t, vector<ttoken> &vt)
+void verificarquenoseusa(string &s, vector<ttoken> &vt)
 {
-  for (int i = 0; i < int(vt.size()); i++)
-    if (vt[i].tipo == t)
-      morir("rejected", "Error line " + itos(vt[i].linea) + " column " + itos(vt[i].columna) +
-            ": it is not allowed to use \"" + t + "\".",
-            "rechazado", "Error linea " + itos(vt[i].linea) + " columna " + itos(vt[i].columna) +
-            ": no se permite usar \"" + t + "\".",
-            "rebutjat", "Error linea " + itos(vt[i].linea) + " columna " + itos(vt[i].columna) +
-            ": no es permet usar \"" + t + "\".");
+  for (ttoken& t : vt)
+    if (t.tipo == s)
+      rechazar(t.linea, t.columna, "it is not allowed to use \"" + s + "\".");
 }
 
 ////////////////////////////////////////////////////////////
