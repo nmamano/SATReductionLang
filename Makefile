@@ -19,6 +19,7 @@ endif
 
 CXX    ?= g++
 CFLAGS ?= -O3 -Wall
+CFLAGS  += -std=c++0x
 LFLAGS ?= -Wall
 
 all : juezejecutable
