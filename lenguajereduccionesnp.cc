@@ -352,7 +352,6 @@ struct tnodo {
   string tipo, texto;
   int linea, columna;
   vector<tnodo> hijo;
-  vector<string> listacampos;
   map<string, tnodo> m;
   tnodo() {
   }
@@ -364,6 +363,13 @@ struct tnodo {
   }
   tnodo(ttoken token) {
     tipo = token.tipo; texto = token.texto; linea = token.linea; columna = token.columna;
+  }
+
+  vector<string> listacampos() {
+    vector<string> res;
+    for(auto x: m)
+      res.push_back(x.first);
+    return res;
   }
 };
 
@@ -1003,8 +1009,6 @@ void construirstruct(string campo1, tvalor &valor1, string campo2, tvalor &valor
                      tnodo &nodo, tvalor &valor)
 {
   nodo.tipo = "struct";
-  nodo.listacampos.push_back(campo1);
-  nodo.listacampos.push_back(campo2);
   nodo.m[campo1] = *valor1.format;
   nodo.m[campo2] = *valor2.format;
   valor.format = &nodo;
@@ -2002,9 +2006,9 @@ int limitenumlineasmuestratvalor = 500;
 int generamuestra(tvalor &valor, string &muestra, string prefijo, int &lineas)
 {
   if (valor.kind == 4) {
-    for (int i = 0; i < int(valor.format->listacampos.size()); i++)
-      if (generamuestra(valor.m[valor.format->listacampos[i]], muestra,
-                        prefijo + "." + valor.format->listacampos[i], lineas))
+    for (int i = 0; i < int(valor.format->m.size()); i++)
+      if (generamuestra(valor.m[valor.format->listacampos()[i]], muestra,
+                        prefijo + "." + valor.format->listacampos()[i], lineas))
         return 1;
   } else if (valor.kind == 2) {
     if (valor.format->hijo[0].tipo == "int" or
@@ -2361,26 +2365,26 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
         v1.v[i - 1].s = v2.s;
       }
     } else if (v1.kind == 4) {
-      if (int(nodo.hijo.size()) - 1 != int(v1.format->listacampos.size()))
+      if (int(nodo.hijo.size()) - 1 != int(v1.format->m.size()))
         morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": the number of expressions does not coincide with the number of fields in the struct.",
               "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": el numero de expresiones no coincide con el numero de campos del struct.",
               "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": el nombre d'expressions no coincideix amb el nombre de camps de l'struct.");
       for (int i = 1; i < int(nodo.hijo.size()); i++) {
         tvalor v2 = ejecutaexpresion(nodo.hijo[i], in, valor, nombremodelo, modelo);
-        if (v1.format->m[v1.format->listacampos[i - 1]].tipo == "int" and v2.kind != 0)
+        if (v1.format->m[v1.format->listacampos()[i - 1]].tipo == "int" and v2.kind != 0)
           morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": incompatible types in assignment.\nAn \"int\" was expected in the expresion number " + itos(i) + ".",
                 "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipos incompatibles en la asignacion.\nSe esperaba un \"int\" en la expresion numero " + itos(i) + ".",
                 "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipus incompatibles en l'assignacio.\nS'esperava un \"int\" a l'expressio numero " + itos(i) + ".");
-        if (v1.format->m[v1.format->listacampos[i - 1]].tipo != "int" and
-            v1.format->m[v1.format->listacampos[i - 1]].tipo != "string" and
-            v1.format->m[v1.format->listacampos[i - 1]].tipo != "#" and
-            v1.format->m[v1.format->listacampos[i - 1]].tipo != "@")
+        if (v1.format->m[v1.format->listacampos()[i - 1]].tipo != "int" and
+            v1.format->m[v1.format->listacampos()[i - 1]].tipo != "string" and
+            v1.format->m[v1.format->listacampos()[i - 1]].tipo != "#" and
+            v1.format->m[v1.format->listacampos()[i - 1]].tipo != "@")
           morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": incompatible types in assignment.\nThe field number " + itos(i) + " of the struct is not \"int\" or \"string\".",
                 "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipos incompatibles en la asignacion.\nEl campo numero " + itos(i) + " del struct no es \"int\" o \"string\".",
                 "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipus incompatibles en l'assignacio.\nEl camp numero " + itos(i) + " del struct no es \"int\" o \"string\".");
-        v1.m[v1.format->listacampos[i - 1]].kind = v2.kind;
-        v1.m[v1.format->listacampos[i - 1]].x = v2.x;
-        v1.m[v1.format->listacampos[i - 1]].s = v2.s;
+        v1.m[v1.format->listacampos()[i - 1]].kind = v2.kind;
+        v1.m[v1.format->listacampos()[i - 1]].x = v2.x;
+        v1.m[v1.format->listacampos()[i - 1]].s = v2.s;
       }
     } else
       morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": incompatible types in assignment.\nOnly simple types can be assigned.",
@@ -2682,7 +2686,6 @@ void parsingformat(tnodo &nodo, vector<ttoken> &vt, int &ivt)
               "the field \"" + ident + "\" has been defined twice in the struct.");
       ivt++;
       saltartipo(vt, ivt, ":");
-      nodo.listacampos.push_back(ident);
       parsingformat(nodo.m[ident], vt, ivt);
     }
     saltartipo(vt, ivt, "}");
