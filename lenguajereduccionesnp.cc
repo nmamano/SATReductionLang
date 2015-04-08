@@ -182,7 +182,7 @@ set<string> palabrasclaveprograma = {"main", "in", "out", "stop",
                                  "and", "or", "not", "push", "size",
                                  "back", "min", "max", "abs", "substr",
                                  "insertsat"};
-set<string> cadenasclave = {"{", "}", "(", ")", "[", "]", "+", "-", "*", "/",
+set<string> cadenasclaveprograma = {"{", "}", "(", ")", "[", "]", "+", "-", "*", "/",
                             "%", "=", "&=", "==", "<", ">", "<=", ">=", "!=",
                             ";", ".", ",", "//", "++", "--"};
 
@@ -216,47 +216,46 @@ void leerconstante(string &s, int &is, vector<ttoken> &vt, int linea)
 
 void leerstring(string &s, int &is, vector<ttoken> &vt, int linea)
 {
-  int nextis = is + 1;
+  int nextis = is + 1; //skip first '"'
   while (nextis < int(s.size()) and s[nextis] != '"')
     nextis++;
   if (nextis == int(s.size()))
     rechazar(linea, is + 1, "the string constant should end in this line with '\"'.");
-  nextis++;
+  nextis++; //skip second '"'
   vt.push_back(ttoken("string", s.substr(is + 1, nextis - is - 2), linea, is + 1));
   is = nextis;
 }
 
-void leertoken(string &s, int &is, vector<ttoken> &vt, int linea)
+void leertoken(string &s, int &is, vector<ttoken> &vt, int linea,
+  const set<string>& palabrasclave, const set<string>& cadenasclave)
 {
-  if ((s[is] >= 'a' and s[is] <= 'z') or (s[is] >= 'A' and s[is] <= 'Z') or (s[is] == '_'))
-    leeridentificador(s, is, vt, linea, palabrasclaveprograma);
-  else if (s[is] >= '0' and s[is] <= '9')
+  if (esletra(s[is]) or (s[is] == '_')) {
+    leeridentificador(s, is, vt, linea, palabrasclave);
+    return;
+  }
+  else if (esnumero(s[is])) {
     leerconstante(s, is, vt, linea);
-  else if (s[is] == '"')
+    return;
+  }
+  else if (s[is] == '"') {
     leerstring(s, is, vt, linea);
+    return;
+  }
   else {
-    set<string>::iterator it = cadenasclave.end();
-    do {
-      it--;
-      string c = *it;
-      if (int(s.size()) - is >= int(c.size()) and
-          s.substr(is, int(c.size())) == c) {
+    for (string c : cadenasclave) {
+      if (int(s.size()) >= is + int(c.size()) and s.substr(is, int(c.size())) == c) {
         if (c == "//") {
           is = int(s.size());
-          return;
         }
-        vt.push_back(ttoken(c, "", linea, is + 1));
-        is += int(c.size());
+        else {
+          vt.push_back(ttoken(c, "", linea, is + 1));
+          is += int(c.size());
+        }
         return;
       }
-    } while (it != cadenasclave.begin());
-    morir("rejected", "Error line " + itos(linea) + " column " + itos(is + 1) +
-          ": there is no correspondence for \"" + s.substr(is) + "\"",
-          "rechazado", "Error linea " + itos(linea) + " columna " + itos(is + 1) +
-          ": no se encuentra correspondencia para \"" + s.substr(is) + "\"",
-          "rebutjat", "Error linea " + itos(linea) + " columna " + itos(is + 1) +
-          ": no es troba correspondencia per a \"" + s.substr(is) + "\"");
+    }
   }
+  rechazar(linea, is + 1, "there is no correspondence for \"" + s.substr(is) + "\"");
 }
 
 void saltarblancos(string &s, int &i)
@@ -288,7 +287,7 @@ void leerlineaentrada(string &s, vector<ttoken> &vt, int linea)
   int is = 0;
   saltarblancos(s, is);
   while (is < int(s.size())) {
-    leertoken(s, is, vt, linea);
+    leertoken(s, is, vt, linea, palabrasclaveprograma, cadenasclaveprograma);
     saltarblancos(s, is);
   }
 }
@@ -2560,39 +2559,12 @@ void mensajeaceptacionconreconstruccion()
 set<string> palabrasclaveformat = {"struct", "array", "int", "string", "index", "of"};
 set<string> cadenasclaveformat = {"{", "}", "[", "]", ":", "//"};
 
-void leertokenformat(string &s, int &is, vector<ttoken> &vt, int linea)
-{
-  if (esletra(s[is]) or (s[is] == '_')) {
-    leeridentificador(s, is, vt, linea, palabrasclaveformat);
-    return;
-  }
-  else if (esnumero(s[is])) {
-    leerconstante(s, is, vt, linea);
-    return;
-  }
-  else {
-    for (string c : cadenasclaveformat) {
-      if (int(s.size()) >= is + int(c.size()) and s.substr(is, int(c.size())) == c) {
-        if (c == "//") {
-          is = int(s.size());
-        }
-        else {
-          vt.push_back(ttoken(c, "", linea, is + 1));
-          is += int(c.size());
-        }
-        return;
-      }
-    }
-  }
-  rechazar(linea, is + 1, "there is no correspondence for \"" + s.substr(is) + "\"");
-}
-
 void leerentradaformat(string &s, vector<ttoken> &vt, int linea)
 {
   int is = 0;
   saltarblancos(s, is);
   while (is < int(s.size())) {
-    leertokenformat(s, is, vt, linea);
+    leertoken(s, is, vt, linea, palabrasclaveformat, cadenasclaveformat);
     saltarblancos(s, is);
   }
 }
