@@ -2798,20 +2798,6 @@ void leerjps(string ficherojp, vector<tvalor> &v, tnodo &format)
     leerjp(vvs[i], v[i], format);
 }
 
-void escribirtnodo(tnodo &nodo, int identacion)
-{
-  cout << string(identacion, ' ') << nodo.tipo;
-  if (nodo.texto != "") cout << "(" << nodo.texto << ")";
-  cout << endl;
-  for (int i = 0; i < int(nodo.hijo.size()); i++)
-    escribirtnodo(nodo.hijo[i], identacion + 2);
-}
-
-void escribirtnodo(tnodo &nodo)
-{
-  escribirtnodo(nodo, 0);
-}
-
 void leerprograma(string ficheroprograma, tnodo &nodo,
                   string internalerroringles, string internalerrorespanyol, string internalerrorcatalan)
 {
@@ -2830,7 +2816,6 @@ void leerprograma(string ficheroprograma, tnodo &nodo,
   */
   int ivt = 0;
   parsing(nodo, vt, ivt);
-  //escribirtnodo(nodo);
   if (ivt < int(vt.size()))
     errorcosasdespuesdelprograma(vt[ivt].linea, vt[ivt].columna);
 }
