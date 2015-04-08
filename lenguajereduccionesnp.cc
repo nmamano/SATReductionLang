@@ -64,51 +64,49 @@ bool esenterosat(string s)
     return esentero(s);
 }
 
-void morirpuro(string mensajecortoingles, string mensajelargoingles,
-               string mensajecortoespanyol, string mensajelargoespanyol,
-               string mensajecortocatalan, string mensajelargocatalan)
+void morirpuro(string mensajecorto, string mensajelargo)
 {
   // Pendiente de saber los nombres de los ficheros.
   {
     ofstream corto("answer.eng");
-    corto << mensajecortoingles << endl;
+    corto << mensajecorto << endl;
     corto.close();
     ofstream largo("answer.eng.long");
-    largo << mensajelargoingles << endl;
+    largo << mensajelargo << endl;
     largo.close();
   }
   {
     ofstream corto("answer.esp");
-    corto << mensajecortoespanyol << endl;
+    corto << mensajecorto << endl;
     corto.close();
     ofstream largo("answer.esp.long");
-    largo << mensajelargoespanyol << endl;
+    largo << mensajelargo << endl;
     largo.close();
   }
   {
     ofstream corto("answer.cat");
-    corto << mensajecortocatalan << endl;
+    corto << mensajecorto << endl;
     corto.close();
     ofstream largo("answer.cat.long");
-    largo << mensajelargocatalan << endl;
+    largo << mensajelargo << endl;
     largo.close();
   }
   exit(0);
 }
 
-string prefijoerroringles, prefijoerrorespanyol, prefijoerrorcatalan;
+string prefijoerror;
 
-void rechazar(string mensajelargoingles) {
-  string mensaje = prefijoerroringles + mensajelargoingles;
-  morirpuro("rejected", mensaje, "rejected", mensaje, "rejected", mensaje);
+void rechazar(string mensajelargo) {
+  string mensaje = prefijoerror + mensajelargo;
+  morirpuro("rejected", mensaje);
 }
 
-void rechazar(int linea, int columna, string mensajelargoingles) {
-  rechazar("Error line " + itos(linea) + " column " + itos(columna) + ": " + mensajelargoingles);
+void rechazar(int linea, int columna, string mensajelargo) {
+  rechazar("Error line " + itos(linea) + " column " + itos(columna) + ": " + mensajelargo);
 }
 
-void rechazarruntime(int linea, int columna, string mensajelargoingles) {
-  rechazar("Runtime error line " + itos(linea) + " column " + itos(columna) + ": " + mensajelargoingles);
+void rechazarruntime(int linea, int columna, string mensajelargo) {
+  rechazar("Runtime error line " + itos(linea) + " column " + itos(columna) + ": " + mensajelargo);
 }
 
 vector<string> leerfichero(string nombrefichero)
@@ -319,17 +317,12 @@ void controlarprofundidad(int profundidad, int linea, int columna)
     rechazar(linea, columna, "the level of indexation is too big.");
 }
 
-void seesperabaver(vector<ttoken> &vt, int &ivt, string ingles, string espanyol, string catalan)
-{
-  if (ivt == int(vt.size()))
-    rechazar("Error: the end of the program was reached when we expected to see " + ingles + ".");
-  rechazar(vt[ivt].linea, vt[ivt].columna, "we expected to see " + ingles + ", but we found \"" +
-        vt[ivt].tipo + "\".");
-}
-
 void seesperabaver(vector<ttoken> &vt, int &ivt, string t)
 {
-  seesperabaver(vt, ivt, t, t, t);
+  if (ivt == int(vt.size()))
+    rechazar("Error: the end of the program was reached when we expected to see " + t + ".");
+  rechazar(vt[ivt].linea, vt[ivt].columna, "we expected to see " + t + ", but we found \"" +
+        vt[ivt].tipo + "\".");
 }
 
 void saltartipo(vector<ttoken> &vt, int &ivt, string t)
@@ -701,13 +694,12 @@ void parsing(tnodo &nodo, vector<ttoken> &vt, int &ivt, string tipoprograma)
   parsinglistainstrucciones(nodo.hijo[0], vt, ivt);
 }
 
-void comprobarnoseusatipo(tnodo const &nodo, string const &tipo,
-                          string const &ingles, string const &espanyol, string const &catalan)
+void comprobarnoseusatipo(tnodo const &nodo, string const &tipo, string const &mensajeerror)
 {
   if (nodo.tipo == tipo)
-    rechazar(nodo.linea, nodo.columna, ingles);
+    rechazar(nodo.linea, nodo.columna, mensajeerror);
   for (int i = 0; i < int(nodo.hijo.size()); ++i)
-    comprobarnoseusatipo(nodo.hijo[i], tipo, ingles, espanyol, catalan);
+    comprobarnoseusatipo(nodo.hijo[i], tipo, mensajeerror);
 }
 
 
@@ -1113,12 +1105,12 @@ void errorformulasat(string &s, vector<ttoken> &vt, int &ivt)
   rechazar("Execution error in syntax analysis of insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".");
 }
 
-void errorformulasat(string &s, vector<ttoken> &vt, int &ivt, string mensajeingles, string mensajeespanyol, string mensajecatalan)
+void errorformulasat(string &s, vector<ttoken> &vt, int &ivt, string mensaje)
 {
   int is = int(s.size());
   if (ivt < int(vt.size()))
     is = vt[ivt].columna - 1;
-  rechazar("Execution error in syntax analysis of insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".\n" + mensajeingles);
+  rechazar("Execution error in syntax analysis of insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".\n" + mensaje);
 }
 
 void saltartiposat(string &s, vector<ttoken> &vt, int &ivt, string tipo)
@@ -1282,7 +1274,7 @@ string insertarformulasatbasica(string &s, tvalor &out, vector<ttoken> &vt, int 
       k = stollsat(vt[ivt].texto);
       ivt++;
     } else
-      errorformulasat(s, vt, ivt, "a non-negative integer was expected", "se esperaba un entero no negativo", "s'esperava un enter no negatiu");
+      errorformulasat(s, vt, ivt, "a non-negative integer was expected");
     vector<string> lista;
     while (ivt < int(vt.size()) and (not tieneparentesis or vt[ivt].tipo != ")")) {
       lista.push_back(insertarformulasatiff(s, out, vt, ivt));
@@ -2207,13 +2199,11 @@ void ejecuta(tnodo &nodo, tvalor &in, tvalor &out,
 }
 
 void ejecuta(tnodo &nodo, vector<tvalor> &vin, vector<tvalor> &vout, tnodo &formatout,
-             string internalerroringles, string internalerrorespanyol, string internalerrorcatalan,
+             string mensajeinternalerror,
              int tiempoejecucionini,
              vector<vector<string> > *historialesinsertsat = NULL)
 {
-  prefijoerroringles = internalerroringles;
-  prefijoerrorespanyol = internalerrorespanyol;
-  prefijoerrorcatalan = internalerrorcatalan;
+  prefijoerror = mensajeinternalerror;
   tvalor defecto;
   valorpordefecto(formatout, defecto);
   vout = vector<tvalor> (int(vin.size()), defecto);
@@ -2235,22 +2225,20 @@ void ejecuta(tnodo &nodo, vector<tvalor> &vin, vector<tvalor> &vout, tnodo &form
 void ejecutareconstruccion(tnodo &reconstructor, tvalor &in, tnodo &formatout, sat_solver const *modelo, string &muestrasolucion,
                            string &ficherovalidador, tnodo &validador, tnodo &formatvalidador, tvalor &validado)
 {
-  prefijoerroringles = prefijoerrorespanyol = prefijoerrorcatalan = "";
+  prefijoerror = "";
   tvalor out;
   valorpordefecto(formatout, out);
   tiempoejecucion = infinito;
   ejecuta(reconstructor, in, out, "model", modelo);
   generamuestra(out, muestrasolucion, "  out");
-  prefijoerroringles = "Internal error running validator: " + ficherovalidador + "\n";
-  prefijoerrorespanyol = "Error interno ejecutando validator: " + ficherovalidador + "\n";
-  prefijoerrorcatalan = "Error intern executant validator: " + ficherovalidador + "\n";
+  prefijoerror = "Internal error running validator: " + ficherovalidador + "\n";
   tvalor jpysolucion;
   tnodo nodojpysolucion;
   construirstruct("input", in, "solution", out, nodojpysolucion, jpysolucion);
   valorpordefecto(formatvalidador, validado);
   tiempoejecucion = infinito;
   ejecuta(validador, jpysolucion, validado);
-  prefijoerroringles = prefijoerrorespanyol = prefijoerrorcatalan = "";
+  prefijoerror = "";
 }
 
 
@@ -2274,38 +2262,35 @@ void errorcosasdespuesdelprograma(int linea, int columna)
   rechazar(linea, columna, "there should not be anything else just after the program.");
 }
 
-void errorrespuesta(string ingles, string espanyol, string catalan, string &in, string &out)
+void errorrespuesta(string respuesta, string &in, string &out)
 {
-  rechazar("Error: the " + ingles + " answer is not preserved when your reduction\n" +
+  rechazar("Error: the " + respuesta + " answer is not preserved when your reduction\n" +
         "receives the following input:\n\n" + in + "\nThe corresponding obtained output is:\n\n" + out +
         "\nIf you consider that the judge verdict is not correct,\n" +
         "try to submit a simpler reduction in order to ease the testing process.");
 }
 
-void errorrespuesta2SAT(string ingles, string espanyol, string catalan, string &in, string &out,
-                        string muestrasolucion = "", string muestraingles = "", string muestraespanyol = "", string muestracatalan = "")
+void errorrespuesta2SAT(string respuesta, string &in, string &out,
+                        string muestrasolucion = "", string muestra = "")
 {
-  bool mostrarmuestra = not muestrasolucion.empty() or not muestraingles.empty()
-                        or not muestraespanyol.empty() or not muestracatalan.empty();
-  rechazar("Error: the " + ingles + " answer is not preserved when your reduction to SAT\n" +
+  bool mostrarmuestra = not muestrasolucion.empty() or not muestra.empty();
+  rechazar("Error: the " + respuesta + " answer is not preserved when your reduction to SAT\n" +
         "receives the following input:\n\n" + in + "\nThe corresponding generated formula is:\n\n" + out +
-        (mostrarmuestra ? "\nThe corresponding reconstructed solution is:\n\n" + muestrasolucion + "\n" + muestraingles + "\n" : string()) +
+        (mostrarmuestra ? "\nThe corresponding reconstructed solution is:\n\n" + muestrasolucion + "\n" + muestra + "\n" : string()) +
         "\nIf you consider that the judge verdict is not correct,\n" +
         "try to submit a simpler reduction in order to ease the testing process.");
 }
 
-void errorreconstruccion(string ingles, string espanyol, string catalan, string &in, string &out)
+void errorreconstruccion(string mesaje, string &in, string &out)
 {
   rechazar("Error: the reduction is apparently correct, but the reconstructed solution is\n"
         "wrong when your programs receive the following input:\n\n" + in + "\nThe corresponding reconstructed solution is:\n\n" + out +
-        (not ingles.empty() ? "\n" + ingles + "\n" : string()));
+        (not mesaje.empty() ? "\n" + mesaje + "\n" : string()));
 }
 
 void mensajeaceptacionconreconstruccion()
 {
-  morirpuro("accepted", "Reduction and solution reconstruction apparently correct.",
-        "aceptado", "Reduccion y reconstruccion de solucion aparentemente correctos.",
-        "acceptat", "Reduccio i reconstruccio de solucio aparentment correctes.");
+  morirpuro("accepted", "Reduction and solution reconstruction apparently correct.");
 }
 
 
@@ -2382,7 +2367,7 @@ int limitenumtokens = 5000;
 
 void leerformatstring(string stringformat, tnodo &nodoformat)
 {
-  prefijoerroringles = "Internal error reading format: " + stringformat + "\n";
+  prefijoerror = "Internal error reading format: " + stringformat + "\n";
   vector<string> vs(1, stringformat);
   vector<ttoken> vt;
   leerentradaformat(vs, vt);
@@ -2396,7 +2381,7 @@ void leerformatstring(string stringformat, tnodo &nodoformat)
 
 void leerformatsfichero(string ficheroformat, tnodo &nodoformat1, tnodo &nodoformat2)
 {
-  prefijoerroringles = "Internal error reading format: " + ficheroformat + "\n";
+  prefijoerror = "Internal error reading format: " + ficheroformat + "\n";
   vector<string> vs = leerfichero(ficheroformat);
   vector<ttoken> vt;
   leerentradaformat(vs, vt);
@@ -2476,7 +2461,7 @@ void leerjps(string ficherojp, vector<tvalor> &v, tnodo &format)
 
 void leerprograma(string ficheroprograma, tnodo &nodo, string tipoprograma)
 {
-  prefijoerroringles = "Internal error reading program: " + ficheroprograma + "\n";
+  prefijoerror = "Internal error reading program: " + ficheroprograma + "\n";
 
   vector<string> vs = leerfichero(ficheroprograma);
   vector<ttoken> vt;
@@ -2491,7 +2476,7 @@ void leerprograma(string ficheroprograma, tnodo &nodo, string tipoprograma)
 
 void leerpropuestasolucion(string ficheroprograma, tnodo &nodo1, tnodo &nodo2)
 {
-  prefijoerroringles = "";
+  prefijoerror = "";
   vector<string> vs = leerfichero(ficheroprograma);
   vector<ttoken> vt;
   leerentrada(vs, vt);
@@ -2511,7 +2496,7 @@ void leerpropuestasolucion(string ficheroprograma, tnodo &nodo1, tnodo &nodo2)
 
 string sformatjp = "array of array of int";
 string sformatsat = "array of array of string";
-string sformatvalidador = "struct { valid:int english:string spanish:string catalan:string }";
+string sformatvalidador = "struct { valid:int msg:string }";
 
 int main(int argc, char *argv[])
 {
@@ -2541,9 +2526,7 @@ int main(int argc, char *argv[])
   leerpropuestasolucion(ficheropropuestasolucion, nodopropuestasolucion2sat, nodopropuestasolucion2solucion);
 
   comprobarnoseusatipo(nodopropuestasolucion2sat, "out",
-                       "the \"out\" variable cannot be directly accessed in a reduction to SAT,\nuse \"insertsat\" instead to create your formula.",
-                       "la variable \"out\" no puede ser accedida directamente en una reduccion a SAT,\nen su lugar, utiliza \"insertsat\" para crear tu formula.",
-                       "la variable \"out\" no pot ser accedida directament en una reduccio a SAT,\nen comptes d'aixo, utilitza \"insertsat\" per a crear la teva formula.");
+                       "the \"out\" variable cannot be directly accessed in a reduction to SAT,\nuse \"insertsat\" instead to create your formula.");
   
   cout << "TIEMPO LECTURA Y PARSING = " << tlectura.elapsedstring() << endl;
 
@@ -2552,18 +2535,14 @@ int main(int argc, char *argv[])
   vector<string> muestrainput, muestraoutput;
   ejecuta(nodojp2input, vjp, vinput, formatinput,
           "Internal error running jp2input: " + ficherojp2input + "\n",
-          "Error interno ejecutando jp2input: " + ficherojp2input + "\n",
-          "Error intern executant jp2input: " + ficherojp2input + "\n",
           infinito);
   generamuestra(vinput, muestrainput, "  in");
   ejecuta(nodoinput2sat, vinput, vsat1, formatsat,
           "Internal error running input2sat: " + ficheroinput2sat + "\n",
-          "Error interno ejecutando input2sat: " + ficheroinput2sat + "\n",
-          "Error intern executant input2sat: " + ficheroinput2sat + "\n",
           infinito);
   vector<vector<string> > historialesinsertsat;
   timer tejecucion1b;
-  ejecuta(nodopropuestasolucion2sat, vinput, vsat2, formatsat, "", "", "",
+  ejecuta(nodopropuestasolucion2sat, vinput, vsat2, formatsat, "",
           finito, &historialesinsertsat);
   generamuestra(historialesinsertsat, muestraoutput, "  ");
   cout << "TIEMPO EJECUCION (to sat) = " << tejecucion1a.elapsedstring()
@@ -2598,17 +2577,17 @@ int main(int argc, char *argv[])
       for (int j = 0; j <= i; ++j)
         cout << infoextensa[j].str();
       if (respuestain and not respuestaout)
-        errorrespuesta2SAT("positive", "positiva", "positiva", muestrainput[i], muestraoutput[i]);
+        errorrespuesta2SAT("positive", muestrainput[i], muestraoutput[i]);
       if (not respuestain and respuestaout) {
         if (argc == 7) {
           string muestrasolucion;
           tvalor validado;
           ejecutareconstruccion(nodopropuestasolucion2solucion, vinput[i], formatsolucion, &S2[i], muestrasolucion,
                                 ficherovalidador, nodovalidador, formatvalidador, validado);
-          errorrespuesta2SAT("negative", "negativa", "negativa", muestrainput[i], muestraoutput[i],
-                             muestrasolucion, validado.m["english"].s, validado.m["spanish"].s, validado.m["catalan"].s);
+          errorrespuesta2SAT("negative", muestrainput[i], muestraoutput[i],
+                             muestrasolucion, validado.m["english"].s);
         } else
-          errorrespuesta2SAT("negative", "negativa", "negativa", muestrainput[i], muestraoutput[i]);
+          errorrespuesta2SAT("negative", muestrainput[i], muestraoutput[i]);
       }
     }
     resultados.push_back(respuestain);
@@ -2625,12 +2604,11 @@ int main(int argc, char *argv[])
     infoextensa[i] << "reconstruccion:" << endl;
     infoextensa[i] << muestrasolucion << endl;
     if (not validado.m["valid"].x)
-      errorreconstruccion(validado.m["english"].s, validado.m["spanish"].s, validado.m["catalan"].s,
-                          muestrainput[i], muestrasolucion);
+      errorreconstruccion(validado.m["english"].s, muestrainput[i], muestrasolucion);
   }
   cout << "TIEMPO EJECUCION (reconstruccion, validacion) = " << tejecucion2.elapsedstring() << endl;
   for (int j = 0; j < int(vjp.size()); ++j)
     cout << infoextensa[j].str();
-  prefijoerroringles = prefijoerrorespanyol = prefijoerrorcatalan = "";
+  prefijoerror = "";
   mensajeaceptacionconreconstruccion();
 }
