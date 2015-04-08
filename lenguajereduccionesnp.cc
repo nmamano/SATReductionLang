@@ -2846,7 +2846,7 @@ void leerformat(string stringformat, tnodo &nodoformat,
   leerformat(vs, nodoformat, internalerroringles, internalerrorespanyol, internalerrorcatalan);
 }
 
-void leerformat(string ficheroformat, tnodo &formatoutput, tnodo &formatrich,
+void leerformats(string ficheroformat, tnodo &nodoformat1, tnodo &nodoformat2,
                 string internalerroringles, string internalerrorespanyol, string internalerrorcatalan)
 {
   prefijoerroringles = internalerroringles;
@@ -2858,32 +2858,8 @@ void leerformat(string ficheroformat, tnodo &formatoutput, tnodo &formatrich,
   if (int(vt.size()) > limitenumtokens)
     errorprogramademasiadogrande();
   int ivt = 0;
-  parsingformat(formatoutput, vt, ivt);
-  parsingformat(formatrich, vt, ivt);
-  //escribirtnodo(nodo);
-  if (ivt < int(vt.size()))
-    errorcosasdespuesdelprograma(vt[ivt].linea, vt[ivt].columna);
-}
-
-
-void leerformat(string ficheroformat, tnodo &formatjp, tnodo &formatinput, tnodo &formatoutput,
-                tnodo &formatrich, tnodo &formatsat,
-                string internalerroringles, string internalerrorespanyol, string internalerrorcatalan)
-{
-  prefijoerroringles = internalerroringles;
-  prefijoerrorespanyol = internalerrorespanyol;
-  prefijoerrorcatalan = internalerrorcatalan;
-  vector<string> vs = leerfichero(ficheroformat);
-  vector<ttoken> vt;
-  leerentradaformat(vs, vt);
-  if (int(vt.size()) > limitenumtokens)
-    errorprogramademasiadogrande();
-  int ivt = 0;
-  parsingformat(formatjp, vt, ivt);
-  parsingformat(formatinput, vt, ivt);
-  parsingformat(formatoutput, vt, ivt);
-  parsingformat(formatrich, vt, ivt);
-  parsingformat(formatsat, vt, ivt);
+  parsingformat(nodoformat1, vt, ivt);
+  parsingformat(nodoformat2, vt, ivt);
   //escribirtnodo(nodo);
   if (ivt < int(vt.size()))
     errorcosasdespuesdelprograma(vt[ivt].linea, vt[ivt].columna);
@@ -3135,7 +3111,7 @@ int main(int argc, char *argv[])
              "Internal error reading format: " + sformatsat + "\n",
              "Error interno leyendo format: " + sformatsat + "\n",
              "Error intern llegint format: " + sformatsat + "\n");
-  leerformat(ficheroformat, formatinput, formatsolucion,
+  leerformats(ficheroformat, formatinput, formatsolucion,
              "Internal error reading format: " + ficheroformat + "\n",
              "Error interno leyendo format: " + ficheroformat + "\n",
              "Error intern llegint format: " + ficheroformat + "\n");
