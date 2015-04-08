@@ -347,6 +347,12 @@ void seesperabaver(vector<ttoken> &vt, int &ivt, string t)
         vt[ivt].tipo + "\".");
 }
 
+void comprobartipo(vector<ttoken> &vt,int &ivt,string t)
+{
+  if (ivt==int(vt.size()) or vt[ivt].tipo!=t)
+    seesperabaver(vt,ivt,"\""+t+"\"");
+}
+
 void saltartipo(vector<ttoken> &vt, int &ivt, string t)
 {
   if (ivt == int(vt.size()) or vt[ivt].tipo != t)
@@ -355,6 +361,7 @@ void saltartipo(vector<ttoken> &vt, int &ivt, string t)
 }
 
 void parsingexpresion(tnodo &nodo, vector<ttoken> &vt, int &ivt);
+void parsingsumasrestas(tnodo &nodo,vector<ttoken> &vt,int &ivt);
 
 void parsingin(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
@@ -409,6 +416,21 @@ void parsingunarios(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     parsingunarios(nodo.hijo[0], vt, ivt);
   } else if (vt[ivt].tipo == "constante" or vt[ivt].tipo == "string") {
     nodo = vt[ivt];
+    ivt++;
+  } else if (vt[ivt].tipo=="stringini") {
+    nodo = tnodo("stringparametrizado", "", vt[ivt].linea, vt[ivt].columna);
+    nodo.hijo.push_back(vt[ivt]);
+    ivt++;
+    nodo.hijo.push_back(tnodo());
+    parsingsumasrestas(nodo.hijo[1],vt,ivt);
+    while(vt[ivt].tipo!="stringfin"){
+      comprobartipo(vt, ivt, "stringmid");
+      nodo.hijo.push_back(vt[ivt]);
+      ivt++;
+      nodo.hijo.push_back(tnodo());
+      parsingsumasrestas(nodo.hijo[nodo.hijo.size()-1],vt,ivt);
+    }
+    nodo.hijo.push_back(vt[ivt]);
     ivt++;
   } else if (vt[ivt].tipo == "abs") {
     nodo = vt[ivt];
