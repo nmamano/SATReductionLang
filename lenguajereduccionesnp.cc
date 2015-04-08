@@ -25,6 +25,8 @@ extern "C" {
 
 using namespace std;
 
+bool DBG_MODE = false;
+
 typedef long long int ll;
 
 ll stollsat(string s)
@@ -2511,6 +2513,39 @@ void leerjps(string ficherojp, vector<tvalor> &v, tnodo &format)
     leerjp(vvs[i], v[i], format);
 }
 
+void escribirtnodo(tnodo &nodo,int identacion)
+{
+  cout<<string(identacion,' ')<<nodo.tipo;
+  if (nodo.texto!="") cout<<"("<<nodo.texto<<")";
+  cout<<endl;
+  for (int i=0;i<int(nodo.hijo.size());i++)
+    escribirtnodo(nodo.hijo[i],identacion+2);
+}
+
+void escribirtnodo(string nombreprograma, tnodo &nodo)
+{
+  cout << "======================" << endl;
+  cout << "Analisis sintactico " << nombreprograma << endl;
+  cout << "======================" << endl;
+  escribirtnodo(nodo,0);
+  cout << endl << endl;
+}
+
+void escribirtokens(string nombreprograma, vector<ttoken>& vt) {
+  cout << "======================" << endl;
+  cout << "Analisis lexico " << nombreprograma << endl;
+  cout << "======================" << endl;
+  for (int i=0;i<int(vt.size());i++) {
+    cout<<i<<":\t"<<vt[i].tipo;
+    if (vt[i].texto != "") {
+      cout << "(" << vt[i].texto << ")";
+    }
+    cout <<"\t["<<vt[i].linea<<", "<<vt[i].columna<<"]" << endl;
+  }
+  cout<<endl<<endl;
+}
+
+
 void leerprograma(string ficheroprograma, tnodo &nodo, string tipoprograma)
 {
   prefijoerror = "Internal error reading program: " + ficheroprograma + "\n";
@@ -2521,14 +2556,14 @@ void leerprograma(string ficheroprograma, tnodo &nodo, string tipoprograma)
   if (int(vt.size()) > limitenumtokens)
     errorprogramademasiadogrande();
 
-  // for (int i=0;i<int(vt.size());i++)
-  //   cout<<i<<" "<<vt[i].tipo<<" "<<vt[i].linea<<" "<<vt[i].columna<<" "<<vt[i].texto<<endl;
-  // cout<<endl<<endl;
+  if (DBG_MODE) escribirtokens(ficheroprograma, vt);
 
   int ivt = 0;
   parsing(nodo, vt, ivt, tipoprograma);
   if (ivt < int(vt.size()))
     errorcosasdespuesdelprograma(vt[ivt].linea, vt[ivt].columna);
+
+  if (DBG_MODE) escribirtnodo(ficheroprograma, nodo);
 }
 
 void leerpropuestasolucion(string ficheroprograma, tnodo &nodo1, tnodo &nodo2)
@@ -2539,11 +2574,17 @@ void leerpropuestasolucion(string ficheroprograma, tnodo &nodo1, tnodo &nodo2)
   leerentrada(vs, vt);
   if (int(vt.size()) > limitenumtokens)
     errorprogramademasiadogrande();
+
+  if (DBG_MODE) escribirtokens(ficheroprograma, vt);
+
   int ivt = 0;
   parsing(nodo1, vt, ivt, "reduction");
   parsing(nodo2, vt, ivt, "reconstruction");
   if (ivt < int(vt.size()))
     errorcosasdespuesdelprograma(vt[ivt].linea, vt[ivt].columna);
+
+  if (DBG_MODE) escribirtnodo("propuestasolucionreduccion", nodo1);
+  if (DBG_MODE) escribirtnodo("propuestasolucionreconstruccion", nodo2);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -2557,7 +2598,13 @@ string sformatvalidador = "struct { valid:int msg:string }";
 
 int main(int argc, char *argv[])
 {
-  if (argc!=7)
+
+  for (int i = 1; i < argc; i++) {
+    if (string(argv[i]) == "-d") DBG_MODE = true;
+    if (DBG_MODE and i < argc-1) argv[i] = argv[i+1]; //shift arguments to their normal position
+  }
+
+  if (argc != (DBG_MODE ? 8 : 7))
     rechazar("Internal error: the number of arguments received by the judge is not correct.");
 
   string ficherojp = argv[1];
