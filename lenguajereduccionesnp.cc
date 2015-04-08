@@ -2738,14 +2738,14 @@ void leerformatsfichero(string ficheroformat, tnodo &nodoformat1, tnodo &nodofor
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 
-string eliminaespacios(string s)
+string eliminaespaciosycomentarios(string s)
 {
   string nexts;
   for (int i = 0; i < int(s.size()); i++) {
     if (i + 1 < int(s.size()) and s[i] == '/' and s[i + 1] == '/')
       break;
     if (s[i] != ' ' and s[i] != '\t')
-      nexts += string(1, s[i]);
+      nexts.push_back(s[i]);
   }
   return nexts;
 }
@@ -2753,20 +2753,21 @@ string eliminaespacios(string s)
 void separarjps(vector<string> &vs, vector<vector<string> > &vvs)
 {
   bool nuevojp = true;
-  for (int i = 0; i < int(vs.size()); i++) {
-    if (eliminaespacios(vs[i]) == "----")
+  for (string linea : vs) {
+    string contenido = eliminaespaciosycomentarios(linea);
+    if (contenido == "----")
       nuevojp = true;
-    else if (eliminaespacios(vs[i]) != "") {
+    else if (contenido != "") {
       if (nuevojp) vvs.push_back(vector<string> ());
       nuevojp = false;
-      vvs.back().push_back(vs[i]);
+      vvs.back().push_back(linea);
     }
   }
 }
 
 void leerlineajp(string &s, tvalor &valor, tnodo &format)
 {
-  if (eliminaespacios(s) == "") return;
+  if (eliminaespaciosycomentarios(s) == "") return;
   valor.v.push_back(tvalor());
   valor.v.back().kind = 2;
   valor.v.back().format = &format;
@@ -2782,8 +2783,8 @@ void leerjp(vector<string> &vs, tvalor &valor, tnodo &format)
 {
   valor.kind = 2;
   valor.format = &format;
-  for (int i = 0; i < int(vs.size()); i++)
-    leerlineajp(vs[i], valor, format.hijo[0]);
+  for (string linea : vs)
+    leerlineajp(linea, valor, format.hijo[0]);
 }
 
 void leerjps(string ficherojp, vector<tvalor> &v, tnodo &format)
