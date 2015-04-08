@@ -70,26 +70,10 @@ void morirpuro(string mensajecorto, string mensajelargo)
 {
   // Pendiente de saber los nombres de los ficheros.
   {
-    ofstream corto("answer.eng");
+    ofstream corto("answer");
     corto << mensajecorto << endl;
     corto.close();
-    ofstream largo("answer.eng.long");
-    largo << mensajelargo << endl;
-    largo.close();
-  }
-  {
-    ofstream corto("answer.esp");
-    corto << mensajecorto << endl;
-    corto.close();
-    ofstream largo("answer.esp.long");
-    largo << mensajelargo << endl;
-    largo.close();
-  }
-  {
-    ofstream corto("answer.cat");
-    corto << mensajecorto << endl;
-    corto.close();
-    ofstream largo("answer.cat.long");
+    ofstream largo("answer.long");
     largo << mensajelargo << endl;
     largo.close();
   }
