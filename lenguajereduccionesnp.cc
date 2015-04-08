@@ -27,34 +27,12 @@ using namespace std;
 
 typedef long long int ll;
 
-ll stoi(string s)
-{
-  istringstream ci(s);
-  ll x;
-  ci >> x;
-  return x;
-  /*
-  string aux;
-  ci>>aux;
-  s=aux;
-  int signo=1;
-  if (int(s.size())>0 and s[0]=='-') {
-    signo=-1;
-    s=s.substr(1);
-  }
-  ll r=0;
-  for (int i=0;i<int(s.size());i++)
-    r=r*10+s[i]-'0';
-  return signo*r;
-  */
-}
-
-ll stoisat(string s)
+ll stollsat(string s)
 {
   if (s.size() > 2 and s[0] == '{' and s[s.size() - 1] == '}')
-    return stoi(s.substr(1, s.size() - 2));
+    return stoll(s.substr(1, s.size() - 2));
   else
-    return stoi(s);
+    return stoll(s);
 }
 
 string itos(ll x)
@@ -997,7 +975,7 @@ void valorpordefecto(tnodo &nodo, tvalor &valor)
   } else if (nodo.tipo == "array") {
     valor.kind = 2;
     if (nodo.texto != "") {
-      int dimension = stoi(nodo.texto);
+      int dimension = stoll(nodo.texto);
       tvalor valoraux;
       valorpordefecto(nodo.hijo[0], valoraux);
       for (int i = 0; i < dimension; i++)
@@ -1403,7 +1381,7 @@ string insertarformulasatbasica(string &s, tvalor &out, vector<ttoken> &vt, int 
       saltartiposat(s, vt, ivt, "(");
     int k;
     if (ivt < int(vt.size()) and vt[ivt].tipo == "identificador" and esenterosat(vt[ivt].texto)) {
-      k = stoisat(vt[ivt].texto);
+      k = stollsat(vt[ivt].texto);
       ivt++;
     } else
       errorformulasat(s, vt, ivt, "a non-negative integer was expected", "se esperaba un entero no negativo", "s'esperava un enter no negatiu");
@@ -1850,7 +1828,7 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
     }
     return valor[nodo.texto];
   } else if (nodo.tipo == "constante") {
-    return stoi(nodo.texto);
+    return stoll(nodo.texto);
   } else if (nodo.tipo == "string") {
     return tvalor(nodo.texto);
   } else if (nodo.tipo == "substr") {
@@ -2019,7 +1997,7 @@ void aplicamapping(tvalor &valor, map<int, map<string, int> > &m, int indice)
     if (valor.format->texto == "index")
       im = indice;
     else
-      im = stoi(valor.format->texto);
+      im = stoll(valor.format->texto);
     map<string, int> &mapa = m[im];
     subirastring(valor);
     if (mapa.count(valor.s) == 0) {
@@ -2029,7 +2007,7 @@ void aplicamapping(tvalor &valor, map<int, map<string, int> > &m, int indice)
     valor.kind = 0;
     valor.x = mapa[valor.s];
   } else if (valor.format->tipo == "@") {
-    int im = -1 - stoi(valor.format->texto);
+    int im = -1 - stoll(valor.format->texto);
     map<string, int> &mapa = m[im];
     subirastring(valor);
     string el;
@@ -2405,7 +2383,7 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
               "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": Solo se pueden asignar tipos simples,\ny las posiciones del array no tienen tipos simples.",
               "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": Nomes es poden assignar tipus simples,\ni les posicions de l'array no tenen tipus simples.");
       if (v1.format->texto != "") {
-        int tamanyo = stoi(v1.format->texto);
+        int tamanyo = stoll(v1.format->texto);
         if (tamanyo != int(nodo.hijo.size()) - 1)
           morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": The number of expressions does not coincide with the fixed size of the array.",
                 "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": el numero de expresiones no coincide con el tamanyo fijo del array.",
@@ -2824,8 +2802,6 @@ int limitenumtokens = 5000;
 void leerformat(string stringformat, tnodo &nodoformat)
 {
   prefijoerroringles = "Internal error reading format: " + stringformat + "\n";
-  prefijoerrorespanyol = "Error interno leyendo format: " + stringformat + "\n";
-  prefijoerrorcatalan = "Error intern llegint format: " + stringformat + "\n";
   vector<string> vs(1, stringformat);
   vector<ttoken> vt;
   leerentradaformat(vs, vt);
@@ -2833,7 +2809,6 @@ void leerformat(string stringformat, tnodo &nodoformat)
     errorprogramademasiadogrande();
   int ivt = 0;
   parsingformat(nodoformat, vt, ivt);
-  //escribirtnodo(nodo);
   if (ivt < int(vt.size()))
     errorcosasdespuesdelprograma(vt[ivt].linea, vt[ivt].columna);
 }
@@ -2841,8 +2816,6 @@ void leerformat(string stringformat, tnodo &nodoformat)
 void leerformats(string ficheroformat, tnodo &nodoformat1, tnodo &nodoformat2)
 {
   prefijoerroringles = "Internal error reading format: " + ficheroformat + "\n";
-  prefijoerrorespanyol = "Error interno leyendo format: " + ficheroformat + "\n";
-  prefijoerrorcatalan = "Error intern llegint format: " + ficheroformat + "\n";
   vector<string> vs = leerfichero(ficheroformat);
   vector<ttoken> vt;
   leerentradaformat(vs, vt);
@@ -2851,7 +2824,6 @@ void leerformats(string ficheroformat, tnodo &nodoformat1, tnodo &nodoformat2)
   int ivt = 0;
   parsingformat(nodoformat1, vt, ivt);
   parsingformat(nodoformat2, vt, ivt);
-  //escribirtnodo(nodo);
   if (ivt < int(vt.size()))
     errorcosasdespuesdelprograma(vt[ivt].linea, vt[ivt].columna);
 }
