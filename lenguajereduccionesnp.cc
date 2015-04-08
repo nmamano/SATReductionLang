@@ -219,7 +219,8 @@ void leertoken(string &s, int &is, vector<ttoken> &vt, int linea,
     return;
   }
   else {
-    for (string c : cadenasclave) {
+    for (set<string>::reverse_iterator it = cadenasclave.rbegin(); it != cadenasclave.rend(); ++it) { 
+      string c = *it;
       if (int(s.size()) >= is + int(c.size()) and s.substr(is, int(c.size())) == c) {
         if (c == "//") {
           is = int(s.size());
