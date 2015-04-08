@@ -3113,28 +3113,6 @@ string sformatjp = "array of array of int";
 string sformatsat = "array of array of string";
 string sformatvalidador = "struct { valid:int english:string spanish:string catalan:string}";
 
-string mayusculas(string const &s)
-{
-  string m;
-  for (int i = 0; i < int(s.size()); ++i)
-    if (s[i] >= 'a' and s[i] <= 'z')
-      m += char(s[i] - 'a' + 'A');
-    else if (not isspace(s[i]))
-      m += s[i];
-  return m;
-}
-
-string minusculas(string const &s)
-{
-  string m;
-  for (int i = 0; i < int(s.size()); ++i)
-    if (s[i] >= 'A' and s[i] <= 'Z')
-      m += char(s[i] - 'A' + 'a');
-    else if (not isspace(s[i]))
-      m += s[i];
-  return m;
-}
-
 int main(int argc, char *argv[])
 {
   if (argc!=7)
