@@ -1992,61 +1992,6 @@ int digitos(int x)
   return d;
 }
 
-void aplicamapping(tvalor &valor, map<int, map<string, int> > &m, int indice)
-{
-  if (valor.kind == 4) {
-    for (int i = 0; i < int(valor.format->listacampos.size()); i++)
-      aplicamapping(valor.m[valor.format->listacampos[i]], m, indice);
-  } else if (valor.kind == 2) {
-    for (int i = 0; i < int(valor.v.size()); i++)
-      aplicamapping(valor.v[i], m, i);
-  } else if (valor.format->tipo == "#") {
-    int im;
-    if (valor.format->texto == "index")
-      im = indice;
-    else
-      im = stoll(valor.format->texto);
-    map<string, int> &mapa = m[im];
-    subirastring(valor);
-    if (mapa.count(valor.s) == 0) {
-      int contador = int(mapa.size()) + 1;
-      mapa[valor.s] = contador;
-    }
-    valor.kind = 0;
-    valor.x = mapa[valor.s];
-  } else if (valor.format->tipo == "@") {
-    int im = -1 - stoll(valor.format->texto);
-    map<string, int> &mapa = m[im];
-    subirastring(valor);
-    string el;
-    if (int(valor.s.size()) > 0 and valor.s[0] == '-')
-      el = valor.s.substr(1);
-    else
-      el = valor.s;
-    if (mapa.count(el) == 0) {
-      int contador = int(mapa.size()) + 1;
-      mapa[el] = contador;
-    }
-    valor.kind = 0;
-    if (int(valor.s.size()) > 0 and valor.s[0] == '-')
-      valor.x = -mapa[el];
-    else
-      valor.x = mapa[el];
-  }
-}
-
-void aplicamapping(tvalor &valor)
-{
-  map<int, map<string, int> > m;
-  aplicamapping(valor, m, 0);
-}
-
-void aplicamapping(vector<tvalor> &v)
-{
-  for (int i = 0; i < int(v.size()); i++)
-    aplicamapping(v[i]);
-}
-
 int limitelineamuestratvalor = 200;
 int limitenumlineasmuestratvalor = 500;
 
