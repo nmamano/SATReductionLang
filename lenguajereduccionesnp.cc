@@ -177,27 +177,14 @@ struct ttoken {
 };
 
 
-set<string> palabrasclave;
-set<string> cadenasclave;
-
-char listapalabrasclave[][80] = {"main", "in", "out", "stop",
+set<string> palabrasclave = {"main", "in", "out", "stop",
                                  "if", "else", "while", "for", "foreach",
                                  "and", "or", "not", "push", "size",
                                  "back", "min", "max", "abs", "substr",
-                                 "insertsat", ""
-                                };
-
-char listacadenasclave[][80] = {"{", "}", "(", ")", "[", "]", "+", "-", "*", "/", "%", "=", "&=", "==", "<",
-                                ">", "<=", ">=", "!=", ";", ".", ",", "//", "++", "--", ""
-                               };
-
-void inicializartokensclave()
-{
-  for (int i = 0; string(listapalabrasclave[i]) != ""; i++)
-    palabrasclave.insert(listapalabrasclave[i]);
-  for (int i = 0; string(listacadenasclave[i]) != ""; i++)
-    cadenasclave.insert(listacadenasclave[i]);
-}
+                                 "insertsat"};
+set<string> cadenasclave = {"{", "}", "(", ")", "[", "]", "+", "-", "*", "/",
+                            "%", "=", "&=", "==", "<", ">", "<=", ">=", "!=",
+                            ";", ".", ",", "//", "++", "--"};
 
 void leeridentificador(string &s, int &is, vector<ttoken> &vt, int linea)
 {
@@ -322,7 +309,6 @@ void leerentrada(string &s, vector<ttoken> &vt, int linea)
 
 void leerentrada(vector<string> &vs, vector<ttoken> &vt)
 {
-  inicializartokensclave();
   for (int i = 0; i < int(vs.size()); i++) {
     precompilarlinea(vs[i]);
     leerentrada(vs[i], vt, i + 1);
