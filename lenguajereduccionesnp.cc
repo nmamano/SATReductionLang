@@ -155,7 +155,7 @@ set<string> cadenasclaveprograma = {"{", "}", "(", ")", "[", "]", "+", "-", "*",
                             "%", "=", "&=", "==", "<", ">", "<=", ">=", "!=",
                             ";", ".", ",", "//", "++", "--"};
 
-void leeridentificador(string &s, int &is, vector<ttoken> &vt, int linea,
+void leeridentificador(const string &s, int &is, vector<ttoken> &vt, int linea, int desplazamientocolumna,
   const set<string>& palabrasclave)
 {
   int nextis = is;
@@ -164,50 +164,92 @@ void leeridentificador(string &s, int &is, vector<ttoken> &vt, int linea,
     nextis++;
   string id = s.substr(is, nextis - is);
   if (palabrasclave.count(id))
-    vt.push_back(ttoken(id, "", linea, is + 1));
+    vt.push_back(ttoken(id, "", linea, is + 1 + desplazamientocolumna));
   else
-    vt.push_back(ttoken("identificador", id, linea, is + 1));
+    vt.push_back(ttoken("identificador", id, linea, is + 1 + desplazamientocolumna));
   is = nextis;
 }
 
 int limitenumdigitos = 9;
 string simplerProgramMsg = "This does not mean your program is wrong, but you should find a simpler one.";
-void leerconstante(string &s, int &is, vector<ttoken> &vt, int linea)
+
+void leerconstante(const string &s, int &is, vector<ttoken> &vt, int linea, int desplazamientocolumna)
 {
   int nextis = is;
   while (nextis<int(s.size()) and esnumero(s[nextis])) nextis++;
   if (nextis - is >= limitenumdigitos)
-    rechazar(linea, is + 1, "the constant \"" + s.substr(is, nextis - is) + "\" is too big.\n" +
+    rechazar(linea, is + 1 + desplazamientocolumna, "the constant \"" + s.substr(is, nextis - is) + "\" is too big.\n" +
           simplerProgramMsg);
-  vt.push_back(ttoken("constante", s.substr(is, nextis - is), linea, is + 1));
+  vt.push_back(ttoken("constante", s.substr(is, nextis - is), linea, is + 1 + desplazamientocolumna));
   is = nextis;
 }
 
-void leerstring(string &s, int &is, vector<ttoken> &vt, int linea)
+void leerstringentrada(const string &s, vector<ttoken> &vt, int linea, int desplazamientocolumna);
+
+void leerstring(const string &s, int &is, vector<ttoken> &vt, int linea, int desplazamientocolumna)
 {
-  int nextis = is + 1; //skip first '"'
+  int isini = is; //isini apunta a las comillas de abrir
+  int nextis = is + 1;
   while (nextis < int(s.size()) and s[nextis] != '"')
     nextis++;
   if (nextis == int(s.size()))
-    rechazar(linea, is + 1, "the string constant should end in this line with '\"'.");
-  nextis++; //skip second '"'
-  vt.push_back(ttoken("string", s.substr(is + 1, nextis - is - 2), linea, is + 1));
-  is = nextis;
+    rechazar(linea, is + 1 + desplazamientocolumna, "the SAT variable should end in this line with '\"'.");
+  nextis++;
+  is = nextis; //is apunta al simbolo siguiente a las comillas de cerrar
+  if (nextis - isini == 2) { //string vacio
+    vt.push_back(ttoken("string", "", linea, isini + 1 + desplazamientocolumna));
+    is = nextis;
+    return;
+  } 
+  string ss = s.substr(isini + 1, nextis - isini - 2); //todo lo que hay entre comillas
+  int iss = 0;
+  int columnacomillasabrir = isini + 1 + desplazamientocolumna;
+  while (iss < int(ss.size()) and ss[iss] != '{' and ss[iss] != '}') iss++;
+  int columnacorcheteabrir = columnacomillasabrir + 1 + iss; //+1 para saltar las comillas
+  if (iss == int(ss.size()))
+    vt.push_back(ttoken("string", ss, linea, columnacomillasabrir));
+  else {
+    if (ss[iss] == '}')
+      rechazar(linea, columnacorcheteabrir, "the symbol '}' inside '\"...\"' should have the corresponding previous '{'.");
+    iss++;
+    vt.push_back(ttoken("stringini", ss.substr(0, iss), linea, columnacomillasabrir)); //stringini incluye el '{' final
+    for (;;) { //invariante: iss apunta al simbolo siguiente de '{', columnacorchete corresponde a la columna del '{'
+      int iss2 = iss;
+      while (iss2 < int(ss.size()) and ss[iss2] != '{' and ss[iss2] != '}') iss2++;
+      if (iss2 == int(ss.size()) or ss[iss2] == '{')
+        rechazar(linea, columnacorcheteabrir, "the symbol '{' inside '\"...\"' should have the corresponding following '}'.");
+      leerstringentrada(ss.substr(iss, iss2 - iss), vt, linea, columnacorcheteabrir + 1);
+      iss = iss2; //ahora iss apunta al simbolo '}'
+      int columnacorchetecerrar = columnacomillasabrir + 1 + iss;
+      iss2++;
+      while (iss2 < int(ss.size()) and ss[iss2] != '{' and ss[iss2] != '}') iss2++;
+      if (iss2 == int(ss.size())) {
+        vt.push_back(ttoken("stringfin", ss.substr(iss), linea, columnacorchetecerrar));
+        return;
+      }
+      if (ss[iss2] == '}')
+        rechazar(linea, columnacomillasabrir + 1 + iss2, "the symbol '}' inside '\"...\"' should have the corresponding previous '{'.");
+      columnacorcheteabrir = columnacomillasabrir + 1 + iss2;
+      iss2++;
+      vt.push_back(ttoken("stringmid", ss.substr(iss, iss2 - iss), linea, columnacorchetecerrar));
+      iss = iss2;
+    }
+  }
 }
 
-void leertoken(string &s, int &is, vector<ttoken> &vt, int linea,
+void leertoken(const string &s, int &is, vector<ttoken> &vt, int linea, int desplazamientocolumna,
   const set<string>& palabrasclave, const set<string>& cadenasclave)
 {
   if (esletra(s[is]) or (s[is] == '_')) {
-    leeridentificador(s, is, vt, linea, palabrasclave);
+    leeridentificador(s, is, vt, linea, desplazamientocolumna, palabrasclave);
     return;
   }
   else if (esnumero(s[is])) {
-    leerconstante(s, is, vt, linea);
+    leerconstante(s, is, vt, linea, desplazamientocolumna);
     return;
   }
   else if (s[is] == '"') {
-    leerstring(s, is, vt, linea);
+    leerstring(s, is, vt, linea, desplazamientocolumna);
     return;
   }
   else {
@@ -218,46 +260,27 @@ void leertoken(string &s, int &is, vector<ttoken> &vt, int linea,
           is = int(s.size());
         }
         else {
-          vt.push_back(ttoken(c, "", linea, is + 1));
+          vt.push_back(ttoken(c, "", linea, is + 1 + desplazamientocolumna));
           is += int(c.size());
         }
         return;
       }
     }
   }
-  rechazar(linea, is + 1, "there is no correspondence for \"" + s.substr(is) + "\"");
+  rechazar(linea, is + 1 + desplazamientocolumna, "there is no correspondence for \"" + s.substr(is) + "\"");
 }
 
-void saltarblancos(string &s, int &i)
+void saltarblancos(const string &s, int &i)
 {
   while (i < int(s.size()) and (s[i] == ' ' or s[i] == '\t')) i++;
 }
 
-//forces expressions inside parametrized strings to be evaluated
-//before being concatenated with the string
-void precompilarlinea(string &s)
-{
-  string nexts;
-  bool comillas = false;
-  for (char c : s) {
-    if (not comillas or (c != '{' and c != '}'))
-      nexts += string(1, c);
-    else if (c == '{')
-      nexts += "{\"+(";
-    else if (c == '}')
-      nexts += ")+\"}";
-    if (c == '"')
-      comillas = not comillas;
-  }
-  s = nexts;
-}
-
-void leerlineaentrada(string &s, vector<ttoken> &vt, int linea)
+void leerstringentrada(const string &s, vector<ttoken> &vt, int linea, int desplazamientocolumna)
 {
   int is = 0;
   saltarblancos(s, is);
   while (is < int(s.size())) {
-    leertoken(s, is, vt, linea, palabrasclaveprograma, cadenasclaveprograma);
+    leertoken(s, is, vt, linea, desplazamientocolumna, palabrasclaveprograma, cadenasclaveprograma);
     saltarblancos(s, is);
   }
 }
@@ -265,8 +288,7 @@ void leerlineaentrada(string &s, vector<ttoken> &vt, int linea)
 void leerentrada(vector<string> &vs, vector<ttoken> &vt)
 {
   for (int i = 0; i < int(vs.size()); i++) {
-    precompilarlinea(vs[i]);
-    leerlineaentrada(vs[i], vt, i + 1);
+    leerstringentrada(vs[i], vt, i + 1, 0);
   }
 }
 
@@ -411,7 +433,7 @@ void parsingunarios(tnodo &nodo, vector<ttoken> &vt, int &ivt)
   } else if (vt[ivt].tipo == "identificador" or vt[ivt].tipo == "in") {
     parsingin(nodo, vt, ivt);
   } else
-    seesperabaver(vt, ivt, "{\"-\",\"not\",\"ident\",\"constant\",\"string\",\"(\",\"in\",\"out\",\"abs\",\"min\",\"max\"}");
+    seesperabaver(vt, ivt, "{\"not\",\"-\",\"ident\",\"constant\",\"string\",\"(\",\"in\",\"out\",\"abs\",\"min\",\"max\"}");
 }
 
 void parsingmultiplicaciondivision(tnodo &nodo, vector<ttoken> &vt, int &ivt)
@@ -2308,7 +2330,7 @@ void leerentradaformat(string &s, vector<ttoken> &vt, int linea)
   int is = 0;
   saltarblancos(s, is);
   while (is < int(s.size())) {
-    leertoken(s, is, vt, linea, palabrasclaveformat, cadenasclaveformat);
+    leertoken(s, is, vt, linea, 0, palabrasclaveformat, cadenasclaveformat);
     saltarblancos(s, is);
   }
 }
@@ -2468,6 +2490,11 @@ void leerprograma(string ficheroprograma, tnodo &nodo, string tipoprograma)
   leerentrada(vs, vt);
   if (int(vt.size()) > limitenumtokens)
     errorprogramademasiadogrande();
+
+  // for (int i=0;i<int(vt.size());i++)
+  //   cout<<i<<" "<<vt[i].tipo<<" "<<vt[i].linea<<" "<<vt[i].columna<<" "<<vt[i].texto<<endl;
+  // cout<<endl<<endl;
+
   int ivt = 0;
   parsing(nodo, vt, ivt, tipoprograma);
   if (ivt < int(vt.size()))
