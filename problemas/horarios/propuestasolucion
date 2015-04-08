@@ -1,4 +1,4 @@
-main
+reduction
 {
   foreach(i,s ; in.subjects){
     // specific number of session of the subject
@@ -75,7 +75,7 @@ main
   }
 }
 
-main(model)
+reconstruction
 {
   foreach(i,s ; in.subjects){
     foreach(c ; s.classrooms)

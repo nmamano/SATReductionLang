@@ -158,7 +158,7 @@ set<string> palabrasclaveprograma = {"main", "in", "out", "stop",
                                  "if", "else", "while", "for", "foreach",
                                  "and", "or", "not", "push", "size",
                                  "back", "min", "max", "abs", "substr",
-                                 "insertsat"};
+                                 "insertsat", "reduction", "reconstruction"};
 set<string> cadenasclaveprograma = {"{", "}", "(", ")", "[", "]", "+", "-", "*", "/",
                             "%", "=", "&=", "==", "<", ">", "<=", ">=", "!=",
                             ";", ".", ",", "//", "++", "--"};
@@ -714,23 +714,13 @@ void parsinglistainstrucciones(tnodo &nodo, vector<ttoken> &vt, int &ivt)
   saltartipo(vt, ivt, "}");
 }
 
-void parsing(tnodo &nodo, vector<ttoken> &vt, int &ivt)
+void parsing(tnodo &nodo, vector<ttoken> &vt, int &ivt, string tipoprograma)
 {
-  if (ivt == int(vt.size()) or vt[ivt].tipo != "main")
-    morir("rejected", "The program must have the format \"main { <instructions> }\"",
-          "rechazado", "El programa debe tener el formato \"main { <instrucciones> }\"",
-          "rebutjat", "El programa ha de tenir el format \"main { <instruccions> }\"");
+  if (ivt == int(vt.size()) or vt[ivt].tipo != tipoprograma)
+    rechazar("The program must have the format \""+tipoprograma+" { <instructions> }\"");
   nodo = vt[ivt];
   nodo.hijo.push_back(tnodo());
   ivt++;
-  if (ivt < int(vt.size()) and vt[ivt].tipo == "(") {
-    ivt++;
-    if (ivt == int(vt.size()) or vt[ivt].tipo != "identificador")
-      seesperabaver(vt, ivt, "\"ident\"");
-    nodo.texto = vt[ivt].texto;
-    ivt++;
-    saltartipo(vt, ivt, ")");
-  }
   parsinglistainstrucciones(nodo.hijo[0], vt, ivt);
 }
 
@@ -2693,7 +2683,7 @@ void leerjps(string ficherojp, vector<tvalor> &v, tnodo &format)
     leerjp(vvs[i], v[i], format);
 }
 
-void leerprograma(string ficheroprograma, tnodo &nodo)
+void leerprograma(string ficheroprograma, tnodo &nodo, string tipoprograma)
 {
   prefijoerroringles = "Internal error reading program: " + ficheroprograma + "\n";
 
@@ -2703,7 +2693,7 @@ void leerprograma(string ficheroprograma, tnodo &nodo)
   if (int(vt.size()) > limitenumtokens)
     errorprogramademasiadogrande();
   int ivt = 0;
-  parsing(nodo, vt, ivt);
+  parsing(nodo, vt, ivt, tipoprograma);
   if (ivt < int(vt.size()))
     errorcosasdespuesdelprograma(vt[ivt].linea, vt[ivt].columna);
 }
@@ -2717,8 +2707,8 @@ void leerpropuestasolucion(string ficheroprograma, tnodo &nodo1, tnodo &nodo2)
   if (int(vt.size()) > limitenumtokens)
     errorprogramademasiadogrande();
   int ivt = 0;
-  parsing(nodo1, vt, ivt);
-  parsing(nodo2, vt, ivt);
+  parsing(nodo1, vt, ivt, "reduction");
+  parsing(nodo2, vt, ivt, "reconstruction");
   if (ivt < int(vt.size()))
     errorcosasdespuesdelprograma(vt[ivt].linea, vt[ivt].columna);
 }
@@ -2754,19 +2744,11 @@ int main(int argc, char *argv[])
   vector<tvalor> vjp;
   leerjps(ficherojp, vjp, formatjp);
   tnodo nodojp2input, nodoinput2sat, nodopropuestasolucion2sat, nodopropuestasolucion2solucion, nodovalidador;
-  leerprograma(ficherojp2input, nodojp2input);
-  leerprograma(ficheroinput2sat, nodoinput2sat);
-  leerprograma(ficherovalidador, nodovalidador);
+  leerprograma(ficherojp2input, nodojp2input, "main");
+  leerprograma(ficheroinput2sat, nodoinput2sat, "reduction");
+  leerprograma(ficherovalidador, nodovalidador, "main");
   leerpropuestasolucion(ficheropropuestasolucion, nodopropuestasolucion2sat, nodopropuestasolucion2solucion);
 
-  if (nodopropuestasolucion2sat.texto != "")
-    morir("rejected", "The format of the program reducing to SAT should be: \"main { <instructions> }\".",
-          "rechazado", "El formato del programa que reduce a SAT deberia ser: \"main { <instrucciones> }\".",
-          "rebutjat", "El format del programa que redueix cap a SAT hauria de ser: \"main { <instruccions> }\".");
-  if (nodopropuestasolucion2solucion.texto != "model")
-    morir("rejected", "The format of the program that reconstructs the solution by analyzing the model should be: \"main(model) { <instructions> }\".",
-          "rechazado", "El formato del programa que reconstruye la solucion a partir del model deberia ser: \"main(model) { <instrucciones> }\".",
-          "rebutjat", "El format del programa que reconstrueix la solucio a partir del model hauria de ser: \"main(model) { <instruccions> }\".");  
   comprobarnoseusatipo(nodopropuestasolucion2sat, "out",
                        "the \"out\" variable cannot be directly accessed in a reduction to SAT,\nuse \"insertsat\" instead to create your formula.",
                        "la variable \"out\" no puede ser accedida directamente en una reduccion a SAT,\nen su lugar, utiliza \"insertsat\" para crear tu formula.",

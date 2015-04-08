@@ -1,4 +1,4 @@
-main
+reduction
 {
   //x{i}{j}: queen at position (i,j)
   //exactly one per row

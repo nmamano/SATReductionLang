@@ -1,4 +1,4 @@
-main
+reduction
 {
   //x{i}{j} 	subject i at classroom j
   //y{i}{j} 	subject i with teacher j

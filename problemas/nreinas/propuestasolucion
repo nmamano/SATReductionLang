@@ -1,4 +1,4 @@
-main
+reduction
 {
   // one queen per column and row
   for(i=0 ; i<in ; ++i){
@@ -39,7 +39,7 @@ main
   }
 }
 
-main(model)
+reconstruction
 {
   for(i=0 ; i<in ; ++i)
     for(j=0 ; j<in ; ++j)
