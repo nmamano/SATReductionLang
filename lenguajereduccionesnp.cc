@@ -1715,6 +1715,14 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
     return stoll(nodo.texto);
   } else if (nodo.tipo == "string") {
     return tvalor(nodo.texto);
+  } else if (nodo.tipo == "stringparametrizado") {
+    string substringsconcatenados = "";
+    for (int i = 0; i < int(nodo.hijo.size()); i++) {
+      tvalor v = ejecutaexpresion(nodo.hijo[i], in, valor, nombremodelo, modelo);
+      subirastring(v);
+      substringsconcatenados += v.s;
+    }
+    return tvalor(substringsconcatenados);
   } else if (nodo.tipo == "substr") {
     tvalor s = ejecutaexpresion(nodo.hijo[0], in, valor, nombremodelo, modelo);
     tvalor pos = ejecutaexpresion(nodo.hijo[1], in, valor, nombremodelo, modelo);
