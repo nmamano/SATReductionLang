@@ -124,6 +124,10 @@ void rechazar(string mensajelargoingles) {
   morir("rejected", mensajelargoingles, "rejected", mensajelargoingles, "rejected", mensajelargoingles);
 }
 
+void rechazar(int linea, int columna, string mensajelargoingles) {
+  rechazar("Error line " + itos(linea) + " column " + itos(columna) + ": " + mensajelargoingles);
+}
+
 bool comando(string const &s)
 {
   int const res = system(s.c_str());
@@ -2631,8 +2635,7 @@ void leertokenformat(string &s, int &is, vector<ttoken> &vt, int linea)
       }
     }
   }
-  rechazar("Error line " + itos(linea) + " column " + itos(is + 1) +
-      ": there is no correspondence for \"" + s.substr(is) + "\"");
+  rechazar(linea, is + 1, "there is no correspondence for \"" + s.substr(is) + "\"");
 }
 
 void leerentradaformat(string &s, vector<ttoken> &vt, int linea)
@@ -2675,8 +2678,8 @@ void parsingformat(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     while (ivt < int(vt.size()) and vt[ivt].tipo == "identificador") {
       string ident = vt[ivt].texto;
       if (nodo.m.count(ident))
-        rechazar("Error line " + itos(vt[ivt].linea) + " column " + itos(vt[ivt].columna) +
-              ": the field \"" + ident + "\" has been defined twice in the struct.");
+        rechazar(vt[ivt].linea, vt[ivt].columna,
+              "the field \"" + ident + "\" has been defined twice in the struct.");
       ivt++;
       saltartipo(vt, ivt, ":");
       nodo.listacampos.push_back(ident);
