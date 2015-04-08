@@ -2560,14 +2560,6 @@ void mensajeaceptacionconreconstruccion()
 set<string> palabrasclaveformat = {"struct", "array", "int", "string", "index", "of"};
 set<string> cadenasclaveformat = {"{", "}", "[", "]", ":", "//"};
 
-void leerconstanteformat(string &s, int &is, vector<ttoken> &vt, int linea)
-{
-  int nextis = is;
-  while (nextis<int(s.size()) and s[nextis] >= '0' and s[nextis] <= '9') nextis++;
-  vt.push_back(ttoken("constante", s.substr(is, nextis - is), linea, is + 1));
-  is = nextis;
-}
-
 void leertokenformat(string &s, int &is, vector<ttoken> &vt, int linea)
 {
   if (esletra(s[is]) or (s[is] == '_')) {
@@ -2575,7 +2567,7 @@ void leertokenformat(string &s, int &is, vector<ttoken> &vt, int linea)
     return;
   }
   else if (esnumero(s[is])) {
-    leerconstanteformat(s, is, vt, linea);
+    leerconstante(s, is, vt, linea);
     return;
   }
   else {
