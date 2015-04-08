@@ -2591,7 +2591,7 @@ void mensajeaceptacionconreconstruccion()
 // Analisis lexico del formateador (analizador de tipo):
 
 set<string> palabrasclaveformat = {"struct", "array", "int", "string", "index", "of"};
-set<string> cadenasclaveformat = {"{", "}", "[", "]", "#", "@", ":", "//"};
+set<string> cadenasclaveformat = {"{", "}", "[", "]", ":", "//"};
 
 void leeridentificadorformat(string &s, int &is, vector<ttoken> &vt, int linea)
 {
