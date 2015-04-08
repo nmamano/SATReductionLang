@@ -98,21 +98,17 @@ void morirpuro(string mensajecortoingles, string mensajelargoingles,
 
 string prefijoerroringles, prefijoerrorespanyol, prefijoerrorcatalan;
 
-void morir(string mensajecortoingles, string mensajelargoingles,
-           string mensajecortoespanyol, string mensajelargoespanyol,
-           string mensajecortocatalan, string mensajelargocatalan)
-{
-  morirpuro(mensajecortoingles, prefijoerroringles + mensajelargoingles,
-            mensajecortoespanyol, prefijoerroringles + mensajelargoespanyol,
-            mensajecortocatalan, prefijoerroringles + mensajelargocatalan);
-}
-
 void rechazar(string mensajelargoingles) {
-  morir("rejected", mensajelargoingles, "rejected", mensajelargoingles, "rejected", mensajelargoingles);
+  string mensaje = prefijoerroringles + mensajelargoingles;
+  morirpuro("rejected", mensaje, "rejected", mensaje, "rejected", mensaje);
 }
 
 void rechazar(int linea, int columna, string mensajelargoingles) {
   rechazar("Error line " + itos(linea) + " column " + itos(columna) + ": " + mensajelargoingles);
+}
+
+void rechazarruntime(int linea, int columna, string mensajelargoingles) {
+  rechazar("Runtime error line " + itos(linea) + " column " + itos(columna) + ": " + mensajelargoingles);
 }
 
 vector<string> leerfichero(string nombrefichero)
@@ -129,9 +125,7 @@ vector<string> leerfichero(string nombrefichero)
     }
     ifs.close();
   } else {
-    morir("rejected", "Error when opening " + nombrefichero,
-          "rechazado", "Error al abrir " + nombrefichero,
-          "rebutjat", "Error en obrir " + nombrefichero);
+    rechazar("Error when opening " + nombrefichero);
   }
   return v;
 }
@@ -179,14 +173,14 @@ void leeridentificador(string &s, int &is, vector<ttoken> &vt, int linea,
 }
 
 int limitenumdigitos = 9;
-
+string simplerProgramMsg = "This does not mean your program is wrong, but you should find a simpler one.";
 void leerconstante(string &s, int &is, vector<ttoken> &vt, int linea)
 {
   int nextis = is;
   while (nextis<int(s.size()) and esnumero(s[nextis])) nextis++;
   if (nextis - is >= limitenumdigitos)
     rechazar(linea, is + 1, "the constant \"" + s.substr(is, nextis - is) + "\" is too big.\n" +
-          "This does not mean that your program is wrong, but you should find a simpler one.");
+          simplerProgramMsg);
   vt.push_back(ttoken("constante", s.substr(is, nextis - is), linea, is + 1));
   is = nextis;
 }
@@ -322,31 +316,14 @@ int limiteprofundidad = 10;
 void controlarprofundidad(int profundidad, int linea, int columna)
 {
   if (profundidad > limiteprofundidad)
-    morir("rejected", "Error line " + itos(linea) + " column " + itos(columna) +
-          ": the level of indexation is too big.",
-          "rechazado", "Error linea " + itos(linea) + " columna " + itos(columna) +
-          ": el nivel de indexacion es demasiado grande.",
-          "rebutjat", "Error linea " + itos(linea) + " columna " + itos(columna) +
-          ": el nivell d'indexacio es massa gran.");
+    rechazar(linea, columna, "the level of indexation is too big.");
 }
 
 void seesperabaver(vector<ttoken> &vt, int &ivt, string ingles, string espanyol, string catalan)
 {
   if (ivt == int(vt.size()))
-    morir("rejected", "Error: the end of the program was reached when"
-          " we expected to see " + ingles + ".",
-          "rechazado", "Error: se llego al final del programa cuando"
-          " se esperaba ver " + espanyol + ".",
-          "rebutjat", "Error: s'ha arribat al final del programa quan"
-          " s'esperava veure " + catalan + ".");
-  morir("rejected", string("Error line ") + itos(vt[ivt].linea) + " column " + itos(vt[ivt].columna) +
-        ": we expected to see " + ingles + ", but we found \"" +
-        vt[ivt].tipo + "\".",
-        "rechazado", string("Error linea ") + itos(vt[ivt].linea) + " columna " + itos(vt[ivt].columna) +
-        ": se esperaba ver " + espanyol + ", pero se encontro \"" +
-        vt[ivt].tipo + "\".",
-        "rebutjat", string("Error linea ") + itos(vt[ivt].linea) + " columna " + itos(vt[ivt].columna) +
-        ": s'esperava veure " + catalan + ", pero es va trobar \"" +
+    rechazar("Error: the end of the program was reached when we expected to see " + ingles + ".");
+  rechazar(vt[ivt].linea, vt[ivt].columna, "we expected to see " + ingles + ", but we found \"" +
         vt[ivt].tipo + "\".");
 }
 
@@ -728,9 +705,7 @@ void comprobarnoseusatipo(tnodo const &nodo, string const &tipo,
                           string const &ingles, string const &espanyol, string const &catalan)
 {
   if (nodo.tipo == tipo)
-    morir("rejected", "Error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": " + ingles,
-          "rechazado", "Error linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": " + espanyol,
-          "rebutjat", "Error linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": " + catalan);
+    rechazar(nodo.linea, nodo.columna, ingles);
   for (int i = 0; i < int(nodo.hijo.size()); ++i)
     comprobarnoseusatipo(nodo.hijo[i], tipo, ingles, espanyol, catalan);
 }
@@ -798,9 +773,7 @@ void leertokensat(string &s, int &is, vector<ttoken> &vt)
         return;
       }
     } while (it != cadenasclavesat.begin());
-    morir("rejected", "Execution error in lexical analysis of insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".",
-          "rechazado", "Error de ejecucion en el analisis lexico de insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".",
-          "rebutjat", "Error d'execucio en l'analisi lexic de insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".");
+    rechazar("Execution error in lexical analysis of insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".");
   }
 }
 
@@ -836,16 +809,7 @@ ll absoluto(ll x)
 void controloverflow(ll val)
 {
   if (absoluto(val) >= limiteoverflow)
-    morir("rejected", string("Runtime error: the program produces an overflow.\n") +
-          "This does not imply that the reduction is wrong, but it is convenient\n" +
-          "to find a simpler reduction.",
-          "rechazado", string("Error de ejecucion: el programa produce un overflow.\n") +
-          "Eso no significa que la reduccion sea erronea, pero si que conviene\n" +
-          "buscar una reduccion mas sencilla.",
-          "rebutjat", string("Error d'execucio: el programa produeix overflow.") +
-          "Aixo no significa que la reduccio sigui erronea, pero si que conve\n" +
-          "buscar una reduccio mes senzilla.");
-
+    rechazar("Runtime error: the program produces an overflow.\n" + simplerProgramMsg);
 }
 
 int limitesizestring = 20000;
@@ -853,15 +817,7 @@ int limitesizestring = 20000;
 void controllimitesizestring(string &s)
 {
   if (int(s.size()) > limitesizestring)
-    morir("rejected", string("Runtime error: the program produces a too big string.\n") +
-          "This does not imply that the reduction is wrong, but it is convenient\n" +
-          "to find a simpler reduction.",
-          "rechazado", string("Error de ejecucion: el programa produce un string demasiado grande.\n") +
-          "Eso no significa que la reduccion sea erronea, pero si que conviene\n" +
-          "buscar una reduccion mas sencilla.",
-          "rebutjat", string("Error d'execucio: el programa produeix un string massa gran.") +
-          "Aixo no significa que la reduccio sigui erronea, pero si que conve\n" +
-          "buscar una reduccio mes senzilla.");
+    rechazar("Runtime error: the program produces a too big string.\n" + simplerProgramMsg);
 }
 
 
@@ -934,9 +890,7 @@ void valorpordefecto(tnodo &nodo, tvalor &valor)
         valor.v.push_back(valoraux);
     }
   } else
-    morir("rejected", "Execution error in default value: \"" + nodo.tipo + "\" is not a type.",
-          "rechazado", "Error de ejecucion en valor por defecto: \"" + nodo.tipo + "\" no es un tipo.",
-          "rebutjat", "Error d'execucio a valor per defecte: \"" + nodo.tipo + "\" no es un tipus.");
+    rechazar("Execution error in default value: \"" + nodo.tipo + "\" is not a type.");
 }
 
 void construirstruct(string campo1, tvalor &valor1, string campo2, tvalor &valor2,
@@ -1092,9 +1046,7 @@ public:
   bool assignment(std::string const &variable) const
   {
     if (not string_codes.count(variable)) {
-      morir("rejected", "Runtime error: accessed the model with an unknown variable name: " + variable + ".",
-            "rechazado", "Error de ejecucion: se ha accedido al modelo con un nombre de variable desconocido: " + variable + ".",
-            "rebutjat", "Error d'execucio: s'ha accedit al model amb un nom de variable desconegut: " + variable + ".");
+      rechazar("Runtime error: accessed the model with an unknown variable name: " + variable + ".");
     }
 #if defined(USE_MINISAT)
     using namespace Minisat;
@@ -1158,9 +1110,7 @@ void errorformulasat(string &s, vector<ttoken> &vt, int &ivt)
   int is = int(s.size());
   if (ivt < int(vt.size()))
     is = vt[ivt].columna - 1;
-  morir("rejected", "Execution error in syntax analysis of insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".",
-        "rechazado", "Error de ejecucion en el analisis sintactico de insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".",
-        "rebutjat", "Error d'execucio en l'analisi sintactic de insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".");
+  rechazar("Execution error in syntax analysis of insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".");
 }
 
 void errorformulasat(string &s, vector<ttoken> &vt, int &ivt, string mensajeingles, string mensajeespanyol, string mensajecatalan)
@@ -1168,9 +1118,7 @@ void errorformulasat(string &s, vector<ttoken> &vt, int &ivt, string mensajeingl
   int is = int(s.size());
   if (ivt < int(vt.size()))
     is = vt[ivt].columna - 1;
-  morir("rejected", "Execution error in syntax analysis of insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".\n" + mensajeingles,
-        "rechazado", "Error de ejecucion en el analisis sintactico de insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".\n" + mensajeespanyol,
-        "rebutjat", "Error d'execucio en l'analisi sintactic de insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".\n" + mensajecatalan);
+  rechazar("Execution error in syntax analysis of insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".\n" + mensajeingles);
 }
 
 void saltartiposat(string &s, vector<ttoken> &vt, int &ivt, string tipo)
@@ -1520,56 +1468,38 @@ ll computausomemoria(tvalor &valor)
 void controlmemoria(int memoria)
 {
   if (memoria > limitememoria)
-    morir("rejected", string("Runtime error: the program uses too much memory.\n") +
-          "This does not imply that the reduction is wrong, but it is convenient\n" +
-          "to find a simpler reduction.",
-          "rechazado", string("Error de ejecucion: el programa usa demasiada memoria.\n") +
-          "Eso no significa que la reduccion sea erronea, pero si que conviene\n" +
-          "buscar una reduccion mas sencilla.",
-          "rebutjat", string("Error d'execucio: el programa utilitza massa memoria.") +
-          "Aixo no significa que la reduccio sigui erronea, pero si que conve\n" +
-          "buscar una reduccio mes senzilla.");
+    rechazar("Runtime error: the program uses too much memory.\n" + simplerProgramMsg);
 }
 
 tvalor comprobarentero(string op, tvalor v)
 {
   if (v.kind != 0)
-    morir("rejected", "Runtime error: '" + op + "' should be applied to integers.",
-          "rechazado", "Error de ejecucion: '" + op + "' se debe aplicar a enteros.",
-          "rebutjat", "Error d'execucio: '" + op + "' s'ha d'aplicar a enters.");
+    rechazar("Runtime error: '" + op + "' should be applied to integers.");
   return v;
 }
 
 void comprobarentero(string op, tvalor v1, tvalor v2)
 {
   if (v1.kind != 0 or v2.kind != 0)
-    morir("rejected", "Runtime error: '" + op + "' should be applied to integers.",
-          "rechazado", "Error de ejecucion: '" + op + "' se debe aplicar a enteros.",
-          "rebutjat", "Error d'execucio: '" + op + "' s'ha d'aplicar a enters.");
+    rechazar("Runtime error: '" + op + "' should be applied to integers.");
 }
 
 void comprobarstring(string op, tvalor v)
 {
   if (v.kind != 1)
-    morir("rejected", "Runtime error: '" + op + "' should be applied to strings.",
-          "rechazado", "Error de ejecucion: '" + op + "' se debe aplicar a strings.",
-          "rebutjat", "Error d'execucio: '" + op + "' s'ha d'aplicar a strings.");
+    rechazar("Runtime error: '" + op + "' should be applied to strings.");
 }
 
 void comprobarenteroostring(string op, tvalor v1, tvalor v2)
 {
   if ((v1.kind != 0 and v1.kind != 1) or (v2.kind != 0 and v2.kind != 1))
-    morir("rejected", "Runtime error: '" + op + "' should be applied to integers or strings.",
-          "rechazado", "Error de ejecucion: '" + op + "' se debe aplicar a enteros o strings.",
-          "rebutjat", "Error d'execucio: '" + op + "' s'ha d'aplicar a enters o strings.");
+    rechazar("Runtime error: '" + op + "' should be applied to integers or strings.");
 }
 
 void comprobarenteroostring(string op, tvalor v)
 {
   if (v.kind != 0 and v.kind != 1)
-    morir("rejected", "Runtime error: '" + op + "' should be applied to integers or strings.",
-          "rechazado", "Error de ejecucion: '" + op + "' se debe aplicar a enteros o strings.",
-          "rebutjat", "Error d'execucio: '" + op + "' s'ha d'aplicar a enters o strings.");
+    rechazar("Runtime error: '" + op + "' should be applied to integers or strings.");
 }
 
 tvalor operator+(tvalor v1, tvalor v2)
@@ -1593,9 +1523,7 @@ tvalor operator/(tvalor v1, tvalor v2)
   comprobarentero("/", v1, v2);
   string op = "/";
   if (v2.x == 0)
-    morir("rejected", "Runtime error: '" + op + "' should not have second operand equal to 0.",
-          "rechazado", "Error de ejecucion: '" + op + "' no debe tener segundo operando igual a 0.",
-          "rebutjat", "Error d'execucio: '" + op + "' no ha de tenir segon operand igual a 0.");
+    rechazar("Runtime error: '" + op + "' should not have second operand equal to 0.");
   return v1.x / v2.x;
 }
 
@@ -1604,9 +1532,7 @@ tvalor operator%(tvalor v1, tvalor v2)
   comprobarentero("%", v1, v2);
   string op = "%";
   if (v2.x == 0)
-    morir("rejected", "Runtime error: '" + op + "' should not have second operand equal to 0.",
-          "rechazado", "Error de ejecucion: '" + op + "' no debe tener segundo operando igual a 0.",
-          "rebutjat", "Error d'execucio: '" + op + "' no ha de tenir segon operand igual a 0.");
+    rechazar("Runtime error: '" + op + "' should not have second operand equal to 0.");
   return v1.x % v2.x;
 }
 
@@ -1691,89 +1617,61 @@ tvalor abs(tvalor v)
 }
 
 tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
-                        char const *nombremodelo, sat_solver const *modelo);
+                        string nombremodelo, sat_solver const *modelo);
 
 tvalor &extraerelemento(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
-                        char const *nombremodelo, sat_solver const *modelo)
+                        string nombremodelo, sat_solver const *modelo)
 {
   if (nodo.tipo == "in") return in;
   if (nodo.tipo == "identificador") {
     if (valor.count(nodo.texto) == 0)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": using the variable \"" + nodo.texto +
-            "\" when no value has been assigned to it.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": se utiliza la variable \"" + nodo.texto +
-            "\" sin que se le haya asignado ningun valor.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": s'utiliza la variable \"" + nodo.texto +
-            "\" sin que se li hagi assignat cap valor.");
+      rechazarruntime(nodo.linea, nodo.columna, "using the variable \"" + nodo.texto + "\" when no value has been assigned to it.");
     tvalor v = valor[nodo.texto];
     if (v.kind != 3)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": " + nodo.texto + " is not a reference to \"in\" here.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": " + nodo.texto + " no es una referencia a \"in\" aqui.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": " + nodo.texto + " no es una referencia a \"in\" aqui.");
+      rechazarruntime(nodo.linea, nodo.columna, nodo.texto + "is not a reference to \"in\" here.");
     return *v.ref;
   }
   if (nodo.tipo == "[") {
     tvalor &v1 = extraerelemento(nodo.hijo[0], in, valor, nombremodelo, modelo);
     tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, valor, nombremodelo, modelo);
     if (v1.kind != 2)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": indexed access to a non-array.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acceso indexado a un no-array.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acces indexat a un no-array.");
+      rechazarruntime(nodo.linea, nodo.columna, "indexed access to a non-array.");
     comprobarentero("array[...]", v2);
     if (v2.x < 0 or int(v1.v.size()) <= v2.x)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": out of range in array access.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acceso a array fuera de rango.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acces a array fora de rang.");
+      rechazarruntime(nodo.linea, nodo.columna, "out of range in array access.");
     return v1.v[v2.x];
   }
   if (nodo.tipo == "back") {
     tvalor &v1 = extraerelemento(nodo.hijo[0], in, valor, nombremodelo, modelo);
     if (v1.kind != 2)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": back access to a non-array.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acceso back a un no-array.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acces back a un no-array.");
+      rechazarruntime(nodo.linea, nodo.columna, "back access to a non-array.");
     if (int(v1.v.size()) == 0)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": back access to an array with 0 size.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acceso back a un array de tamanyo 0.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acces back a un array de mida 0.");
+      rechazarruntime(nodo.linea, nodo.columna, "back access to an array with 0 size.");
     return v1.v.back();
   }
   if (nodo.tipo == ".") {
     tvalor &v1 = extraerelemento(nodo.hijo[0], in, valor, nombremodelo, modelo);
     if (v1.kind != 4)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": field access to a non-struct.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acceso por campo a un no-struct.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acces per camp a un no-struct.");
+      rechazarruntime(nodo.linea, nodo.columna, "field access to a non-struct.");
     if (v1.m.count(nodo.texto) == 0)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": the struct does not have a field called " + nodo.texto + ".",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": el struct no tiene un campo llamado " + nodo.texto + ".",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": l'struct no te un camp anomenat " + nodo.texto + ".");
+      rechazarruntime(nodo.linea, nodo.columna, "the struct does not have a field called " + nodo.texto + ".");
     return v1.m[nodo.texto];
   }
   // Aquest error no s'hauria de donar mai:
-  morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": an indexation to \"in\" or \"out\" was expected.",
-        "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": se esperaba una indexacion a \"in\" o \"out\".",
-        "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": s'esperava una indexacio a \"in\" o \"out\".");
+  rechazarruntime(nodo.linea, nodo.columna, "an indexation to \"in\" or \"out\" was expected.");
   return in;
 }
 
 tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
-                        char const *nombremodelo, sat_solver const *modelo)
+                        string nombremodelo, sat_solver const *modelo)
 {
   if (nodo.tipo == "identificador") {
     if (valor.count(nodo.texto) == 0)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": using the variable \"" + nodo.texto +
-            "\" when no value has been assigned to it.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": se utiliza la variable \"" + nodo.texto +
-            "\" sin que se le haya asignado ningun valor.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": s'utiliza la variable \"" + nodo.texto +
-            "\" sin que se li hagi assignat cap valor.");
+      rechazarruntime(nodo.linea, nodo.columna, "using the variable \"" + nodo.texto + "\" when no value has been assigned to it.");
     if (valor[nodo.texto].kind == 3) {
       tvalor &v = *valor[nodo.texto].ref;
       if (v.kind != 0 and v.kind != 1)
-        morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": only simple types inside \"in\" can be accessed in an expression.",
-              "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": solo se pueden acceder tipos simples dentro de \"in\" en una expresion.",
-              "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": nomes es poden accedir tipus simples dins de \"in\" en una expressio.");
+        rechazarruntime(nodo.linea, nodo.columna, "only simple types inside \"in\" can be accessed in an expression.");
       return v;
     }
     return valor[nodo.texto];
@@ -1787,32 +1685,24 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
     comprobarstring("substr(...,)", s);
     comprobarentero("substr(,...)", pos);
     if (pos.x < 0 or int(s.s.size()) <= pos.x)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": out of range in substring access.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acceso a substring fuera de rango.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acces a substring fora de rang.");
+      rechazarruntime(nodo.linea, nodo.columna, "out of range in substring access.");
     return s.s.substr(pos.x);
   } else if (nodo.tipo == "size") {
     tvalor &v = extraerelemento(nodo.hijo[0], in, valor, nombremodelo, modelo);
     if (v.kind != 2)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": \"size\" must be applied to an array.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": \"size\" se debe aplicar a un array.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": \"size\" s'ha d'aplicar a un array.");
+      rechazarruntime(nodo.linea, nodo.columna, "\"size\" must be applied to an array.");
     return int(v.v.size());
-  } else if (nombremodelo != NULL and nodo.tipo == "[" and nodo.hijo[0].tipo == "identificador" and nodo.hijo[0].texto == nombremodelo) {
+  } else if (nombremodelo != "" and nodo.tipo == "[" and nodo.hijo[0].tipo == "identificador" and nodo.hijo[0].texto == nombremodelo) {
     tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, valor, nombremodelo, modelo);
     if (v2.kind != 0 and v2.kind != 1)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": the model must be queried with a variable name (i.e., an integer or a string).",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": el modelo debe consultarse con el nombre de una variable (es decir, un entero o un string).",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": el model ha de consultar-se amb el nom d'una variable (es a dir, un enter o un string).");
+      rechazarruntime(nodo.linea, nodo.columna, "the model must be queried with a variable name (i.e., an integer or a string).");
     tvalor res;
     res.x = (v2.kind == 0) ? modelo->assignment(v2.x) : modelo->assignment(v2.s);
     return res;
   } else if (nodo.tipo == "in" or nodo.tipo == "back" or nodo.tipo == "[" or nodo.tipo == ".") {
     tvalor &v = extraerelemento(nodo, in, valor, nombremodelo, modelo);
     if (v.kind != 0 and v.kind != 1)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": only simple types inside \"in\" can be accessed in an expression.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": solo se pueden acceder tipos simples dentro de \"in\" en una expresion.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": nomes es poden accedir tipus simples dins de \"in\" en una expressio.");
+      rechazarruntime(nodo.linea, nodo.columna, "only simple types inside \"in\" can be accessed in an expression.");
     return v;
   } else if (nodo.tipo == "abs") {
     return abs(ejecutaexpresion(nodo.hijo[0], in, valor, nombremodelo, modelo));
@@ -1848,37 +1738,27 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
 }
 
 tvalor &extraerout(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, int &memoria,
-                   char const *nombremodelo, sat_solver const *modelo)
+                   string nombremodelo, sat_solver const *modelo)
 {
   if (nodo.tipo == "out") return out;
   tvalor &v1 = extraerout(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
   if (nodo.tipo == ".") {
     if (v1.kind != 4)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": field access to a non-struct.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acceso por campo a un no-struct.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acces per camp a un no-struct.");
+      rechazarruntime(nodo.linea, nodo.columna, "field access to a non-struct.");
     if (v1.m.count(nodo.texto) == 0)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": the struct does not have a field called " + nodo.texto + ".",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": el struct no tiene un campo llamado " + nodo.texto + ".",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": l'struct no te un camp anomenat " + nodo.texto + ".");
+      rechazarruntime(nodo.linea, nodo.columna, "the struct does not have a field called " + nodo.texto + ".");
     return v1.m[nodo.texto];
   }
   if (nodo.tipo == "[") {
     if (v1.kind != 2)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": indexed access to a non-array.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acceso indexado a un no-array.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acces indexat a un no-array.");
+      rechazarruntime(nodo.linea, nodo.columna, "indexed access to a non-array.");
     tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, valor, nombremodelo, modelo);
     comprobarentero("array[...]", v2);
     if (v2.x < 0)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": out of range in array access.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acceso a array fuera de rango.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acces a array fora de rang.");
+      rechazarruntime(nodo.linea, nodo.columna, "out of range in array access.");
     if (v1.format->texto != "") {
       if (int(v1.v.size()) <= v2.x)
-        morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": out of range in array of fixed size access.",
-              "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acceso a array de tamanyo fijo fuera de rango.",
-              "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acces a array de mida fixa fora de rang.");
+        rechazarruntime(nodo.linea, nodo.columna, "out of range in array of fixed size access.");
       return v1.v[v2.x];
     } else {
       controlmemoria(v2.x + 1);
@@ -1896,24 +1776,16 @@ tvalor &extraerout(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &va
   }
   if (nodo.tipo == "back") {
     if (v1.kind != 2)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": back access to a non-array.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acceso back a un no-array.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acces back a un no-array.");
+      rechazarruntime(nodo.linea, nodo.columna, "back access to a non-array.");
     if (int(v1.v.size()) == 0)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": back access to an array with 0 size.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acceso back a un array de tamanyo 0.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": acces back a un array de mida 0.");
+      rechazarruntime(nodo.linea, nodo.columna, "back access to an array with 0 size.");
     return v1.v.back();
   }
   //if (nodo.tipo=="push") {
   if (v1.kind != 2)
-    morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": push action on a non-array.",
-          "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": accion push sobre un no-array.",
-          "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": accio push sobre un no-array.");
+    rechazarruntime(nodo.linea, nodo.columna, "push action on a non-array.");
   if (v1.format->texto != "")
-    morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": push to array of fixed size.",
-          "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": push a array de tamanyo fijo.",
-          "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": push a array de mida fixa.");
+    rechazarruntime(nodo.linea, nodo.columna, "push to array of fixed size.");
   tvalor defecto;
   valorpordefecto(v1.format->hijo[0], defecto);
   memoria += 1 + computausomemoria(defecto);
@@ -2121,9 +1993,7 @@ void muestra2string(tvalor &muestra,string &muestraingles,string &muestraespanyo
 
 void morirtipoinsertsat(tnodo &nodo)
 {
-  morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": insertsat must be applied to an \"array of array of int_or_string\" where the arrays have non-fixed size, and to a \"string\".",
-        "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": insertsat se debe aplicar a un \"array of array of int_or_string\" donde los arrays tienen tamanyo no fijo, y a un \"string\".",
-        "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": insertsat s'ha d'aplicar a un \"array of array of int_or_string\" on els arrays tenen mida no fixa, i a un \"string\".");
+  rechazarruntime(nodo.linea, nodo.columna, "insertsat must be applied to an \"array of array of int_or_string\" where the arrays have non-fixed size, and to a \"string\".");
 }
 
 // El resultado de la ejecucion==0 significa que no ha terminado, ==1 que se ha terminado con normalidad.
@@ -2133,13 +2003,11 @@ int finito = 100000;
 int tiempoejecucion;
 
 int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, int &memoria,
-            char const *nombremodelo, sat_solver const *modelo)
+            string nombremodelo, sat_solver const *modelo)
 {
   tiempoejecucion--;
   if (tiempoejecucion < 0)
-    morir("rejected", "Runtime error: the execution time of the reduction is too big.",
-          "rechazado", "Error de ejecucion: el tiempo de ejecucion de la reduccion es excesivo.",
-          "rebutjat", "Error d'execucio: el temps d'execucio de la reduccio es execessiu.");
+    rechazar("Runtime error: the execution time of the reduction is too big.");
   if (nodo.tipo == ";") {
   } else if (nodo.tipo == "insertsat") {
     tvalor &v1 = ((int(nodo.hijo.size()) == 2) ? (extraerout(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo)) : out);
@@ -2184,15 +2052,11 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
     }
   } else if (nodo.tipo == "foreach") {
     int indicereferencia = (nodo.hijo.size() == 3 ? 0 : 1);
-    if (nombremodelo != NULL and (nodo.hijo[0].texto == nombremodelo or (indicereferencia and nodo.hijo[indicereferencia].texto == nombremodelo)))
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": foreach(...;) cannot overwrite the model variable \"" + nombremodelo + "\".",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": foreach(...;) no puede sobreescribir la variable \"" + nombremodelo + "\" que contiene el modelo.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": foreach(...;) no pot sobreescriure la variable \"" + nombremodelo + "\" que conte el model.");
+    if (nombremodelo != "" and (nodo.hijo[0].texto == nombremodelo or (indicereferencia and nodo.hijo[indicereferencia].texto == nombremodelo)))
+      rechazarruntime(nodo.linea, nodo.columna, "foreach(...;) cannot overwrite the model variable \"" + nombremodelo + "\".");
     tvalor &v2 = extraerelemento(nodo.hijo[indicereferencia + 1], in, valor, nombremodelo, modelo);
     if (v2.kind != 2)
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": foreach(;...) requires a reference to \"in\" being an array.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": foreach(;...) requiere de una referencia a \"in\" que sea un array.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": foreach(;...) necessita una referencia a \"in\" que sigui un array.");
+      rechazarruntime(nodo.linea, nodo.columna, "foreach(;...) requires a reference to \"in\" being an array.");
     for (int i = 0; i < int(v2.v.size()); i++) {
       if (indicereferencia) {
         valor[nodo.hijo[0].texto].kind = 0;
@@ -2225,19 +2089,15 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
     comprobarentero("--", valorid);
     valor[nodo.hijo[0].texto].x--;
   } else if (nodo.tipo == "=") {
-    if (nombremodelo != NULL and (nodo.hijo[0].texto == nombremodelo))
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": cannot overwrite the model variable \"" + nombremodelo + "\".",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": no se puede sobreescribir la variable \"" + nombremodelo + "\" que contiene el modelo.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": no es pot sobreescriure la variable \"" + nombremodelo + "\" que conte el model.");
+    if (nombremodelo != "" and (nodo.hijo[0].texto == nombremodelo))
+      rechazarruntime(nodo.linea, nodo.columna, "cannot overwrite the model variable \"" + nombremodelo + "\".");
     tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, valor, nombremodelo, modelo);
     //if (nodo.hijo[0].tipo=="identificador")
     // Haria falta aqui comprobar que lo que se asigna es de tipo entero o string?
     valor[nodo.hijo[0].texto] = v2;
   } else if (nodo.tipo == "&=") {
-    if (nombremodelo != NULL and (nodo.hijo[0].texto == nombremodelo))
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": cannot overwrite the model variable \"" + nombremodelo + "\".",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": no se puede sobreescribir la variable \"" + nombremodelo + "\" que contiene el modelo.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": no es pot sobreescriure la variable \"" + nombremodelo + "\" que conte el model.");
+    if (nombremodelo != "" and (nodo.hijo[0].texto == nombremodelo))
+      rechazarruntime(nodo.linea, nodo.columna, "cannot overwrite the model variable \"" + nombremodelo + "\".");
     tvalor &v2 = extraerelemento(nodo.hijo[1], in, valor, nombremodelo, modelo);
     valor[nodo.hijo[0].texto].kind = 3;
     valor[nodo.hijo[0].texto].ref = &v2;
@@ -2250,9 +2110,7 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
       // Haria falta aqui comprobar que lo que se asigna es de tipo entero o string?
       if (v1.format->tipo == "int") {
         if (v2.kind != 0)
-          morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": incompatible types in assignment.\nAn \"int\" was expected.",
-                "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipos incompatibles en la asignacion.\nSe esperaba un \"int\".",
-                "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipus incompatibles en l'assignacio.\nS'esperava un \"int\".");
+          rechazarruntime(nodo.linea, nodo.columna, "incompatible types in assignment.\nAn \"int\" was expected.");
         // No se copia v1=v2 para mantener "tnodo *format;" de v1.
         v1.kind = v2.kind;
         v1.x = v2.x;
@@ -2260,29 +2118,21 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
       } else if (v1.format->tipo == "string" or v1.format->tipo == "#" or v1.format->tipo == "@") {
         // Este error creo que no deberia tener lugar nunca porque el ejecuta expresion siempre da int o string.
         if (v2.kind != 0 and v2.kind != 1)
-          morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": incompatible types in assignment.\nAn \"int\" or \"string\" was expected.",
-                "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipos incompatibles en la asignacion.\nSe esperaba un \"int\" o \"string\".",
-                "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipus incompatibles en l'assignacio.\nS'esperava un \"int\" o \"string\".");
+          rechazarruntime(nodo.linea, nodo.columna, "incompatible types in assignment.\nAn \"int\" or \"string\" was expected.");
         // No se copia v1=v2 para mantener "tnodo *format;" de v1.
         v1.kind = v2.kind;
         v1.x = v2.x;
         v1.s = v2.s;
       } else
-        morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": incompatible types in assignment.\nOnly simple types can be assigned.",
-              "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipos incompatibles en la asignacion.\nSolo se pueden asignar tipos simples.",
-              "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipus incompatibles en l'assignacio.\nNomes es poden assignar tipus simples.");
+        rechazarruntime(nodo.linea, nodo.columna, "incompatible types in assignment.\nOnly simple types can be assigned.");
     } else if (v1.kind == 2) {
       if (v1.format->hijo[0].tipo != "int" and v1.format->hijo[0].tipo != "string" and
           v1.format->hijo[0].tipo != "#" and v1.format->hijo[0].tipo != "@")
-        morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": Only simple types can be assigned,\nand the positions of the array do not have simple types.",
-              "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": Solo se pueden asignar tipos simples,\ny las posiciones del array no tienen tipos simples.",
-              "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": Nomes es poden assignar tipus simples,\ni les posicions de l'array no tenen tipus simples.");
+        rechazarruntime(nodo.linea, nodo.columna, "only simple types can be assigned,\nand the positions of the array do not have simple types.");
       if (v1.format->texto != "") {
         int tamanyo = stoll(v1.format->texto);
         if (tamanyo != int(nodo.hijo.size()) - 1)
-          morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": The number of expressions does not coincide with the fixed size of the array.",
-                "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": el numero de expresiones no coincide con el tamanyo fijo del array.",
-                "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": el nombre d'expressions no coincideix amb la mida fixa de l'array.");
+          rechazarruntime(nodo.linea, nodo.columna, "the number of expressions does not coincide with the fixed size of the array.");
       } else {
         tvalor defecto;
         valorpordefecto(v1.format->hijo[0], defecto);
@@ -2291,39 +2141,29 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
       for (int i = 1; i < int(nodo.hijo.size()); i++) {
         tvalor v2 = ejecutaexpresion(nodo.hijo[i], in, valor, nombremodelo, modelo);
         if (v1.format->hijo[0].tipo == "int" and v2.kind != 0)
-          morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": incompatible types in assignment.\nAn \"int\" was expected in the expresion number " + itos(i) + ".",
-                "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipos incompatibles en la asignacion.\nSe esperaba un \"int\" en la expresion numero " + itos(i) + ".",
-                "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipus incompatibles en l'assignacio.\nS'esperava un \"int\" a l'expressio numero " + itos(i) + ".");
+          rechazarruntime(nodo.linea, nodo.columna, "incompatible types in assignment.\nAn \"int\" was expected in the expresion number " + itos(i) + ".");
         v1.v[i - 1].kind = v2.kind;
         v1.v[i - 1].x = v2.x;
         v1.v[i - 1].s = v2.s;
       }
     } else if (v1.kind == 4) {
       if (int(nodo.hijo.size()) - 1 != int(v1.format->m.size()))
-        morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": the number of expressions does not coincide with the number of fields in the struct.",
-              "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": el numero de expresiones no coincide con el numero de campos del struct.",
-              "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": el nombre d'expressions no coincideix amb el nombre de camps de l'struct.");
+        rechazarruntime(nodo.linea, nodo.columna, "the number of expressions does not coincide with the number of fields in the struct.");
       for (int i = 1; i < int(nodo.hijo.size()); i++) {
         tvalor v2 = ejecutaexpresion(nodo.hijo[i], in, valor, nombremodelo, modelo);
         if (v1.format->m[v1.format->listacampos()[i - 1]].tipo == "int" and v2.kind != 0)
-          morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": incompatible types in assignment.\nAn \"int\" was expected in the expresion number " + itos(i) + ".",
-                "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipos incompatibles en la asignacion.\nSe esperaba un \"int\" en la expresion numero " + itos(i) + ".",
-                "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipus incompatibles en l'assignacio.\nS'esperava un \"int\" a l'expressio numero " + itos(i) + ".");
+          rechazarruntime(nodo.linea, nodo.columna, "incompatible types in assignment.\nAn \"int\" was expected in the expresion number " + itos(i) + ".");
         if (v1.format->m[v1.format->listacampos()[i - 1]].tipo != "int" and
             v1.format->m[v1.format->listacampos()[i - 1]].tipo != "string" and
             v1.format->m[v1.format->listacampos()[i - 1]].tipo != "#" and
             v1.format->m[v1.format->listacampos()[i - 1]].tipo != "@")
-          morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": incompatible types in assignment.\nThe field number " + itos(i) + " of the struct is not \"int\" or \"string\".",
-                "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipos incompatibles en la asignacion.\nEl campo numero " + itos(i) + " del struct no es \"int\" o \"string\".",
-                "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipus incompatibles en l'assignacio.\nEl camp numero " + itos(i) + " del struct no es \"int\" o \"string\".");
+          rechazarruntime(nodo.linea, nodo.columna, "incompatible types in assignment.\nThe field number " + itos(i) + " of the struct is not \"int\" or \"string\".");
         v1.m[v1.format->listacampos()[i - 1]].kind = v2.kind;
         v1.m[v1.format->listacampos()[i - 1]].x = v2.x;
         v1.m[v1.format->listacampos()[i - 1]].s = v2.s;
       }
     } else
-      morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": incompatible types in assignment.\nOnly simple types can be assigned.",
-            "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipos incompatibles en la asignacion.\nSolo se pueden asignar tipos simples.",
-            "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": tipus incompatibles en l'assignacio.\nNomes es poden assignar tipus simples.");
+      rechazarruntime(nodo.linea, nodo.columna, "incompatible types in assignment.\nOnly simple types can be assigned.");
     memoria += computausomemoria(v1);
     controlmemoria(memoria);
   } else if (nodo.tipo == "stop") {
@@ -2352,14 +2192,12 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
       if (ejecuta(nodo.hijo[i], in, out, valor, memoria, nombremodelo, modelo))
         return 1;
   } else
-    morir("rejected", "Runtime error line " + itos(nodo.linea) + " column " + itos(nodo.columna) + ": unknown instruction \"" + nodo.tipo + "\".",
-          "rechazado", "Error de ejecucion linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": instruccion desconocida \"" + nodo.tipo + "\".",
-          "rebutjat", "Error d'execucio linea " + itos(nodo.linea) + " columna " + itos(nodo.columna) + ": instruccio desconeguda \"" + nodo.tipo + "\".");
+    rechazarruntime(nodo.linea, nodo.columna, "unknown instruction \"" + nodo.tipo + "\".");
   return 0;
 }
 
 void ejecuta(tnodo &nodo, tvalor &in, tvalor &out,
-             char const *nombremodelo = NULL, sat_solver const *modelo = NULL)
+             string nombremodelo = "", sat_solver const *modelo = NULL)
 {
   numid = 1;
   map<string, tvalor> valor;
@@ -2428,38 +2266,20 @@ void ejecutareconstruccion(tnodo &reconstructor, tvalor &in, tnodo &formatout, s
 
 void errorprogramademasiadogrande()
 {
-  morir("rejected", "Error: the program is too big. Please, find a simpler solution",
-        "rechazado", "Error: el programa es innecesariamente largo. Busca una solucion mas sencilla",
-        "rebutjat", "Error: el programa es innecesariament llarg. Busca una solucio mes senzilla");
+  rechazar("Error: the program is too big. Please, find a simpler solution");
 }
 
 void errorcosasdespuesdelprograma(int linea, int columna)
 {
-  morir("rejected", "Error line " + itos(linea) + " column " + itos(columna) +
-        ": there should not be anything else just after the program.",
-        "rechazado", "Error linea " + itos(linea) + " columna " + itos(columna) +
-        ": no deberia haber nada mas tras la ultima llave del programa.",
-        "rebutjat", "Error linea " + itos(linea) + " columna " + itos(columna) +
-        ": no hi hauria d'haver res mes despres de l'ultima clau del programa.");
+  rechazar(linea, columna, "there should not be anything else just after the program.");
 }
 
 void errorrespuesta(string ingles, string espanyol, string catalan, string &in, string &out)
 {
-  morir("rejected",
-        "Error: the " + ingles + " answer is not preserved when your reduction\n" +
+  rechazar("Error: the " + ingles + " answer is not preserved when your reduction\n" +
         "receives the following input:\n\n" + in + "\nThe corresponding obtained output is:\n\n" + out +
         "\nIf you consider that the judge verdict is not correct,\n" +
-        "try to submit a simpler reduction in order to ease the testing process.",
-        "rechazado",
-        "Error: no se preserva la respuesta " + espanyol + " cuando tu reduccion\n" +
-        "recibe la siguiente entrada:\n\n" + in + "\nLa correspondiente salida obtenida es:\n\n" + out +
-        "\nSi consideras que el veredicto del juez no es correcto,\n" +
-        "trata de enviar una reduccion mas sencilla para facilitar la comprobacion.",
-        "rebutjat",
-        "Error: no es preserva la resposta " + catalan + " quan la teva reduccio\n" +
-        "rep la seguent entrada:\n\n" + in + "\nLa corresponent sortida obtinguda es:\n\n" + out +
-        "\nSi consideres que el veredicte del jutge no es correcte,\n" +
-        "mira d'enviar una reduccio mes senzilla a fi de facilitar la seva comprovacio.");
+        "try to submit a simpler reduction in order to ease the testing process.");
 }
 
 void errorrespuesta2SAT(string ingles, string espanyol, string catalan, string &in, string &out,
@@ -2467,52 +2287,30 @@ void errorrespuesta2SAT(string ingles, string espanyol, string catalan, string &
 {
   bool mostrarmuestra = not muestrasolucion.empty() or not muestraingles.empty()
                         or not muestraespanyol.empty() or not muestracatalan.empty();
-  morir("rejected",
-        "Error: the " + ingles + " answer is not preserved when your reduction to SAT\n" +
+  rechazar("Error: the " + ingles + " answer is not preserved when your reduction to SAT\n" +
         "receives the following input:\n\n" + in + "\nThe corresponding generated formula is:\n\n" + out +
         (mostrarmuestra ? "\nThe corresponding reconstructed solution is:\n\n" + muestrasolucion + "\n" + muestraingles + "\n" : string()) +
         "\nIf you consider that the judge verdict is not correct,\n" +
-        "try to submit a simpler reduction in order to ease the testing process.",
-        "rechazado",
-        "Error: no se preserva la respuesta " + espanyol + " cuando tu reduccion a SAT\n" +
-        "recibe la siguiente entrada:\n\n" + in + "\nLa correspondiente formula generada es:\n\n" + out +
-        (mostrarmuestra ? "\nLa correspondiente solucion reconstruida es\n\n" + muestrasolucion + "\n" + muestraespanyol + "\n" : string()) +
-        "\nSi consideras que el veredicto del juez no es correcto,\n" +
-        "trata de enviar una reduccion mas sencilla para facilitar la comprobacion.",
-        "rebutjat",
-        "Error: no es preserva la resposta " + catalan + " quan la teva reduccio a SAT\n" +
-        "rep la seguent entrada:\n\n" + in + "\nLa corresponent formula generada es:\n\n" + out +
-        (mostrarmuestra ? "\nLa corresponent solucio reconstruida es:\n\n" + muestrasolucion + "\n" + muestracatalan + "\n" : string()) +
-        "\nSi consideres que el veredicte del jutge no es correcte,\n" +
-        "mira d'enviar una reduccio mes senzilla a fi de facilitar la seva comprovacio.");
+        "try to submit a simpler reduction in order to ease the testing process.");
 }
 
 void errorreconstruccion(string ingles, string espanyol, string catalan, string &in, string &out)
 {
-  morir("rejected",
-        "Error: the reduction is apparently correct, but the reconstructed solution is\n"
+  rechazar("Error: the reduction is apparently correct, but the reconstructed solution is\n"
         "wrong when your programs receive the following input:\n\n" + in + "\nThe corresponding reconstructed solution is:\n\n" + out +
-        (not ingles.empty() ? "\n" + ingles + "\n" : string()),
-        "rechazado",
-        "Error: la reduccion es aparentemente correcta, pero la reconstruccion de la solucion\n"
-        "esta mal cuando tus programas reciben la siguiente entrada:\n\n" + in + "\nLa correspondiente solucion reconstruida es:\n\n" + out +
-        (not espanyol.empty() ? "\n" + espanyol + "\n" : string()),
-        "rebutjat",
-        "Error: la reduccio es aparentment correcta, pero la reconstruccio de la solucio\n"
-        "esta malament quan els teus programes reben la seguent entrada:\n\n" + in + "\nLa corresponent solucio reconstruida es:\n\n" + out +
-        (not catalan.empty() ? "\n" + catalan + "\n" : string()));
+        (not ingles.empty() ? "\n" + ingles + "\n" : string()));
 }
 
 void mensajeaceptacion()
 {
-  morir("accepted", "Reduction apparently correct.",
+  morirpuro("accepted", "Reduction apparently correct.",
         "aceptado", "Reduccion aparentemente correcta.",
         "acceptat", "Reduccio aparentment correcta.");
 }
 
 void mensajeaceptacionconreconstruccion()
 {
-  morir("accepted", "Reduction and solution reconstruction apparently correct.",
+  morirpuro("accepted", "Reduction and solution reconstruction apparently correct.",
         "aceptado", "Reduccion y reconstruccion de solucion aparentemente correctos.",
         "acceptat", "Reduccio i reconstruccio de solucio aparentment correctes.");
 }
