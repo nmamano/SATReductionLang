@@ -134,6 +134,10 @@ void morir(string mensajecortoingles, string mensajelargoingles,
             mensajecortocatalan, prefijoerrorcatalan + mensajelargocatalan);
 }
 
+void rechazar(string mensajelargoingles) {
+  morir("rejected", mensajelargoingles, "rejected", mensajelargoingles, "rejected", mensajelargoingles);
+}
+
 bool comando(string const &s)
 {
   int const res = system(s.c_str());
