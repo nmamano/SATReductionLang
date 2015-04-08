@@ -2637,7 +2637,6 @@ void mensajeaceptacionconreconstruccion()
 ////////////////////////////////////////////////////////////
 // Analisis lexico del formateador (analizador de tipo):
 
-
 set<string> palabrasclaveformat = {"struct", "array", "int", "string", "index", "of"};
 set<string> cadenasclaveformat = {"{", "}", "[", "]", "#", "@", ":", "//"};
 
@@ -2690,13 +2689,6 @@ void leertokenformat(string &s, int &is, vector<ttoken> &vt, int linea)
   rechazar("Error line " + itos(linea) + " column " + itos(is + 1) +
       ": there is no correspondence for \"" + s.substr(is) + "\"");
 }
-/*
-void saltarblancos(string &s,int &i)
-{
-  while (i<int(s.size()) and (s[i]==' ' or s[i]=='\t')) i++;
-}
-*/
-
 
 void leerentradaformat(string &s, vector<ttoken> &vt, int linea)
 {
@@ -2724,10 +2716,13 @@ void leerentradaformat(vector<string> &vs, vector<ttoken> &vt)
 ////////////////////////////////////////////////////////////
 // Analisis sintactico del formateador:
 
+//vt: "array" "of" "array" "of" "int"
+//nodo: output
+//ivt: 0
 void parsingformat(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
   if (ivt == int(vt.size()))
-    seesperabaver(vt, ivt, "{\"struct\",\"array\",\"string\",\"int\",\"#\"}");
+    seesperabaver(vt, ivt, "{\"struct\",\"array\",\"string\",\"int\"}");
   if (vt[ivt].tipo == "struct") {
     nodo = vt[ivt];
     ivt++;
@@ -2735,12 +2730,8 @@ void parsingformat(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     while (ivt < int(vt.size()) and vt[ivt].tipo == "identificador") {
       string ident = vt[ivt].texto;
       if (nodo.m.count(ident))
-        morir("rejected", "Error line " + itos(vt[ivt].linea) + " column " + itos(vt[ivt].columna) +
-              ": the field \"" + ident + "\" has been defined twice in the struct.",
-              "rechazado", "Error linea " + itos(vt[ivt].linea) + " columna " + itos(vt[ivt].columna) +
-              ": el campo \"" + ident + "\" se ha definido dos veces en el struct.",
-              "rebutjat", "Error linea " + itos(vt[ivt].linea) + " columna " + itos(vt[ivt].columna) +
-              ": el camp \"" + ident + "\" s'ha definit dos cops a l'struct.");
+        rechazar("Error line " + itos(vt[ivt].linea) + " column " + itos(vt[ivt].columna) +
+              ": the field \"" + ident + "\" has been defined twice in the struct.");
       ivt++;
       saltartipo(vt, ivt, ":");
       nodo.listacampos.push_back(ident);
@@ -2749,23 +2740,6 @@ void parsingformat(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     saltartipo(vt, ivt, "}");
   } else if (vt[ivt].tipo == "int" or vt[ivt].tipo == "string") {
     nodo = vt[ivt];
-    ivt++;
-  } else if (vt[ivt].tipo == "#") {
-    nodo = vt[ivt];
-    ivt++;
-    if (ivt == int(vt.size()) or (vt[ivt].tipo != "constante" and vt[ivt].tipo != "index"))
-      seesperabaver(vt, ivt, "{\"constant\",\"index\"}");
-    if (vt[ivt].tipo == "constante")
-      nodo.texto = vt[ivt].texto;
-    else
-      nodo.texto = vt[ivt].tipo;
-    ivt++;
-  } else if (vt[ivt].tipo == "@") {
-    nodo = vt[ivt];
-    ivt++;
-    if (ivt == int(vt.size()) or vt[ivt].tipo != "constante")
-      seesperabaver(vt, ivt, "{\"constant\"}");
-    nodo.texto = vt[ivt].texto;
     ivt++;
   } else if (vt[ivt].tipo == "array") {
     nodo = vt[ivt];
@@ -2782,7 +2756,7 @@ void parsingformat(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     saltartipo(vt, ivt, "of");
     parsingformat(nodo.hijo[0], vt, ivt);
   } else
-    seesperabaver(vt, ivt, "{\"struct\",\"array\",\"string\",\"int\",\"#\"}");
+    seesperabaver(vt, ivt, "{\"struct\",\"array\",\"string\",\"int\"}");
 }
 
 int limitenumtokens = 5000;
