@@ -2798,33 +2798,24 @@ void leerjps(string ficherojp, vector<tvalor> &v, tnodo &format)
     leerjp(vvs[i], v[i], format);
 }
 
-void leerprograma(string ficheroprograma, tnodo &nodo,
-                  string internalerroringles, string internalerrorespanyol, string internalerrorcatalan)
+void leerprograma(string ficheroprograma, tnodo &nodo)
 {
-  prefijoerroringles = internalerroringles;
-  prefijoerrorespanyol = internalerrorespanyol;
-  prefijoerrorcatalan = internalerrorcatalan;
+  prefijoerroringles = "Internal error reading program: " + ficheroprograma + "\n";
+
   vector<string> vs = leerfichero(ficheroprograma);
   vector<ttoken> vt;
   leerentrada(vs, vt);
   if (int(vt.size()) > limitenumtokens)
     errorprogramademasiadogrande();
-  /*
-  for (int i=0;i<int(vt.size());i++)
-    cout<<"("<<i<<" "<<vt[i].tipo<<" "<<vt[i].linea<<" "<<vt[i].columna<<")";
-  cout<<endl;
-  */
   int ivt = 0;
   parsing(nodo, vt, ivt);
   if (ivt < int(vt.size()))
     errorcosasdespuesdelprograma(vt[ivt].linea, vt[ivt].columna);
 }
 
-void leerprogramas(string ficheroprograma, tnodo &nodo1, tnodo &nodo2)
+void leerpropuestasolucion(string ficheroprograma, tnodo &nodo1, tnodo &nodo2)
 {
   prefijoerroringles = "";
-  prefijoerrorespanyol = "";
-  prefijoerrorcatalan = "";
   vector<string> vs = leerfichero(ficheroprograma);
   vector<ttoken> vt;
   leerentrada(vs, vt);
@@ -2868,19 +2859,10 @@ int main(int argc, char *argv[])
   vector<tvalor> vjp;
   leerjps(ficherojp, vjp, formatjp);
   tnodo nodojp2input, nodoinput2sat, nodopropuestasolucion2sat, nodopropuestasolucion2solucion, nodovalidador;
-  leerprograma(ficherojp2input, nodojp2input,
-               "Internal error reading jp2input: " + ficherojp2input + "\n",
-               "Error interno leyendo jp2input: " + ficherojp2input + "\n",
-               "Error intern llegint jp2input: " + ficherojp2input + "\n");
-  leerprograma(ficheroinput2sat, nodoinput2sat,
-               "Internal error reading input2sat: " + ficheroinput2sat + "\n",
-               "Error interno leyendo input2sat: " + ficheroinput2sat + "\n",
-               "Error intern llegint input2sat: " + ficheroinput2sat + "\n");
-  leerprograma(ficherovalidador, nodovalidador,
-               "Internal error reading validator: " + ficherovalidador + "\n",
-               "Error interno leyendo validator: " + ficherovalidador + "\n",
-               "Error intern llegint validator: " + ficherovalidador + "\n");
-  leerprogramas(ficheropropuestasolucion, nodopropuestasolucion2sat, nodopropuestasolucion2solucion);
+  leerprograma(ficherojp2input, nodojp2input);
+  leerprograma(ficheroinput2sat, nodoinput2sat);
+  leerprograma(ficherovalidador, nodovalidador);
+  leerpropuestasolucion(ficheropropuestasolucion, nodopropuestasolucion2sat, nodopropuestasolucion2solucion);
 
   if (nodopropuestasolucion2sat.texto != "")
     morir("rejected", "The format of the program reducing to SAT should be: \"main { <instructions> }\".",
