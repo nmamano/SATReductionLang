@@ -2821,13 +2821,12 @@ void parsingformat(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 
 int limitenumtokens = 5000;
 
-
-void leerformat(vector<string> vs, tnodo &nodoformat,
-                string internalerroringles, string internalerrorespanyol, string internalerrorcatalan)
+void leerformat(string stringformat, tnodo &nodoformat)
 {
-  prefijoerroringles = internalerroringles;
-  prefijoerrorespanyol = internalerrorespanyol;
-  prefijoerrorcatalan = internalerrorcatalan;
+  prefijoerroringles = "Internal error reading format: " + stringformat + "\n";
+  prefijoerrorespanyol = "Error interno leyendo format: " + stringformat + "\n";
+  prefijoerrorcatalan = "Error intern llegint format: " + stringformat + "\n";
+  vector<string> vs(1, stringformat);
   vector<ttoken> vt;
   leerentradaformat(vs, vt);
   if (int(vt.size()) > limitenumtokens)
@@ -2839,19 +2838,11 @@ void leerformat(vector<string> vs, tnodo &nodoformat,
     errorcosasdespuesdelprograma(vt[ivt].linea, vt[ivt].columna);
 }
 
-void leerformat(string stringformat, tnodo &nodoformat,
-                string internalerroringles, string internalerrorespanyol, string internalerrorcatalan)
+void leerformats(string ficheroformat, tnodo &nodoformat1, tnodo &nodoformat2)
 {
-  vector<string> vs(1, stringformat);
-  leerformat(vs, nodoformat, internalerroringles, internalerrorespanyol, internalerrorcatalan);
-}
-
-void leerformats(string ficheroformat, tnodo &nodoformat1, tnodo &nodoformat2,
-                string internalerroringles, string internalerrorespanyol, string internalerrorcatalan)
-{
-  prefijoerroringles = internalerroringles;
-  prefijoerrorespanyol = internalerrorespanyol;
-  prefijoerrorcatalan = internalerrorcatalan;
+  prefijoerroringles = "Internal error reading format: " + ficheroformat + "\n";
+  prefijoerrorespanyol = "Error interno leyendo format: " + ficheroformat + "\n";
+  prefijoerrorcatalan = "Error intern llegint format: " + ficheroformat + "\n";
   vector<string> vs = leerfichero(ficheroformat);
   vector<ttoken> vt;
   leerentradaformat(vs, vt);
@@ -3013,22 +3004,10 @@ int main(int argc, char *argv[])
 
   timer tlectura;
   tnodo formatjp, formatinput, formatsat, formatsolucion, formatvalidador;
-  leerformat(sformatjp, formatjp,
-             "Internal error reading format: " + sformatjp + "\n",
-             "Error interno leyendo format: " + sformatjp + "\n",
-             "Error intern llegint format: " + sformatjp + "\n");
-  leerformat(sformatsat, formatsat,
-             "Internal error reading format: " + sformatsat + "\n",
-             "Error interno leyendo format: " + sformatsat + "\n",
-             "Error intern llegint format: " + sformatsat + "\n");
-  leerformats(ficheroformat, formatinput, formatsolucion,
-             "Internal error reading format: " + ficheroformat + "\n",
-             "Error interno leyendo format: " + ficheroformat + "\n",
-             "Error intern llegint format: " + ficheroformat + "\n");
-  leerformat(sformatvalidador, formatvalidador,
-             "Internal error reading format: " + sformatvalidador + "\n",
-             "Error interno leyendo format: " + sformatvalidador + "\n",
-             "Error intern llegint format: " + sformatvalidador + "\n");
+  leerformat(sformatjp, formatjp);
+  leerformat(sformatsat, formatsat);
+  leerformats(ficheroformat, formatinput, formatsolucion);
+  leerformat(sformatvalidador, formatvalidador);
   
   vector<tvalor> vjp;
   leerjps(ficherojp, vjp, formatjp);
