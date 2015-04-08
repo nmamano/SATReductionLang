@@ -419,18 +419,18 @@ void parsingunarios(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     ivt++;
   } else if (vt[ivt].tipo=="stringini") {
     nodo = tnodo("stringparametrizado", "", vt[ivt].linea, vt[ivt].columna);
-    nodo.hijo.push_back(vt[ivt]);
+    nodo.hijo.push_back(tnodo("string", vt[ivt].texto, vt[ivt].linea, vt[ivt].columna));
     ivt++;
     nodo.hijo.push_back(tnodo());
     parsingsumasrestas(nodo.hijo[1],vt,ivt);
     while(vt[ivt].tipo!="stringfin"){
       comprobartipo(vt, ivt, "stringmid");
-      nodo.hijo.push_back(vt[ivt]);
+      nodo.hijo.push_back(tnodo("string", vt[ivt].texto, vt[ivt].linea, vt[ivt].columna));
       ivt++;
       nodo.hijo.push_back(tnodo());
       parsingsumasrestas(nodo.hijo[nodo.hijo.size()-1],vt,ivt);
     }
-    nodo.hijo.push_back(vt[ivt]);
+    nodo.hijo.push_back(tnodo("string", vt[ivt].texto, vt[ivt].linea, vt[ivt].columna));
     ivt++;
   } else if (vt[ivt].tipo == "abs") {
     nodo = vt[ivt];
