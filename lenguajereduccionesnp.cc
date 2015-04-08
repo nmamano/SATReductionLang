@@ -177,7 +177,7 @@ struct ttoken {
 };
 
 
-set<string> palabrasclave = {"main", "in", "out", "stop",
+set<string> palabrasclaveprograma = {"main", "in", "out", "stop",
                                  "if", "else", "while", "for", "foreach",
                                  "and", "or", "not", "push", "size",
                                  "back", "min", "max", "abs", "substr",
@@ -186,14 +186,12 @@ set<string> cadenasclave = {"{", "}", "(", ")", "[", "]", "+", "-", "*", "/",
                             "%", "=", "&=", "==", "<", ">", "<=", ">=", "!=",
                             ";", ".", ",", "//", "++", "--"};
 
-void leeridentificador(string &s, int &is, vector<ttoken> &vt, int linea)
+void leeridentificador(string &s, int &is, vector<ttoken> &vt, int linea,
+  const set<string>& palabrasclave)
 {
   int nextis = is;
   while (nextis < int(s.size()) and
-         ((s[nextis] >= 'a' and s[nextis] <= 'z') or
-          (s[nextis] >= 'A' and s[nextis] <= 'Z') or
-          (s[nextis] >= '0' and s[nextis] <= '9') or
-          (s[nextis] == '_')))
+         (esletra(s[nextis]) or esnumero(s[nextis]) or s[nextis] == '_'))
     nextis++;
   string id = s.substr(is, nextis - is);
   if (palabrasclave.count(id))
@@ -241,7 +239,7 @@ void leerstring(string &s, int &is, vector<ttoken> &vt, int linea)
 void leertoken(string &s, int &is, vector<ttoken> &vt, int linea)
 {
   if ((s[is] >= 'a' and s[is] <= 'z') or (s[is] >= 'A' and s[is] <= 'Z') or (s[is] == '_'))
-    leeridentificador(s, is, vt, linea);
+    leeridentificador(s, is, vt, linea, palabrasclaveprograma);
   else if (s[is] >= '0' and s[is] <= '9')
     leerconstante(s, is, vt, linea);
   else if (s[is] == '"')
@@ -2579,20 +2577,6 @@ void mensajeaceptacionconreconstruccion()
 set<string> palabrasclaveformat = {"struct", "array", "int", "string", "index", "of"};
 set<string> cadenasclaveformat = {"{", "}", "[", "]", ":", "//"};
 
-void leeridentificadorformat(string &s, int &is, vector<ttoken> &vt, int linea)
-{
-  int nextis = is;
-  while (nextis < int(s.size()) and
-         (esletra(s[nextis]) or esnumero(s[nextis]) or s[nextis] == '_'))
-    nextis++;
-  string id = s.substr(is, nextis - is);
-  if (palabrasclaveformat.count(id))
-    vt.push_back(ttoken(id, "", linea, is + 1));
-  else
-    vt.push_back(ttoken("identificador", id, linea, is + 1));
-  is = nextis;
-}
-
 void leerconstanteformat(string &s, int &is, vector<ttoken> &vt, int linea)
 {
   int nextis = is;
@@ -2604,7 +2588,7 @@ void leerconstanteformat(string &s, int &is, vector<ttoken> &vt, int linea)
 void leertokenformat(string &s, int &is, vector<ttoken> &vt, int linea)
 {
   if (esletra(s[is]) or (s[is] == '_')) {
-    leeridentificadorformat(s, is, vt, linea);
+    leeridentificador(s, is, vt, linea, palabrasclaveformat);
     return;
   }
   else if (esnumero(s[is])) {
