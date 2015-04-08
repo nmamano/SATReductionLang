@@ -2630,21 +2630,8 @@ void mensajeaceptacionconreconstruccion()
 // Analisis lexico del formateador (analizador de tipo):
 
 
-set<string> palabrasclaveformat;
-set<string> cadenasclaveformat;
-
-char listapalabrasclaveformat[][80] = {"struct", "array", "int", "string", "index", "of", ""};
-
-char listacadenasclaveformat[][80] = {"{", "}", "[", "]", "#", "@", ":", "//", ""};
-
-void inicializartokensclaveformat()
-{
-  for (int i = 0; string(listapalabrasclaveformat[i]) != ""; i++)
-    palabrasclaveformat.insert(listapalabrasclaveformat[i]);
-  for (int i = 0; string(listacadenasclaveformat[i]) != ""; i++)
-    cadenasclaveformat.insert(listacadenasclaveformat[i]);
-}
-
+set<string> palabrasclaveformat = {"struct", "array", "int", "string", "index", "of"};
+set<string> cadenasclaveformat = {"{", "}", "[", "]", "#", "@", ":", "//"};
 
 void leeridentificadorformat(string &s, int &is, vector<ttoken> &vt, int linea)
 {
@@ -2721,7 +2708,6 @@ void leerentradaformat(string &s, vector<ttoken> &vt, int linea)
 
 void leerentradaformat(vector<string> &vs, vector<ttoken> &vt)
 {
-  inicializartokensclaveformat();
   for (int i = 0; i < int(vs.size()); i++)
     leerentradaformat(vs[i], vt, i + 1);
 }
