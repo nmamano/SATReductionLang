@@ -2660,17 +2660,17 @@ void leerconstanteformat(string &s, int &is, vector<ttoken> &vt, int linea)
 
 void leertokenformat(string &s, int &is, vector<ttoken> &vt, int linea)
 {
-  if ((s[is] >= 'a' and s[is] <= 'z') or (s[is] >= 'A' and s[is] <= 'Z') or (s[is] == '_'))
+  if ((s[is] >= 'a' and s[is] <= 'z') or (s[is] >= 'A' and s[is] <= 'Z') or (s[is] == '_')) {
     leeridentificadorformat(s, is, vt, linea);
-  else if (s[is] >= '0' and s[is] <= '9')
+    return;
+  }
+  else if (s[is] >= '0' and s[is] <= '9') {
     leerconstanteformat(s, is, vt, linea);
+    return;
+  }
   else {
-    set<string>::iterator it = cadenasclaveformat.end();
-    do {
-      it--;
-      string c = *it;
-      if (int(s.size()) - is >= int(c.size()) and
-          s.substr(is, int(c.size())) == c) {
+    for (string c : cadenasclaveformat) {
+      if (int(s.size()) - is >= int(c.size()) and s.substr(is, int(c.size())) == c) {
         if (c == "//") {
           is = int(s.size());
           return;
@@ -2679,14 +2679,10 @@ void leertokenformat(string &s, int &is, vector<ttoken> &vt, int linea)
         is += int(c.size());
         return;
       }
-    } while (it != cadenasclaveformat.begin());
-    morir("rejected", "Error line " + itos(linea) + " column " + itos(is + 1) +
-          ": there is no correspondence for \"" + s.substr(is) + "\"",
-          "rechazado", "Error linea " + itos(linea) + " columna " + itos(is + 1) +
-          ": no se encuentra correspondencia para \"" + s.substr(is) + "\"",
-          "rebutjat", "Error linea " + itos(linea) + " columna " + itos(is + 1) +
-          ": no es troba correspondencia per a \"" + s.substr(is) + "\"");
+    }
   }
+  rechazar("Error line " + itos(linea) + " column " + itos(is + 1) +
+      ": there is no correspondence for \"" + s.substr(is) + "\"");
 }
 /*
 void saltarblancos(string &s,int &i)
@@ -2785,7 +2781,7 @@ void parsingformat(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 
 int limitenumtokens = 5000;
 
-void leerformat(string stringformat, tnodo &nodoformat)
+void leerformatstring(string stringformat, tnodo &nodoformat)
 {
   prefijoerroringles = "Internal error reading format: " + stringformat + "\n";
   vector<string> vs(1, stringformat);
@@ -2799,7 +2795,7 @@ void leerformat(string stringformat, tnodo &nodoformat)
     errorcosasdespuesdelprograma(vt[ivt].linea, vt[ivt].columna);
 }
 
-void leerformats(string ficheroformat, tnodo &nodoformat1, tnodo &nodoformat2)
+void leerformatsfichero(string ficheroformat, tnodo &nodoformat1, tnodo &nodoformat2)
 {
   prefijoerroringles = "Internal error reading format: " + ficheroformat + "\n";
   vector<string> vs = leerfichero(ficheroformat);
@@ -2962,10 +2958,10 @@ int main(int argc, char *argv[])
 
   timer tlectura;
   tnodo formatjp, formatinput, formatsat, formatsolucion, formatvalidador;
-  leerformat(sformatjp, formatjp);
-  leerformat(sformatsat, formatsat);
-  leerformats(ficheroformat, formatinput, formatsolucion);
-  leerformat(sformatvalidador, formatvalidador);
+  leerformatstring(sformatjp, formatjp);
+  leerformatstring(sformatsat, formatsat);
+  leerformatsfichero(ficheroformat, formatinput, formatsolucion);
+  leerformatstring(sformatvalidador, formatvalidador);
   
   vector<tvalor> vjp;
   leerjps(ficherojp, vjp, formatjp);
