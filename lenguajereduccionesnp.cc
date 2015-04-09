@@ -1447,53 +1447,6 @@ void insertarformulasat(string &s, tvalor &out)
 ////////////////////////////////////////////////////////////
 // Ejecucion del programa de entrada:
 
-/*
-struct mapping {
-  bool calculado;
-  set<int> s;
-  vector<string> v;
-  map<string,int> m;
-
-  mapping()
-  {
-    calculado=true;
-  }
-  void insert(tvalor valor)
-  {
-    calculado=false;
-    subirastring(valor);
-    //if (valor.kind==0) {
-      //s.insert(valor.x);
-      //v.push_back(itos(valor.x));
-      //m[itos(valor.x)];
-    //} else
-    if (m.count(valor.s)==0) {
-      v.push_back(valor.s);
-      m[valor.s];
-    }
-  }
-  tvalor value(tvalor valor,int linea,int columna)
-  {
-    subirastring(valor);
-    //if ((valor.kind==0 and s.count(valor.x)==0) or (valor.kind==1 and m.count(valor.s)==0)) {
-    if (m.count(valor.s)==0)
-      morir("rejected",string("Internal error line "+itos(linea)+" column "+itos(columna)+": the mapping is accessed with a non-defined value "+valor.s+"."),
-      "rechazado",string("Error interno linea "+itos(linea)+" columna "+itos(columna)+": el mapping es accedido con un valor no definido "+valor.s+"."),
-      "rebutjat",string("Error intern linea "+itos(linea)+" columna "+itos(columna)+": el mapping es accedit amb un valor no definit "+valor.s+"."));
-  //if (valor.kind==0) return valor.x;
-    if (calculado==false) {
-      int count=1;
-      for (int i=0;i<int(v.size());i++) {
-  while (s.count(count)) count++;
-  m[v[i]]=count++;
-      }
-      calculado=true;
-    }
-    return m[valor.s];
-  }
-};
-*/
-
 ll computausomemoria(tvalor &valor)
 {
   if (valor.kind == 0) return 0;
@@ -2233,10 +2186,6 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
     controlmemoria(memoria);
   } else if (nodo.tipo == "stop") {
     return 1;
-    /*
-    } else if (nodo.tipo=="mapping") {
-    m.insert(ejecutaexpresion(nodo.hijo[0],in,valor));
-    */
   } else if (nodo.tipo == "lista") {
     for (int i = 0; i < int(nodo.hijo.size()); i++)
       if (ejecuta(nodo.hijo[i], in, out, valor, memoria, nombremodelo, modelo))
