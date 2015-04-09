@@ -3,13 +3,13 @@ reduction
   for i,s in in.subjects {
     // specific number of session of the subject
     numsessions = "exactly {s.hours}";
-    for(d=0 ; d<5 ; ++d)
+    for d in 0..4
       numsessions = numsessions + " {i}atday{d}";
     insertsat(numsessions);
     // with no more than one session per day
-    for(d=0 ; d<5 ; ++d){
+    for d in 0..4 {
       daybound = "";
-      for(h=0 ; h<12 ; ++h)
+      for h in 0..11
 	daybound = daybound + " {i}at{d*12+h}";
       insertsat("{i}atday{d} => exactly 1"+daybound);
       insertsat("{i}atday{d} <= atleast 1"+daybound);
@@ -35,36 +35,36 @@ reduction
       if (j>i)
 	if (s0.course == s1.course){
 	  nooverlap = "true";
-	  for(h=0 ; h<60 ; ++h)
+	  for h in 0..59
 	    nooverlap = nooverlap + " & -({i}at{h} & {j}at{h})";
 	  insertsat(nooverlap);
 	}else
-	  for(h=0 ; h<60 ; ++h){
+	  for h in 0..59{
 	    nooverlap = "{i}at{h} & {j}at{h} => true";
-	    for(c=0 ; c<in.classrooms ; ++c)
+      for c in 0..in.classrooms-1
 	      nooverlap = nooverlap + " & -({i}in{c} & {j}in{c})";
-	    for(t=0 ; t<in.teachers.size ; ++t)
+      for t in 0..in.teachers.size-1
 	      nooverlap = nooverlap + " & -({i}by{t} & {j}by{t})";
 	    insertsat(nooverlap);
 	  }
   // at most 6 hours/day per course, and no spare hours between classes
   insertsat("-false");
-  for(c=0 ; c<in.courses ; ++c){
-    for(h=0 ; h<60 ; ++h){
+  for c in 0..in.courses-1 {
+    for h in 0..59 {
       coursehour = "course{c}at{h} <=> false";
       for i,s in in.subjects
 	if (s.course == c)
 	  coursehour = coursehour + " | {i}at{h}";
       insertsat(coursehour);
     }
-    for(d=0 ; d<5 ; ++d){
+    for d in 0..4 {
       daybound = "atmost 6";
-      for(h=0 ; h<12 ; ++h)
+      for h in 0..11
 	daybound = daybound + " course{c}at{d*12+h}";
       insertsat(daybound);
-      for(h1=1 ; h1<12-1 ; ++h1){
+      for h1 in 1..10 {
 	compact = "course{c}at{d*12+h1-1} & -course{c}at{d*12+h1} => true";
-	for(h2=h1+1 ; h2<12 ; ++h2)
+  for h2 in h1+1..11
 	  compact = compact + " & -course{c}at{d*12+h2}";
 	insertsat(compact);
       }

@@ -139,7 +139,7 @@ set<string> palabrasclaveprograma = {"main", "in", "out", "stop",
                                  "insertsat", "reduction", "reconstruction"};
 set<string> cadenasclaveprograma = {"{", "}", "(", ")", "[", "]", "+", "-", "*", "/",
                             "%", "=", "&=", "==", "<", ">", "<=", ">=", "!=",
-                            ";", ".", ",", "//", "++", "--"};
+                            ";", ".", ",", "//", "++", "--", ".."};
 
 void leeridentificador(const string &s, int &is, vector<ttoken> &vt, int linea, int desplazamientocolumna,
   const set<string>& palabrasclave)
@@ -598,7 +598,9 @@ void parsingforeach(tnodo &nodo,vector<ttoken> &vt,int &ivt) {
   comprobartipo(vt,ivt,"identificador");
   nodo.hijo.push_back(vt[ivt]);
   ivt++;
+  bool tieneindice = false;
   if (siguientetipo(vt,ivt)==",") {
+    tieneindice = true;
     saltartipo(vt,ivt,",");
     comprobartipo(vt,ivt,"identificador");
     nodo.hijo.push_back(vt[ivt]);
@@ -608,6 +610,8 @@ void parsingforeach(tnodo &nodo,vector<ttoken> &vt,int &ivt) {
   tnodo e1;
   parsingsumasrestas(e1,vt,ivt);
   if (siguientetipo(vt,ivt)=="..") {
+    if (tieneindice)
+      rechazar(vt[ivt].linea, vt[ivt].columna, "a for loop over a range of the form x..y does not have an index");
     saltartipo(vt,ivt,"..");
     tnodo e2;
     parsingsumasrestas(e2,vt,ivt);
@@ -2108,21 +2112,37 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
       if (e) return e;
     }
   } else if (nodo.tipo == "foreach") {
-    int indicereferencia = (nodo.hijo.size() == 3 ? 0 : 1);
-    if (nombremodelo != "" and (nodo.hijo[0].texto == nombremodelo or (indicereferencia and nodo.hijo[indicereferencia].texto == nombremodelo)))
-      rechazarruntime(nodo.linea, nodo.columna, "foreach(...;) cannot overwrite the model variable \"" + nombremodelo + "\".");
-    tvalor &v2 = extraerelemento(nodo.hijo[indicereferencia + 1], in, valor, nombremodelo, modelo);
-    if (v2.kind != 2)
-      rechazarruntime(nodo.linea, nodo.columna, "foreach(;...) requires a reference to \"in\" being an array.");
-    for (int i = 0; i < int(v2.v.size()); i++) {
-      if (indicereferencia) {
+    if (nodo.hijo[1].tipo == "..") { //foreach sobre rango
+      //hijos: 0: variable, 1: rango, 2: instruccion
+      tvalor rango1 = ejecutaexpresion(nodo.hijo[1].hijo[0], in, valor, nombremodelo, modelo);
+      comprobarentero(" .. ", rango1);
+      tvalor rango2 = ejecutaexpresion(nodo.hijo[1].hijo[1], in, valor, nombremodelo, modelo);
+      comprobarentero(" .. ", rango2);
+      for (int i = rango1.x; i <= rango2.x; i++) {
         valor[nodo.hijo[0].texto].kind = 0;
         valor[nodo.hijo[0].texto].x = i;
+        int e = ejecuta(nodo.hijo[2], in, out, valor, memoria, nombremodelo, modelo);
+        if (e) return e;
       }
-      valor[nodo.hijo[indicereferencia + 0].texto].kind = 3;
-      valor[nodo.hijo[indicereferencia + 0].texto].ref = &v2.v[i];
-      int e = ejecuta(nodo.hijo[indicereferencia + 2], in, out, valor, memoria, nombremodelo, modelo);
-      if (e) return e;
+    }
+    else { //foreach sobre array
+      //hijos: 0: indice (opcional), 1: variable, 2: array, 3: instruccion
+      int indicereferencia = (nodo.hijo.size() == 3 ? 0 : 1);
+      if (nombremodelo != "" and (nodo.hijo[0].texto == nombremodelo or (indicereferencia and nodo.hijo[indicereferencia].texto == nombremodelo)))
+        rechazarruntime(nodo.linea, nodo.columna, "foreach(...;) cannot overwrite the model variable \"" + nombremodelo + "\".");
+      tvalor &v2 = extraerelemento(nodo.hijo[indicereferencia + 1], in, valor, nombremodelo, modelo);
+      if (v2.kind != 2)
+        rechazarruntime(nodo.linea, nodo.columna, "foreach(;...) requires a reference to \"in\" being an array.");
+      for (int i = 0; i < int(v2.v.size()); i++) {
+        if (indicereferencia) {
+          valor[nodo.hijo[0].texto].kind = 0;
+          valor[nodo.hijo[0].texto].x = i;
+        }
+        valor[nodo.hijo[indicereferencia].texto].kind = 3;
+        valor[nodo.hijo[indicereferencia].texto].ref = &v2.v[i];
+        int e = ejecuta(nodo.hijo[indicereferencia + 2], in, out, valor, memoria, nombremodelo, modelo);
+        if (e) return e;
+      }
     }
   } else if (nodo.tipo == "for") {
     int e = ejecuta(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
