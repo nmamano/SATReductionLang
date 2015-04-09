@@ -1,6 +1,6 @@
 reduction
 {
-  foreach(i,s ; in.subjects){
+  for i,s in in.subjects {
     // specific number of session of the subject
     numsessions = "exactly {s.hours}";
     for(d=0 ; d<5 ; ++d)
@@ -16,25 +16,22 @@ reduction
     }
     // with one specific teacher
     oneteacher = "exactly 1";
-    foreach(t ; s.teachers)
+    for t in s.teachers
       oneteacher = oneteacher + " {i}by{t}";
     insertsat(oneteacher);
     // with one specific classroom
     oneclassroom = "exactly 1";
-    foreach(c ; s.classrooms)
+    for c in s.classrooms
       oneclassroom = oneclassroom + " {i}in{c}";
     insertsat(oneclassroom);
   }
   // the teacher can attend all the sessions
-  foreach(i,s ; in.subjects)
-    foreach(t ; s.teachers)
-      foreach(h ; in.teachers[t])
-	insertsat("{i}by{t} => -{i}at{h}");
+  for i,s in in.subjects, t in s.teachers, h in in.teachers[t]
+	  insertsat("{i}by{t} => -{i}at{h}");
   // sessions from the same course do not overlap, and overlaping
   // sessions (from different courses) have distinct teacher/classroom
   insertsat("true");
-  foreach(i,s0 ; in.subjects)
-    foreach(j,s1 ; in.subjects)
+  for i , s0 in in.subjects,j , s1 in in.subjects 
       if (j>i)
 	if (s0.course == s1.course){
 	  nooverlap = "true";
@@ -55,7 +52,7 @@ reduction
   for(c=0 ; c<in.courses ; ++c){
     for(h=0 ; h<60 ; ++h){
       coursehour = "course{c}at{h} <=> false";
-      foreach(i,s ; in.subjects)
+      for i,s in in.subjects
 	if (s.course == c)
 	  coursehour = coursehour + " | {i}at{h}";
       insertsat(coursehour);
@@ -77,11 +74,11 @@ reduction
 
 reconstruction
 {
-  foreach(i,s ; in.subjects){
-    foreach(c ; s.classrooms)
+  for i,s in in.subjects {
+    for c in s.classrooms
       if (model["{i}in{c}"])
 	out[i].classroom = c;
-    foreach(t ; s.teachers)
+    for t in s.teachers
       if (model["{i}by{t}"])
 	out[i].teacher = t;
     for(h=0 ; h<60 ; ++h)

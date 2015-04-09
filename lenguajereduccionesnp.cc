@@ -346,8 +346,15 @@ void saltartipo(vector<ttoken> &vt, int &ivt, string t)
   ivt++;
 }
 
+string siguientetipo(vector<ttoken> &vt,int &ivt)
+{
+  if (ivt<int(vt.size())) return vt[ivt].tipo;
+  return "";
+}
+
 void parsingexpresion(tnodo &nodo, vector<ttoken> &vt, int &ivt);
 void parsingsumasrestas(tnodo &nodo,vector<ttoken> &vt,int &ivt);
+void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt);
 
 void parsingin(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
@@ -585,10 +592,46 @@ void parsingout(tnodo &nodo, vector<ttoken> &vt, int &ivt)
   }
 }
 
+//ivt points to the next token after 'for' (which is not '(')
+void parsingforeach(tnodo &nodo,vector<ttoken> &vt,int &ivt) {
+  nodo = tnodo("foreach", "", vt[ivt-1].linea, vt[ivt-1].columna);
+  comprobartipo(vt,ivt,"identificador");
+  nodo.hijo.push_back(vt[ivt]);
+  ivt++;
+  if (siguientetipo(vt,ivt)==",") {
+    saltartipo(vt,ivt,",");
+    comprobartipo(vt,ivt,"identificador");
+    nodo.hijo.push_back(vt[ivt]);
+    ivt++;
+  }
+  saltartipo(vt,ivt,"in");
+  tnodo e1;
+  parsingsumasrestas(e1,vt,ivt);
+  if (siguientetipo(vt,ivt)=="..") {
+    saltartipo(vt,ivt,"..");
+    tnodo e2;
+    parsingsumasrestas(e2,vt,ivt);
+    nodo.hijo.push_back(tnodo());
+    nodo.hijo.back().tipo="..";
+    nodo.hijo.back().hijo.push_back(e1);
+    nodo.hijo.back().hijo.push_back(e2);
+  } else {
+    nodo.hijo.push_back(e1);
+  }
+  if (siguientetipo(vt,ivt)==",") {
+    ivt++;
+    nodo.hijo.push_back(tnodo());
+    parsingforeach(nodo.hijo.back(),vt,ivt);
+  } else {
+    nodo.hijo.push_back(tnodo());
+    parsinginstruccion(nodo.hijo.back(),vt,ivt);
+  }
+}
+
 void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
   if (ivt == int(vt.size()))
-    seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"foreach\",\"out\",\"stop\"}");
+    seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"out\",\"stop\"}");
   if (vt[ivt].tipo == "if") {
     nodo = vt[ivt];
     ivt++;
@@ -645,37 +688,21 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     saltartipo(vt, ivt, ")");
     nodo.hijo.push_back(tnodo());
     parsinginstruccion(nodo.hijo[1], vt, ivt);
-  } else if (vt[ivt].tipo == "foreach") {
-    nodo = vt[ivt];
-    ivt++;
-    saltartipo(vt, ivt, "(");
-    if (ivt == int(vt.size()) or vt[ivt].tipo != "identificador")
-      seesperabaver(vt, ivt, "\"ident\"");
-    nodo.hijo.push_back(vt[ivt]);
-    ivt++;
-    if (ivt < int(vt.size()) and vt[ivt].tipo == ",") {
-      ivt++;
-      if (ivt == int(vt.size()) or vt[ivt].tipo != "identificador")
-        seesperabaver(vt, ivt, "\"ident\"");
-      nodo.hijo.push_back(vt[ivt]);
-      ivt++;
-    }
-    saltartipo(vt, ivt, ";");
-    nodo.hijo.push_back(tnodo());
-    parsingin(nodo.hijo.back(), vt, ivt);
-    saltartipo(vt, ivt, ")");
-    nodo.hijo.push_back(tnodo());
-    parsinginstruccion(nodo.hijo.back(), vt, ivt);
   } else if (vt[ivt].tipo == "for") {
-    nodo = vt[ivt];
-    ivt++;
-    saltartipo(vt, ivt, "(");
-    nodo.hijo = vector<tnodo> (4);
-    parsingasignacionsimple(nodo.hijo[0], vt, ivt, ";");
-    parsingexpresion(nodo.hijo[1], vt, ivt);
-    saltartipo(vt, ivt, ";");
-    parsingasignacionsimple(nodo.hijo[2], vt, ivt, ")");
-    parsinginstruccion(nodo.hijo[3], vt, ivt);
+    ivt++; //points to the token after for
+    if (ivt == int(vt.size()) or (vt[ivt].tipo != "(" and vt[ivt].tipo != "identificador")) 
+      seesperabaver(vt, ivt, "{\"(\",\"ident\"}"); //looking at next token to discern for and foreach
+    if (vt[ivt].tipo == "(") { //for normal
+      nodo = vt[ivt-1];
+      saltartipo(vt, ivt, "(");
+      nodo.hijo = vector<tnodo> (4);
+      parsingasignacionsimple(nodo.hijo[0], vt, ivt, ";");
+      parsingexpresion(nodo.hijo[1], vt, ivt);
+      saltartipo(vt, ivt, ";");
+      parsingasignacionsimple(nodo.hijo[2], vt, ivt, ")");
+      parsinginstruccion(nodo.hijo[3], vt, ivt);
+    }
+    else parsingforeach(nodo, vt, ivt);
   } else if (vt[ivt].tipo == "{") {
     parsinglistainstrucciones(nodo, vt, ivt);
   } else if (vt[ivt].tipo == "stop") {
@@ -695,7 +722,7 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     saltartipo(vt, ivt, ")");
     saltartipo(vt, ivt, ";");
   } else
-    seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"foreach\",\"out\",\"stop\"}");
+    seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"out\",\"stop\"}");
 }
 
 void parsinglistainstrucciones(tnodo &nodo, vector<ttoken> &vt, int &ivt)
