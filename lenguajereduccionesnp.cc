@@ -713,18 +713,6 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     nodo = vt[ivt];
     ivt++;
     saltartipo(vt, ivt, ";");
-  } else if (vt[ivt].tipo == "stopformaterror") {
-    nodo = vt[ivt];
-    ivt++;
-    nodo.hijo = vector<tnodo> (3);
-    saltartipo(vt, ivt, "(");
-    parsingexpresion(nodo.hijo[0], vt, ivt);
-    saltartipo(vt, ivt, ",");
-    parsingexpresion(nodo.hijo[1], vt, ivt);
-    saltartipo(vt, ivt, ",");
-    parsingexpresion(nodo.hijo[2], vt, ivt);
-    saltartipo(vt, ivt, ")");
-    saltartipo(vt, ivt, ";");
   } else
     seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"out\",\"stop\"}");
 }
@@ -737,7 +725,7 @@ void parsinglistainstrucciones(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     /*
     (vt[ivt].tipo=="if" or vt[ivt].tipo=="identificador" or vt[ivt].tipo=="{"
     or vt[ivt].tipo=="out" or vt[ivt].tipo=="stop" or vt[ivt].tipo=="while" or
-    vt[ivt].tipo=="for" or vt[ivt].tipo=="stopformaterror" or vt[ivt].tipo==")) {
+    vt[ivt].tipo=="for" or vt[ivt].tipo==")) {
     */
     nodo.hijo.push_back(tnodo());
     parsinginstruccion(nodo.hijo.back(), vt, ivt);
@@ -2246,21 +2234,6 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
   } else if (nodo.tipo == "stop") {
     return 1;
     /*
-    } else if (nodo.tipo=="stopformaterror") {
-    tvalor h0=ejecutaexpresion(nodo.hijo[0],in,valor);
-    comprobarstring("stopformaterror(...,,)",h0);
-    tvalor h1=ejecutaexpresion(nodo.hijo[1],in,valor);
-    comprobarstring("stopformaterror(,...,)",h1);
-    tvalor h2=ejecutaexpresion(nodo.hijo[2],in,valor);
-    comprobarstring("stopformaterror(,,...)",h2);
-    string muestraingles,muestraespanyol,muestracatalan;
-    muestra2string(muestra,muestraingles,muestraespanyol,muestracatalan);
-    string muestraout=muestratvalormuestra(in);
-    morirpuro(
-        "rejected","Format error in the output produced by your program: "+h0.s+".\n\nThe input of your program is:\n\n"+muestraingles+"\nThe output of your program is:\n\n"+muestraout,
-        "rechazado","Error de formato en la salida producida por tu programa: "+h1.s+".\n\nLa entrada de tu programa es:\n\n"+muestraespanyol+"\nLa salida de tu programa es:\n\n"+muestraout,
-        "rebutjat","Error de format en la sortida produida pel teu programa: "+h2.s+".\n\nLa entrada del teu programa es:\n\n"+muestracatalan+"\nLa sortida del teu programa es:\n\n"+muestraout);
-
     } else if (nodo.tipo=="mapping") {
     m.insert(ejecutaexpresion(nodo.hijo[0],in,valor));
     */
