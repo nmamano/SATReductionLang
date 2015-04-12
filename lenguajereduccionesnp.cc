@@ -1442,6 +1442,14 @@ void insertarformulasat(string &s, tvalor &out)
 ////////////////////////////////////////////////////////////
 // Ejecucion del programa de entrada:
 
+enum Modo { 
+  reduc,
+  recon,
+  inter
+};
+
+Modo MODE;
+
 ll computausomemoria(tvalor &valor)
 {
   if (valor.kind == 0) return 0;
@@ -2200,19 +2208,21 @@ void ejecuta(tnodo &nodo, tvalor &in, tvalor &out,
 }
 
 void ejecuta(tnodo &nodo, vector<tvalor> &vin, vector<tvalor> &vout, tnodo &formatout,
-             string mensajeinternalerror,
-             int tiempoejecucionini,
-             vector<vector<string> > *historialesinsertsat = NULL)
+             string mensajeprefijoerror, Modo modo, vector<vector<string> > *historialesinsertsat = NULL)
 {
-  prefijoerror = mensajeinternalerror;
-  tvalor defecto;
-  valorpordefecto(formatout, defecto);
-  vout = vector<tvalor> (int(vin.size()), defecto);
+  prefijoerror = mensajeprefijoerror;
+  MODE = modo;  
+  int tiempoejecucionini = (MODE == inter) ? infinito : finito;
   if (historialesinsertsat != NULL) {
     *historialesinsertsat = vector<vector<string> >(int(vin.size()), vector<string>());
     tiempoinsertsat = 0;
-    ejecucionesinsertsat = 0;
+    ejecucionesinsertsat = 0;      
   }
+
+  tvalor defecto;
+  valorpordefecto(formatout, defecto);
+  vout = vector<tvalor> (int(vin.size()), defecto);
+
   for (int i = 0; i < int(vin.size()); i++) {
     if (historialesinsertsat != NULL)
       historialinsertsat = &(*historialesinsertsat)[i];
@@ -2226,28 +2236,29 @@ void ejecuta(tnodo &nodo, vector<tvalor> &vin, vector<tvalor> &vout, tnodo &form
 void ejecutareconstruccion(tnodo &reconstructor, tvalor &in, tnodo &formatout, sat_solver const *modelo, string &muestrasolucion,
                            string &ficherovalidador, tnodo &validador, tnodo &formatvalidador, tvalor &validado)
 {
+  
+  MODE = recon;
   prefijoerror = "";
+  tiempoejecucion = infinito;
+
   tvalor out;
   valorpordefecto(formatout, out);
   tiempoejecucion = infinito;
   ejecuta(reconstructor, in, out, "model", modelo);
   generamuestra(out, muestrasolucion, "  out");
-  prefijoerror = "Internal error running validator: " + ficherovalidador + "\n";
+
+  MODE = inter;
+  prefijoerror = "Internal error running: " + ficherovalidador + "\n";
+  tiempoejecucion = infinito;
+  
   tvalor jpysolucion;
   tnodo nodojpysolucion;
   construirstruct("input", in, "solution", out, nodojpysolucion, jpysolucion);
   valorpordefecto(formatvalidador, validado);
-  tiempoejecucion = infinito;
   ejecuta(validador, jpysolucion, validado);
   prefijoerror = "";
 }
 
-
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -2294,8 +2305,6 @@ void mensajeaceptacionconreconstruccion()
   morirpuro("accepted", "Reduction and solution reconstruction apparently correct.");
 }
 
-
-////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -2585,16 +2594,13 @@ int main(int argc, char *argv[])
   vector<tvalor> vinput, vsat1, vsat2;
   vector<string> muestrainput, muestraoutput;
   ejecuta(nodojp2input, vjp, vinput, formatinput,
-          "Internal error running jp2input: " + ficherojp2input + "\n",
-          infinito);
+    "Internal error running jp2input: " + ficherojp2input + "\n", inter);
   generamuestra(vinput, muestrainput, "  in");
   ejecuta(nodoinput2sat, vinput, vsat1, formatsat,
-          "Internal error running input2sat: " + ficheroinput2sat + "\n",
-          infinito);
+    "Internal error running input2sat: " + ficheroinput2sat + "\n", reduc);
   vector<vector<string> > historialesinsertsat;
   timer tejecucion1b;
-  ejecuta(nodopropuestasolucion2sat, vinput, vsat2, formatsat, "",
-          finito, &historialesinsertsat);
+  ejecuta(nodopropuestasolucion2sat, vinput, vsat2, formatsat, "", reduc, &historialesinsertsat);
   generamuestra(historialesinsertsat, muestraoutput, "  ");
   cout << "TIEMPO EJECUCION (to sat) = " << tejecucion1a.elapsedstring()
        << " (" << tejecucion1b.elapsedstring() << " en propuestasolucion, de los cuales " << fixed << setprecision(3) << tiempoinsertsat << "s son por los " << ejecucionesinsertsat << " insertsat)" << endl;
