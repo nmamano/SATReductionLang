@@ -654,11 +654,6 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     nodo = vt[ivt];
     ivt++;
     saltartipo(vt, ivt, "(");
-    if (ivt < int(vt.size()) and vt[ivt].tipo == "out") {
-      nodo.hijo.push_back(tnodo());
-      parsingout(nodo.hijo[0], vt, ivt);
-      saltartipo(vt, ivt, ",");
-    }
     nodo.hijo.push_back(tnodo());
     parsingexpresion(nodo.hijo.back(), vt, ivt);
     saltartipo(vt, ivt, ")");
@@ -2012,21 +2007,20 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
     rechazar("Runtime error: the execution time of the reduction is too big.");
   if (nodo.tipo == ";") {
   } else if (nodo.tipo == "insertsat") {
-    tvalor &v1 = ((int(nodo.hijo.size()) == 2) ? (extraerout(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo)) : out);
     tvalor v2 = ejecutaexpresion(nodo.hijo.back(), in, valor, nombremodelo, modelo);
-    if (v1.format->tipo != "array" or v1.format->texto != "" or v1.format->hijo[0].tipo != "array"
-        or v1.format->hijo[0].texto != "" or
-        (v1.format->hijo[0].hijo[0].tipo != "string" and v1.format->hijo[0].hijo[0].tipo != "#" and v1.format->hijo[0].hijo[0].tipo != "@")
+    if (out.format->tipo != "array" or out.format->texto != "" or out.format->hijo[0].tipo != "array"
+        or out.format->hijo[0].texto != "" or
+        (out.format->hijo[0].hijo[0].tipo != "string" and out.format->hijo[0].hijo[0].tipo != "#" and out.format->hijo[0].hijo[0].tipo != "@")
         or (v2.kind != 0 and v2.kind != 1))
       morirtipoinsertsat(nodo);
-    int lenout = int(v1.v.size());
+    int lenout = int(out.v.size());
     subirastring(v2);
-    insertarformulasat(v2.s, v1);
-    tnodo* formatarray = &(v1.format->hijo[0]);
-    tnodo* formatstring = &(v1.format->hijo[0].hijo[0]);
-    for (int i = lenout; i < int(v1.v.size()); i++) {
-      memoria += 1 + computausomemoria(v1.v[i]);
-      tvalor &valoraux = v1.v[i];
+    insertarformulasat(v2.s, out);
+    tnodo* formatarray = &(out.format->hijo[0]);
+    tnodo* formatstring = &(out.format->hijo[0].hijo[0]);
+    for (int i = lenout; i < int(out.v.size()); i++) {
+      memoria += 1 + computausomemoria(out.v[i]);
+      tvalor &valoraux = out.v[i];
       valoraux.format = formatarray;
       for (int j = 0; j < int(valoraux.v.size()); j++)
         valoraux.v[j].format = formatstring;
