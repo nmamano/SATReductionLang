@@ -1996,9 +1996,18 @@ void muestra2string(tvalor &muestra,string &muestraingles,string &muestraespanyo
 }
 */
 
-void morirtipoinsertsat(tnodo &nodo)
+void comprobartipoinsertsat(tnodo& nodo, tvalor &out, tvalor &stringinsertsat)
 {
-  rechazarruntime(nodo.linea, nodo.columna, "insertsat must be applied to an \"array of array of int_or_string\" where the arrays have non-fixed size, and to a \"string\".");
+  if (MODE != reduc)
+    rechazarruntime(nodo.linea, nodo.columna, "insertsat can only be used in a reduction to SAT");
+
+  if (out.format->tipo != "array" or out.format->texto != "" or
+      out.format->hijo[0].tipo != "array" or out.format->hijo[0].texto != "" or
+      out.format->hijo[0].hijo[0].tipo != "string")
+    rechazar("Internal error: the out of the reduction does not have the expected format \"array of array of string\"");
+
+  if (stringinsertsat.kind != 1)
+    rechazarruntime(nodo.linea, nodo.columna, "insertsat must be applied to a \"string\".");
 }
 
 // El resultado de la ejecucion==0 significa que no ha terminado, ==1 que se ha terminado con normalidad.
@@ -2015,15 +2024,10 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
     rechazar("Runtime error: the execution time of the reduction is too big.");
   if (nodo.tipo == ";") {
   } else if (nodo.tipo == "insertsat") {
-    tvalor v2 = ejecutaexpresion(nodo.hijo.back(), in, valor, nombremodelo, modelo);
-    if (out.format->tipo != "array" or out.format->texto != "" or out.format->hijo[0].tipo != "array"
-        or out.format->hijo[0].texto != "" or
-        (out.format->hijo[0].hijo[0].tipo != "string" and out.format->hijo[0].hijo[0].tipo != "#" and out.format->hijo[0].hijo[0].tipo != "@")
-        or (v2.kind != 0 and v2.kind != 1))
-      morirtipoinsertsat(nodo);
+    tvalor strintinsertsat = ejecutaexpresion(nodo.hijo.back(), in, valor, nombremodelo, modelo);
+    comprobartipoinsertsat(nodo, out, strintinsertsat);
     int lenout = int(out.v.size());
-    subirastring(v2);
-    insertarformulasat(v2.s, out);
+    insertarformulasat(strintinsertsat.s, out);
     tnodo* formatarray = &(out.format->hijo[0]);
     tnodo* formatstring = &(out.format->hijo[0].hijo[0]);
     for (int i = lenout; i < int(out.v.size()); i++) {
