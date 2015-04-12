@@ -1091,10 +1091,6 @@ public:
     return (picosat_deref(S, 1 + string_codes.find(variable)->second) == 1);
 #endif
   }
-  bool assignment(int const variable) const
-  {
-    return assignment(itos(variable));
-  }
 };
 
 bool compruebasatisfactibilidad(tvalor const &formula,
@@ -1691,10 +1687,10 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
     return int(v.v.size());
   } else if (nombremodelo != "" and nodo.tipo == "[" and nodo.hijo[0].tipo == "identificador" and nodo.hijo[0].texto == nombremodelo) {
     tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, valor, nombremodelo, modelo);
-    if (v2.kind != 0 and v2.kind != 1)
-      rechazarruntime(nodo.linea, nodo.columna, "the model must be queried with a variable name (i.e., an integer or a string).");
+    if (v2.kind != 1)
+      rechazarruntime(nodo.linea, nodo.columna, "the model must be queried with a variable name (a string).");
     tvalor res;
-    res.x = (v2.kind == 0) ? modelo->assignment(v2.x) : modelo->assignment(v2.s);
+    res.x = modelo->assignment(v2.s);
     return res;
   } else if (nodo.tipo == "in" or nodo.tipo == "back" or nodo.tipo == "[" or nodo.tipo == ".") {
     tvalor &v = extraerelemento(nodo, in, valor, nombremodelo, modelo);
