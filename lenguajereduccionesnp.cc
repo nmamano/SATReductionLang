@@ -135,7 +135,7 @@ struct ttoken {
 set<string> palabrasclaveprograma = {"main", "in", "out", "stop",
                                  "if", "else", "while", "for", "foreach",
                                  "and", "or", "not", "push", "size",
-                                 "back", "min", "max", "abs", "substr",
+                                 "back", "min", "max", "abs",
                                  "insertsat", "reduction", "reconstruction"};
 set<string> cadenasclaveprograma = {"{", "}", "(", ")", "[", "]", "+", "-", "*", "/",
                             "%", "=", "&=", "==", "<", ">", "<=", ">=", "!=",
@@ -432,7 +432,7 @@ void parsingunarios(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     saltartipo(vt, ivt, "(");
     parsingexpresion(nodo.hijo[0], vt, ivt);
     saltartipo(vt, ivt, ")");
-  } else if (vt[ivt].tipo == "substr" or vt[ivt].tipo == "max" or vt[ivt].tipo == "min") {
+  } else if (vt[ivt].tipo == "max" or vt[ivt].tipo == "min") {
     nodo = vt[ivt];
     nodo.hijo = vector<tnodo> (2);
     ivt++;
@@ -1684,14 +1684,6 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
       substringsconcatenados += v.s;
     }
     return tvalor(substringsconcatenados);
-  } else if (nodo.tipo == "substr") {
-    tvalor s = ejecutaexpresion(nodo.hijo[0], in, valor, nombremodelo, modelo);
-    tvalor pos = ejecutaexpresion(nodo.hijo[1], in, valor, nombremodelo, modelo);
-    comprobarstring("substr(...,)", s);
-    comprobarentero("substr(,...)", pos);
-    if (pos.x < 0 or int(s.s.size()) <= pos.x)
-      rechazarruntime(nodo.linea, nodo.columna, "out of range in substring access.");
-    return s.s.substr(pos.x);
   } else if (nodo.tipo == "size") {
     tvalor &v = extraerelemento(nodo.hijo[0], in, valor, nombremodelo, modelo);
     if (v.kind != 2)
