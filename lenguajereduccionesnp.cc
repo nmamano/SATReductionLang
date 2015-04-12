@@ -2025,11 +2025,11 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
   } else if (nodo.tipo == "insertsat") {
     tvalor strintinsertsat = ejecutaexpresion(nodo.hijo.back(), in, valor, nombremodelo, modelo);
     comprobartipoinsertsat(nodo, out, strintinsertsat);
-    int lenout = int(out.v.size());
+    int lenoutini = int(out.v.size());
     insertarformulasat(strintinsertsat.s, out);
     tnodo* formatarray = &(out.format->hijo[0]);
     tnodo* formatstring = &(out.format->hijo[0].hijo[0]);
-    for (int i = lenout; i < int(out.v.size()); i++) {
+    for (int i = lenoutini; i < int(out.v.size()); i++) {
       memoria += 1 + computausomemoria(out.v[i]);
       tvalor &valoraux = out.v[i];
       valoraux.format = formatarray;
@@ -2639,15 +2639,12 @@ int main(int argc, char *argv[])
       if (respuestain and not respuestaout)
         errorrespuesta2SAT("positive", muestrainput[i], muestraoutput[i]);
       if (not respuestain and respuestaout) {
-        if (argc == 7) {
-          string muestrasolucion;
-          tvalor validado;
-          ejecutareconstruccion(nodopropuestasolucion2solucion, vinput[i], formatsolucion, &S2[i], muestrasolucion,
-                                ficherovalidador, nodovalidador, formatvalidador, validado);
-          errorrespuesta2SAT("negative", muestrainput[i], muestraoutput[i],
-                             muestrasolucion, validado.m["english"].s);
-        } else
-          errorrespuesta2SAT("negative", muestrainput[i], muestraoutput[i]);
+        string muestrasolucion;
+        tvalor validado;
+        ejecutareconstruccion(nodopropuestasolucion2solucion, vinput[i], formatsolucion, &S2[i], muestrasolucion,
+                              ficherovalidador, nodovalidador, formatvalidador, validado);
+        errorrespuesta2SAT("negative", muestrainput[i], muestraoutput[i],
+                           muestrasolucion, validado.m["msg"].s);
       }
     }
     resultados.push_back(respuestain);
@@ -2664,7 +2661,7 @@ int main(int argc, char *argv[])
     infoextensa[i] << "reconstruccion:" << endl;
     infoextensa[i] << muestrasolucion << endl;
     if (not validado.m["valid"].x)
-      errorreconstruccion(validado.m["english"].s, muestrainput[i], muestrasolucion);
+      errorreconstruccion(validado.m["msg"].s, muestrainput[i], muestrasolucion);
   }
   cout << "TIEMPO EJECUCION (reconstruccion, validacion) = " << tejecucion2.elapsedstring() << endl;
   for (int j = 0; j < int(vjp.size()); ++j)
