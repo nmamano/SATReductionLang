@@ -1999,7 +1999,7 @@ int infinito = 1000000000;
 int finito = 100000;
 int tiempoejecucion;
 
-int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, int &memoria,
+int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, int &memoria,
             string nombremodelo, sat_solver const *modelo)
 {
   tiempoejecucion--;
@@ -2032,10 +2032,10 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
     tvalor r = ejecutaexpresion(nodo.hijo[0], in, valor, nombremodelo, modelo);
     comprobarentero("if (...)", r);
     if (r.x) {
-      int e = ejecuta(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
+      int e = ejecutainstruccion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
       if (e) return e;
     } else if (int(nodo.hijo.size()) == 3) {
-      int e = ejecuta(nodo.hijo[2], in, out, valor, memoria, nombremodelo, modelo);
+      int e = ejecutainstruccion(nodo.hijo[2], in, out, valor, memoria, nombremodelo, modelo);
       if (e) return e;
     }
   } else if (nodo.tipo == "while") {
@@ -2043,7 +2043,7 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
       tvalor r = ejecutaexpresion(nodo.hijo[0], in, valor, nombremodelo, modelo);
       comprobarentero("while (...)", r);
       if (not r.x) break;
-      int e = ejecuta(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
+      int e = ejecutainstruccion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
       if (e) return e;
     }
   } else if (nodo.tipo == "foreach") {
@@ -2056,7 +2056,7 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
       for (int i = rango1.x; i <= rango2.x; i++) {
         valor[nodo.hijo[0].texto].kind = 0;
         valor[nodo.hijo[0].texto].x = i;
-        int e = ejecuta(nodo.hijo[2], in, out, valor, memoria, nombremodelo, modelo);
+        int e = ejecutainstruccion(nodo.hijo[2], in, out, valor, memoria, nombremodelo, modelo);
         if (e) return e;
       }
     }
@@ -2075,21 +2075,21 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
         }
         valor[nodo.hijo[indicereferencia].texto].kind = 3;
         valor[nodo.hijo[indicereferencia].texto].ref = &v2.v[i];
-        int e = ejecuta(nodo.hijo[indicereferencia + 2], in, out, valor, memoria, nombremodelo, modelo);
+        int e = ejecutainstruccion(nodo.hijo[indicereferencia + 2], in, out, valor, memoria, nombremodelo, modelo);
         if (e) return e;
       }
     }
   } else if (nodo.tipo == "for") {
-    int e = ejecuta(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
+    int e = ejecutainstruccion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
     if (e) return e;
     for (;;) {
       tvalor r = ejecutaexpresion(nodo.hijo[1], in, valor, nombremodelo, modelo);
       comprobarentero("for (;...;)", r);
       if (not r.x) break;
       int e;
-      e = ejecuta(nodo.hijo[3], in, out, valor, memoria, nombremodelo, modelo);
+      e = ejecutainstruccion(nodo.hijo[3], in, out, valor, memoria, nombremodelo, modelo);
       if (e) return e;
-      e = ejecuta(nodo.hijo[2], in, out, valor, memoria, nombremodelo, modelo);
+      e = ejecutainstruccion(nodo.hijo[2], in, out, valor, memoria, nombremodelo, modelo);
       if (e) return e;
     }
   } else if (nodo.tipo == "++") {
@@ -2182,7 +2182,7 @@ int ejecuta(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, in
     return 1;
   } else if (nodo.tipo == "lista") {
     for (int i = 0; i < int(nodo.hijo.size()); i++)
-      if (ejecuta(nodo.hijo[i], in, out, valor, memoria, nombremodelo, modelo))
+      if (ejecutainstruccion(nodo.hijo[i], in, out, valor, memoria, nombremodelo, modelo))
         return 1;
   } else
     rechazarruntime(nodo.linea, nodo.columna, "unknown instruction \"" + nodo.tipo + "\".");
@@ -2196,7 +2196,7 @@ void ejecuta(tnodo &nodo, tvalor &in, tvalor &out,
   map<string, tvalor> valor;
   int memoria = computausomemoria(out);
 
-  ejecuta(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
+  ejecutainstruccion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
 }
 
 void ejecuta(tnodo &nodo, vector<tvalor> &vin, vector<tvalor> &vout, tnodo &formatout,
