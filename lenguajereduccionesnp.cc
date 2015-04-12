@@ -2010,12 +2010,11 @@ void comprobartipoinsertsat(tnodo& nodo, tvalor &out, tvalor &stringinsertsat)
     rechazarruntime(nodo.linea, nodo.columna, "insertsat must be applied to a \"string\".");
 }
 
-// El resultado de la ejecucion==0 significa que no ha terminado, ==1 que se ha terminado con normalidad.
-
-int infinito = 1000000000;
-int finito = 100000;
+const int infinito = 1000000000;
+const int finito = 100000;
 int tiempoejecucion;
 
+// El resultado de la ejecucion==0 significa que no ha terminado, ==1 que se ha terminado con normalidad.
 int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, int &memoria,
             string nombremodelo, sat_solver const *modelo)
 {
