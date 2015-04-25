@@ -999,98 +999,98 @@ public:
 // Uso de minisat:
 
 class sat_solver {
-private:
-#if defined(USE_MINISAT)
-  Minisat::Solver S;
-#elif defined(USE_PICOSAT)
-  PicoSAT *S;
-#endif
-  std::map<std::string, int> string_codes;
+  private:
+  #if defined(USE_MINISAT)
+    Minisat::Solver S;
+  #elif defined(USE_PICOSAT)
+    PicoSAT *S;
+  #endif
+    std::map<std::string, int> string_codes;
 
-public:
-#if defined(USE_PICOSAT)
-  sat_solver()
-  {
-    S = picosat_init();
-  }
-  ~sat_solver()
-  {
-    picosat_reset(S);
-  }
-#endif
-  void add(std::list<std::pair<bool, std::string> > const &clause)
-  {
-    using namespace std;
-    int codeamount = int(string_codes.size());
-    for (list<pair<bool, string> >::const_iterator i = clause.begin(); i != clause.end(); ++i)
-      if (string_codes.count(i->second) == 0)
-        string_codes[i->second] = codeamount++;
-#if defined(USE_MINISAT)
-    using namespace Minisat;
-    while (S.nVars() < codeamount)
-      S.newVar();
-    vec<Lit> lits;
-    for (list<pair<bool, string> >::const_iterator i = clause.begin(); i != clause.end(); ++i)
-      if (i->first)
-        lits.push( mkLit(string_codes[i->second]));
-      else
-        lits.push(~mkLit(string_codes[i->second]));
-    S.addClause(lits);
-#elif defined(USE_PICOSAT)
-    for (list<pair<bool, string> >::const_iterator i = clause.begin(); i != clause.end(); ++i)
-      if (i->first)
-        picosat_add(S, 1 + string_codes[i->second]);
-      else
-        picosat_add(S, -1 - string_codes[i->second]);
-    picosat_add(S, 0);
-#endif
-  }
-  void add(tvalor const &formula)
-  {
-    for (vector<tvalor>::const_iterator i = formula.v.begin(); i != formula.v.end(); ++i) {
-      list<pair<bool, string> > clause;
-      for (vector<tvalor>::const_iterator j = i->v.begin(); j != i->v.end(); ++j) {
-        string const literal = (j->kind == 0) ? itos(j->x) : j->s;
-        if (not literal.empty() and literal[0] == '-')
-          clause.push_back(pair<bool, string>(false, literal.substr(1)));
+  public:
+  #if defined(USE_PICOSAT)
+    sat_solver()
+    {
+      S = picosat_init();
+    }
+    ~sat_solver()
+    {
+      picosat_reset(S);
+    }
+  #endif
+    void add(std::list<std::pair<bool, std::string> > const &clause)
+    {
+      using namespace std;
+      int codeamount = int(string_codes.size());
+      for (list<pair<bool, string> >::const_iterator i = clause.begin(); i != clause.end(); ++i)
+        if (string_codes.count(i->second) == 0)
+          string_codes[i->second] = codeamount++;
+  #if defined(USE_MINISAT)
+      using namespace Minisat;
+      while (S.nVars() < codeamount)
+        S.newVar();
+      vec<Lit> lits;
+      for (list<pair<bool, string> >::const_iterator i = clause.begin(); i != clause.end(); ++i)
+        if (i->first)
+          lits.push( mkLit(string_codes[i->second]));
         else
-          clause.push_back(pair<bool, string>(true, literal));
+          lits.push(~mkLit(string_codes[i->second]));
+      S.addClause(lits);
+  #elif defined(USE_PICOSAT)
+      for (list<pair<bool, string> >::const_iterator i = clause.begin(); i != clause.end(); ++i)
+        if (i->first)
+          picosat_add(S, 1 + string_codes[i->second]);
+        else
+          picosat_add(S, -1 - string_codes[i->second]);
+      picosat_add(S, 0);
+  #endif
+    }
+    void add(tvalor const &formula)
+    {
+      for (vector<tvalor>::const_iterator i = formula.v.begin(); i != formula.v.end(); ++i) {
+        list<pair<bool, string> > clause;
+        for (vector<tvalor>::const_iterator j = i->v.begin(); j != i->v.end(); ++j) {
+          string const literal = (j->kind == 0) ? itos(j->x) : j->s;
+          if (not literal.empty() and literal[0] == '-')
+            clause.push_back(pair<bool, string>(false, literal.substr(1)));
+          else
+            clause.push_back(pair<bool, string>(true, literal));
+        }
+        add(clause);
       }
-      add(clause);
     }
-  }
-  bool solve()
-  {
-#if defined(USE_MINISAT)
-    using namespace Minisat;
-    lbool ret = l_False;
-    if (S.simplify()) {
-      vec<Lit> assum;
-      ret = S.solveLimited(assum);
+    bool solve()
+    {
+  #if defined(USE_MINISAT)
+      using namespace Minisat;
+      lbool ret = l_False;
+      if (S.simplify()) {
+        vec<Lit> assum;
+        ret = S.solveLimited(assum);
+      }
+      return ret == l_True;
+  #elif defined(USE_PICOSAT)
+      int ret = picosat_sat(S, -1);
+      return ret == PICOSAT_SATISFIABLE;
+  #endif
     }
-    return ret == l_True;
-#elif defined(USE_PICOSAT)
-    int ret = picosat_sat(S, -1);
-    return ret == PICOSAT_SATISFIABLE;
-#endif
-  }
-  int numvars() const
-  {
-    return int(string_codes.size());
-  }
-  // only call these function if solve() returned true
-  bool assignment(std::string const &variable) const
-  {
-    if (not string_codes.count(variable)) {
-      rechazar("Runtime error: accessed the model with an unknown variable name: " + variable + ".");
+    int numvars() const
+    {
+      return int(string_codes.size());
     }
-#if defined(USE_MINISAT)
-    using namespace Minisat;
-    return (S.model[string_codes.find(variable)->second] == l_True);
-#elif defined(USE_PICOSAT)
-    return (picosat_deref(S, 1 + string_codes.find(variable)->second) == 1);
-#endif
-  }
+    // only call these function if solve() returned true
+    bool assignment(std::string const &variable) const
+    {
+      if (not string_codes.count(variable)) {
+        rechazar("Runtime error: accessed the model with an unknown variable name: " + variable + ".");
+      }
+  #if defined(USE_MINISAT)
+      using namespace Minisat;
+      return (S.model[string_codes.find(variable)->second] == l_True);
+  #elif defined(USE_PICOSAT)
+      return (picosat_deref(S, 1 + string_codes.find(variable)->second) == 1);
+  #endif
+    }
 };
 
 bool compruebasatisfactibilidad(tvalor const &formula,
