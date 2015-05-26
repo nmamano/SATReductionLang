@@ -27,6 +27,9 @@ using namespace std;
 
 bool DBG_MODE = false;
 
+//set this to false to make diffs directly between outputs
+bool OUTPUT_RUNTIMES = false; 
+
 typedef long long int ll;
 
 ll stollsat(string s)
@@ -2617,7 +2620,7 @@ int main(int argc, char *argv[])
   comprobarnoseusatipo(nodopropuestasolucion2sat, "out",
                        "the \"out\" variable cannot be directly accessed in a reduction to SAT,\nuse \"insertsat\" instead to create your formula.");
   
-  cout << "TIEMPO LECTURA Y PARSING = " << tlectura.elapsedstring() << endl;
+  cout << "TIEMPO LECTURA Y PARSING = " << (OUTPUT_RUNTIMES ? tlectura.elapsedstring() : "-1") << endl;
 
   timer tejecucion1a;
   vector<tvalor> vinput, vsat1, vsat2;
@@ -2631,8 +2634,11 @@ int main(int argc, char *argv[])
   timer tejecucion1b;
   ejecuta(nodopropuestasolucion2sat, vinput, vsat2, formatsat, "", reduc, &historialesinsertsat);
   generamuestra(historialesinsertsat, muestraoutput, "  ");
-  cout << "TIEMPO EJECUCION (to sat) = " << tejecucion1a.elapsedstring()
-       << " (" << tejecucion1b.elapsedstring() << " en propuestasolucion, de los cuales " << fixed << setprecision(3) << tiempoinsertsat << "s son por los " << ejecucionesinsertsat << " insertsat)" << endl;
+  cout << "TIEMPO EJECUCION (to sat) = " << (OUTPUT_RUNTIMES ? tejecucion1a.elapsedstring() : "-1")
+       << " (" << (OUTPUT_RUNTIMES ? tejecucion1b.elapsedstring() : "-1")
+      << " en propuestasolucion, de los cuales " << fixed << setprecision(3)
+      << (OUTPUT_RUNTIMES ? tiempoinsertsat : -1) << "s son por los "
+      << ejecucionesinsertsat << " insertsat)" << endl;
   sat_solver S1[vsat1.size()];
   sat_solver S2[vsat2.size()];
   vector<bool> resultados;
@@ -2648,6 +2654,7 @@ int main(int argc, char *argv[])
     bool respuestaout = S2[i].solve();
     double segresolverout = t2.elapsed();
     segaccum += segresolverin + segresolverout;
+    if (not OUTPUT_RUNTIMES) segaccum = segresolverout = segresolverin = -1;
     infoextensa[i] << endl;
     infoextensa[i] << "############ JP " << (i + 1) << " ############" << endl;
     infoextensa[i] << "input is " << (respuestain ? "SAT" : "UNSAT")
@@ -2689,7 +2696,7 @@ int main(int argc, char *argv[])
     if (not validado.m["valid"].x)
       errorreconstruccion(validado.m["msg"].s, muestrainput[i], muestrasolucion);
   }
-  cout << "TIEMPO EJECUCION (reconstruccion, validacion) = " << tejecucion2.elapsedstring() << endl;
+  cout << "TIEMPO EJECUCION (reconstruccion, validacion) = " << (OUTPUT_RUNTIMES ? tejecucion2.elapsedstring() : "-1") << endl;
   for (int j = 0; j < int(vjp.size()); ++j)
     cout << infoextensa[j].str();
   prefijoerror = "";
