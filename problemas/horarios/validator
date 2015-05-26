@@ -7,61 +7,61 @@
 //   msg: string
 // }
 main {
-  out.valid = 0;
+  valid = 0;
 
-  nSubjs = in.input.subjects.size;
-  nClassrooms = in.input.classrooms;
+  nSubjs = input.subjects.size;
+  nClassrooms = input.classrooms;
   nHours=60;
   nDays=5;
-  nTeachers=in.input.teachers.size;
-  nCourses=in.input.courses;
+  nTeachers=input.teachers.size;
+  nCourses=input.courses;
 
-  sol&=in.solution;
+  sol&=solution.res;
   if(sol.size<nSubjs){
-    out.msg="The solution only has length "+sol.size+", but there are "+nSubjs+" subjects.";
+    msg="The solution only has length "+sol.size+", but there are "+nSubjs+" subjects.";
     stop;
   }
   for(i=0;i<nSubjs;i++){
     if(sol[i].classroom<0 or sol[i].classroom>=nClassrooms) {
-      out.msg="The subject "+i+" has assigned the classroom "+sol[i].classroom+", which is not a valid classroom identifier. It should be a number between 0 and in.classrooms-1 ("+(nClassrooms-1)+").";
+      msg="The subject "+i+" has assigned the classroom "+sol[i].classroom+", which is not a valid classroom identifier. It should be a number between 0 and classrooms-1 ("+(nClassrooms-1)+").";
       stop;
     }
     if(sol[i].teacher<0 or sol[i].teacher>=nTeachers){
-      out.msg="The subject "+i+" has assigned the teacher "+sol[i].teacher+", which is not a valid teacher identifier. It should be a number between 0 and in.teachers.size-1 ("+(nTeachers-1)+").";
+      msg="The subject "+i+" has assigned the teacher "+sol[i].teacher+", which is not a valid teacher identifier. It should be a number between 0 and teachers.size-1 ("+(nTeachers-1)+").";
       stop;
     }
     for(j=0;j<sol[i].hours.size;j++){
       if(sol[i].hours[j]<0 or sol[i].hours[j]>=nHours){
-	out.msg="The "+j+" hour assigned to the subject "+i+" is "+sol[i].hours[j]+", which is not a valid hour. It should be a number between 0 and "+(nHours-1)+".";
+	msg="The "+j+" hour assigned to the subject "+i+" is "+sol[i].hours[j]+", which is not a valid hour. It should be a number between 0 and "+(nHours-1)+".";
 	stop;
       }
     }
   }
   for(i=0;i<nSubjs;i++){
-    if(sol[i].hours.size!=in.input.subjects[i].hours){
-      out.msg="The subject "+i+" has been assigned "+sol[i].hours.size+" hours, but it should have "+in.input.subjects[i].hours+" hours assigned.";
+    if(sol[i].hours.size!=input.subjects[i].hours){
+      msg="The subject "+i+" has been assigned "+sol[i].hours.size+" hours, but it should have "+input.subjects[i].hours+" hours assigned.";
       stop;
     }
   }
   //subjects have suitable classrooms
   for(i=0;i<nSubjs;i++){
     found=0;
-    for(j=0;j<in.input.subjects[i].classrooms.size;j++){
-      if(in.input.subjects[i].classrooms[j]==sol[i].classroom)found=1;
+    for(j=0;j<input.subjects[i].classrooms.size;j++){
+      if(input.subjects[i].classrooms[j]==sol[i].classroom)found=1;
     }
     if(found==0){
-      out.msg="The subject "+i+" has assigned the classroom "+sol[i].classroom+", which is not amongst the allowed classrooms for this subject";
+      msg="The subject "+i+" has assigned the classroom "+sol[i].classroom+", which is not amongst the allowed classrooms for this subject";
       stop;
     }
   }
   //subjects have suitable teachers
   for(i=0;i<nSubjs;i++){
     found=0;
-    for(j=0;j<in.input.subjects[i].teachers.size;j++){
-      if(in.input.subjects[i].teachers[j]==sol[i].teacher)found=1;
+    for(j=0;j<input.subjects[i].teachers.size;j++){
+      if(input.subjects[i].teachers[j]==sol[i].teacher)found=1;
     }
     if(found==0){
-      out.msg="The subject "+i+" has assigned the teacher "+sol[i].teacher+", which is not amongst the compatible teachers for this subject";
+      msg="The subject "+i+" has assigned the teacher "+sol[i].teacher+", which is not amongst the compatible teachers for this subject";
       stop;
     }
   }
@@ -70,7 +70,7 @@ main {
     for(j=0;j<sol[i].hours.size;j++){
       for(k=j+1;k<sol[i].hours.size;k++){
 	if(sol[i].hours[j]/12 ==sol[i].hours[k]/12){
-	  out.msg="The subject "+i+" has 2 sessions in the day "+j/12+". Namely, hours "+j+" and "+k+".";
+	  msg="The subject "+i+" has 2 sessions in the day "+j/12+". Namely, hours "+j+" and "+k+".";
 	  stop;
 	}
       }
@@ -79,9 +79,9 @@ main {
   //no teacher in forbidden hours
   for(i=0;i<nSubjs;i++){
     for(j=0;j<sol[i].hours.size;j++){
-      for(k=0;k<in.input.teachers[sol[i].teacher].size;k++){
-	if(sol[i].hours[j]==in.input.teachers[sol[i].teacher][k]){
-	  out.msg="The subject "+i+" has a session at the hour "+sol[i].hours[j]+", but this hour is forbidden for the teacher "+sol[i].teacher+", who gives this subject";
+      for(k=0;k<input.teachers[sol[i].teacher].size;k++){
+	if(sol[i].hours[j]==input.teachers[sol[i].teacher][k]){
+	  msg="The subject "+i+" has a session at the hour "+sol[i].hours[j]+", but this hour is forbidden for the teacher "+sol[i].teacher+", who gives this subject";
 	  stop;
 	}
       }
@@ -99,7 +99,7 @@ main {
 	}
       }
       if(count>1){
-	out.msg="There are "+count+" sessions scheduled at the classroom "+i+" and hour "+j+". There should be at most 1.";
+	msg="There are "+count+" sessions scheduled at the classroom "+i+" and hour "+j+". There should be at most 1.";
 	stop;
       }
     }
@@ -116,7 +116,7 @@ main {
 	}
       }
       if(count>1){
-	out.msg="There are "+count+" sessions given by the teacher "+i+" at the hour "+j+". There should be at most 1.";
+	msg="There are "+count+" sessions given by the teacher "+i+" at the hour "+j+". There should be at most 1.";
 	stop;
       }
     }
@@ -126,7 +126,7 @@ main {
     for(j=0;j<sol[i].hours.size;j++){
       for(k=j+1;k<sol[i].hours.size;k++){
 	if(sol[i].hours[j]==sol[i].hours[k]){
-	  out.msg="The subject "+i+" has two sessions in the hour "+sol[i].hours[j]+".";
+	  msg="The subject "+i+" has two sessions in the hour "+sol[i].hours[j]+".";
 	  stop;
 	}
       }
@@ -135,13 +135,13 @@ main {
   //sessions of the same course cannot overlap
   for(i=0;i<nCourses;i++){
     for(j=0;j<nSubjs;j++){
-      if(in.input.subjects[j].course==i){
+      if(input.subjects[j].course==i){
 	for(k=0;k<sol[j].hours.size;k++){
 	  for(j2=j+1;j2<nSubjs;j2++){
-	    if(in.input.subjects[j2].course==i){
+	    if(input.subjects[j2].course==i){
 	      for(k2=0;k2<sol[j2].hours.size;k2++){
 		if(sol[j].hours[k]==sol[j2].hours[k2]){
-		  out.msg="The subject "+j+" and the subject "+j2+" have sessions on the hour "+sol[j].hours[k]+", and they belong to the same course "+i+".";
+		  msg="The subject "+j+" and the subject "+j2+" have sessions on the hour "+sol[j].hours[k]+", and they belong to the same course "+i+".";
 		  stop;
 		}
 	      }
@@ -158,7 +158,7 @@ main {
       maxh=-1;
       count=0;
       for(k=0;k<nSubjs;k++){
-	if(in.input.subjects[k].course==j){
+	if(input.subjects[k].course==j){
 	  for(t=0;t<sol[k].hours.size;t++){
 	    H=sol[k].hours[t];
 	    if(H/12==i){
@@ -170,16 +170,16 @@ main {
 	}
       }
       if(count>6){
-	out.msg="There are "+count+" sessions of subjects of the course "+j+" in the day "+i+". There should be at most 6.";
+	msg="There are "+count+" sessions of subjects of the course "+j+" in the day "+i+". There should be at most 6.";
 	stop;
       }
       if(count != 0 and maxh-minh+1 != count){
-	out.msg="The schedule for the course "+j+" in the day "+i+" is not compact; it consists of "+count+" sessions, the first of which starts at the hour "+minh+" of that day and the last of which starts at the hour "+maxh+" of that day.";
+	msg="The schedule for the course "+j+" in the day "+i+" is not compact; it consists of "+count+" sessions, the first of which starts at the hour "+minh+" of that day and the last of which starts at the hour "+maxh+" of that day.";
 	stop;
       }
     }
   }
 
-  out.valid=1;
-  out.msg="And it is correct.";
+  valid=1;
+  msg="And it is correct.";
 }

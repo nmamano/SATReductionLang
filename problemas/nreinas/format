@@ -1,2 +1,2 @@
-int
-array of array of int
+struct{ n : int }
+struct { board : array of array of int }

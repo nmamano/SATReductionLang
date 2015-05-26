@@ -9,8 +9,10 @@ struct {
      teachers: array of int
    }
 }
-array of struct {
-  classroom: int
-  teacher: int
-  hours: array of int
+struct {
+  res: array of struct {
+    classroom: int
+    teacher: int
+    hours: array of int
+  }
 }

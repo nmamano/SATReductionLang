@@ -119,6 +119,11 @@ vector<string> leerfichero(string nombrefichero)
 ////////////////////////////////////////////////////////////
 // Analisis lexico del programa de entrada:
 
+bool isfield(string s, const vector<string>& fields) {
+  for (string f : fields) if (s == f) return true;
+  return false;
+}
+
 struct ttoken {
   string tipo, texto;
   int linea, columna;
@@ -132,27 +137,38 @@ struct ttoken {
   }
 };
 
-set<string> palabrasclaveprograma = {"main", "in", "out", "stop",
+set<string> palabrasclaveprograma = {"main", "stop",
                                  "if", "else", "while", "for", "foreach",
                                  "and", "or", "not", "push", "size",
-                                 "back", "min", "max", "abs",
+                                 "back", "min", "max", "abs", "in", //case: for i in v
                                  "insertsat", "reduction", "reconstruction"};
 set<string> cadenasclaveprograma = {"{", "}", "(", ")", "[", "]", "+", "-", "*", "/",
                             "%", "=", "&=", "==", "<", ">", "<=", ">=", "!=",
                             ";", ".", ",", "//", "++", "--", ".."};
 
 void leeridentificador(const string &s, int &is, vector<ttoken> &vt, int linea, int desplazamientocolumna,
-  const set<string>& palabrasclave)
+  const set<string>& palabrasclave, const vector<string>& infields, const vector<string>& outfields)
 {
   int nextis = is;
   while (nextis < int(s.size()) and
          (esletra(s[nextis]) or esnumero(s[nextis]) or s[nextis] == '_'))
     nextis++;
   string id = s.substr(is, nextis - is);
-  if (palabrasclave.count(id))
+  if (palabrasclave.count(id)) {
     vt.push_back(ttoken(id, "", linea, is + 1 + desplazamientocolumna));
-  else
+  } else if (isfield(id, infields) and (vt.size() == 0 or vt[vt.size()-1].tipo != ".")) {
+    //the second condition is for cases such as input:
+    //struct { teachers: int subjects: struct { teachers: array of int } }
+    vt.push_back(ttoken("in", "", linea, is + 1 + desplazamientocolumna));
+    vt.push_back(ttoken(".", "", linea, is + 1 + desplazamientocolumna));
     vt.push_back(ttoken("identificador", id, linea, is + 1 + desplazamientocolumna));
+  } else if (isfield(id, outfields) and (vt.size() == 0 or vt[vt.size()-1].tipo != ".")) {
+    vt.push_back(ttoken("out", "", linea, is + 1 + desplazamientocolumna));
+    vt.push_back(ttoken(".", "", linea, is + 1 + desplazamientocolumna));
+    vt.push_back(ttoken("identificador", id, linea, is + 1 + desplazamientocolumna));    
+  } else {
+    vt.push_back(ttoken("identificador", id, linea, is + 1 + desplazamientocolumna));
+  }
   is = nextis;
 }
 
@@ -170,7 +186,8 @@ void leerconstante(const string &s, int &is, vector<ttoken> &vt, int linea, int 
   is = nextis;
 }
 
-void leerstringentrada(const string &s, vector<ttoken> &vt, int linea, int desplazamientocolumna);
+void leerstringentrada(const string &s, vector<ttoken> &vt, int linea, int desplazamientocolumna,
+  const vector<string>& infields, const vector<string>& outfields);
 
 void leerstring(const string &s, int &is, vector<ttoken> &vt, int linea, int desplazamientocolumna)
 {
@@ -204,7 +221,7 @@ void leerstring(const string &s, int &is, vector<ttoken> &vt, int linea, int des
       while (iss2 < int(ss.size()) and ss[iss2] != '{' and ss[iss2] != '}') iss2++;
       if (iss2 == int(ss.size()) or ss[iss2] == '{')
         rechazar(linea, columnacorcheteabrir, "the symbol '{' inside '\"...\"' should have the corresponding following '}'.");
-      leerstringentrada(ss.substr(iss, iss2 - iss), vt, linea, columnacorcheteabrir + 1);
+      leerstringentrada(ss.substr(iss, iss2 - iss), vt, linea, columnacorcheteabrir + 1, vector<string>(), vector<string>());
       iss = iss2; //ahora iss apunta al simbolo '}'
       int columnacorchetecerrar = columnacomillasabrir + 1 + iss;
       iss2++;
@@ -224,10 +241,11 @@ void leerstring(const string &s, int &is, vector<ttoken> &vt, int linea, int des
 }
 
 void leertoken(const string &s, int &is, vector<ttoken> &vt, int linea, int desplazamientocolumna,
-  const set<string>& palabrasclave, const set<string>& cadenasclave)
+  const set<string>& palabrasclave, const set<string>& cadenasclave,
+  const vector<string>& infields = vector<string>(), const vector<string>& outfields = vector<string>())
 {
   if (esletra(s[is]) or (s[is] == '_')) {
-    leeridentificador(s, is, vt, linea, desplazamientocolumna, palabrasclave);
+    leeridentificador(s, is, vt, linea, desplazamientocolumna, palabrasclave, infields, outfields);
     return;
   }
   else if (esnumero(s[is])) {
@@ -261,20 +279,22 @@ void saltarblancos(const string &s, int &i)
   while (i < int(s.size()) and (s[i] == ' ' or s[i] == '\t')) i++;
 }
 
-void leerstringentrada(const string &s, vector<ttoken> &vt, int linea, int desplazamientocolumna)
+void leerstringentrada(const string &s, vector<ttoken> &vt, int linea, int desplazamientocolumna,
+  const vector<string>& infields, const vector<string>& outfields)
 {
   int is = 0;
   saltarblancos(s, is);
   while (is < int(s.size())) {
-    leertoken(s, is, vt, linea, desplazamientocolumna, palabrasclaveprograma, cadenasclaveprograma);
+    leertoken(s, is, vt, linea, desplazamientocolumna, palabrasclaveprograma, cadenasclaveprograma, infields, outfields);
     saltarblancos(s, is);
   }
 }
 
-void leerentrada(vector<string> &vs, vector<ttoken> &vt)
+void leerentrada(vector<string> &vs, vector<ttoken> &vt,
+  const vector<string>& infields, const vector<string>& outfields)
 {
   for (int i = 0; i < int(vs.size()); i++) {
-    leerstringentrada(vs[i], vt, i + 1, 0);
+    leerstringentrada(vs[i], vt, i + 1, 0, infields, outfields);
   }
 }
 
@@ -2429,17 +2449,20 @@ void separarjps(vector<string> &vs, vector<vector<string> > &vvs)
 
 void leerlineajp(string &s, tvalor &valor, tnodo &format)
 {
+  //cerr<<"1\n";
   if (eliminaespaciosycomentarios(s) == "") return;
   tvalor lista;
   lista.kind = 2;
   lista.format = &format;
   istringstream ci(s);
   int x;
+  //cerr<<"3\n";
   while (ci >> x) {
     lista.v.push_back(x);
     lista.v.back().format = &(format.hijo[0]);
   }
   valor.v.push_back(lista);
+  //cerr<<"2\n";
 }
 
 void leerjp(vector<string> &vs, tvalor &valor, tnodo &format)
@@ -2493,13 +2516,13 @@ void escribirtokens(string nombreprograma, vector<ttoken>& vt) {
 }
 
 
-void leerprograma(string ficheroprograma, tnodo &nodo, string tipoprograma)
+void leerprograma(string ficheroprograma, tnodo &nodo, string tipoprograma, const vector<string>& infields, const vector<string>& outfields)
 {
   prefijoerror = "Internal error reading program: " + ficheroprograma + "\n";
 
   vector<string> vs = leerfichero(ficheroprograma);
   vector<ttoken> vt;
-  leerentrada(vs, vt);
+  leerentrada(vs, vt, infields, outfields);
   if (int(vt.size()) > limitenumtokens)
     errorprogramademasiadogrande();
 
@@ -2513,12 +2536,13 @@ void leerprograma(string ficheroprograma, tnodo &nodo, string tipoprograma)
   if (DBG_MODE) escribirtnodo(ficheroprograma, nodo);
 }
 
-void leerpropuestasolucion(string ficheroprograma, tnodo &nodo1, tnodo &nodo2)
+void leerpropuestasolucion(string ficheroprograma, tnodo &nodo1, tnodo &nodo2,
+  const vector<string>& formatinput, const vector<string>& formatsolucion)
 {
   prefijoerror = "";
   vector<string> vs = leerfichero(ficheroprograma);
   vector<ttoken> vt;
-  leerentrada(vs, vt);
+  leerentrada(vs, vt, formatinput, formatsolucion);
   if (int(vt.size()) > limitenumtokens)
     errorprogramademasiadogrande();
 
@@ -2539,9 +2563,22 @@ void leerpropuestasolucion(string ficheroprograma, tnodo &nodo1, tnodo &nodo2)
 ////////////////////////////////////////////////////////////////////////
 // Programa principal:
 
-string sformatjp = "array of array of int";
+string sformatjp = "struct { in : array of array of int }";
+string sformatjppuro = "array of array of int";
 string sformatsat = "array of array of string";
-string sformatvalidador = "struct { valid:int msg:string }";
+string sformatvalidador = "struct { valid : int msg : string }";
+
+vector<string> getfieldsstruct(tnodo& nodo) {
+  if (nodo.tipo != "struct") {
+    prefijoerror = "";
+    rechazar("Internal error: node is not a struct");
+  }
+  vector<string> res;
+  for (string f : nodo.listacampos()) {
+    res.push_back(f);    
+  }
+  return res;
+}
 
 int main(int argc, char *argv[])
 {
@@ -2567,14 +2604,19 @@ int main(int argc, char *argv[])
   leerformatstring(sformatsat, formatsat);
   leerformatsfichero(ficheroformat, formatinput, formatsolucion);
   leerformatstring(sformatvalidador, formatvalidador);
-  
+
   vector<tvalor> vjp;
-  leerjps(ficherojp, vjp, formatjp);
+
+  tnodo formatjppuro;
+  leerformatstring(sformatjppuro, formatjppuro);
+  leerjps(ficherojp, vjp, formatjppuro);
   tnodo nodojp2input, nodoinput2sat, nodopropuestasolucion2sat, nodopropuestasolucion2solucion, nodovalidador;
-  leerprograma(ficherojp2input, nodojp2input, "main");
-  leerprograma(ficheroinput2sat, nodoinput2sat, "reduction");
-  leerprograma(ficherovalidador, nodovalidador, "main");
-  leerpropuestasolucion(ficheropropuestasolucion, nodopropuestasolucion2sat, nodopropuestasolucion2solucion);
+  leerprograma(ficherojp2input, nodojp2input, "main", getfieldsstruct(formatjp), getfieldsstruct(formatinput));
+  leerprograma(ficheroinput2sat, nodoinput2sat, "reduction", getfieldsstruct(formatinput), vector<string> (0));
+  vector<string> vs(2); vs[0] = "input"; vs[1] = "solution";
+  leerprograma(ficherovalidador, nodovalidador, "main", vs, getfieldsstruct(formatvalidador));
+  leerpropuestasolucion(ficheropropuestasolucion, nodopropuestasolucion2sat, nodopropuestasolucion2solucion,
+    getfieldsstruct(formatinput), getfieldsstruct(formatsolucion));
 
   comprobarnoseusatipo(nodopropuestasolucion2sat, "out",
                        "the \"out\" variable cannot be directly accessed in a reduction to SAT,\nuse \"insertsat\" instead to create your formula.");
