@@ -2610,8 +2610,7 @@ int main(int argc, char *argv[])
   tnodo nodojp2input, nodoinput2sat, nodopropuestasolucion2sat, nodopropuestasolucion2solucion, nodovalidador;
   leerprograma(ficherojp2input, nodojp2input, "main", getfieldsstruct(formatjp), getfieldsstruct(formatinput));
   leerprograma(ficheroinput2sat, nodoinput2sat, "reduction", getfieldsstruct(formatinput), vector<string> (0));
-  vector<string> vs(2); vs[0] = "input"; vs[1] = "solution";
-  leerprograma(ficherovalidador, nodovalidador, "main", vs, getfieldsstruct(formatvalidador));
+  leerprograma(ficherovalidador, nodovalidador, "main", {"input", "solution"}, getfieldsstruct(formatvalidador));
   leerpropuestasolucion(ficheropropuestasolucion, nodopropuestasolucion2sat, nodopropuestasolucion2solucion,
     getfieldsstruct(formatinput), getfieldsstruct(formatsolucion));
 
