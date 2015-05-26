@@ -192,7 +192,8 @@ void leerconstante(const string &s, int &is, vector<ttoken> &vt, int linea, int 
 void leerstringentrada(const string &s, vector<ttoken> &vt, int linea, int desplazamientocolumna,
   const vector<string>& infields, const vector<string>& outfields);
 
-void leerstring(const string &s, int &is, vector<ttoken> &vt, int linea, int desplazamientocolumna)
+void leerstring(const string &s, int &is, vector<ttoken> &vt, int linea, int desplazamientocolumna,
+  const vector<string>& infields, const vector<string>& outfields)
 {
   int isini = is; //isini apunta a las comillas de abrir
   int nextis = is + 1;
@@ -224,7 +225,7 @@ void leerstring(const string &s, int &is, vector<ttoken> &vt, int linea, int des
       while (iss2 < int(ss.size()) and ss[iss2] != '{' and ss[iss2] != '}') iss2++;
       if (iss2 == int(ss.size()) or ss[iss2] == '{')
         rechazar(linea, columnacorcheteabrir, "the symbol '{' inside '\"...\"' should have the corresponding following '}'.");
-      leerstringentrada(ss.substr(iss, iss2 - iss), vt, linea, columnacorcheteabrir + 1, vector<string>(), vector<string>());
+      leerstringentrada(ss.substr(iss, iss2 - iss), vt, linea, columnacorcheteabrir + 1, infields, outfields);
       iss = iss2; //ahora iss apunta al simbolo '}'
       int columnacorchetecerrar = columnacomillasabrir + 1 + iss;
       iss2++;
@@ -256,7 +257,7 @@ void leertoken(const string &s, int &is, vector<ttoken> &vt, int linea, int desp
     return;
   }
   else if (s[is] == '"') {
-    leerstring(s, is, vt, linea, desplazamientocolumna);
+    leerstring(s, is, vt, linea, desplazamientocolumna, infields, outfields);
     return;
   }
   else {
