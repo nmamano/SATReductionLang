@@ -2564,7 +2564,6 @@ void leerpropuestasolucion(string ficheroprograma, tnodo &nodo1, tnodo &nodo2,
 // Programa principal:
 
 string sformatjp = "struct { in : array of array of int }";
-string sformatjppuro = "array of array of int";
 string sformatsat = "array of array of string";
 string sformatvalidador = "struct { valid : int msg : string }";
 
@@ -2607,9 +2606,7 @@ int main(int argc, char *argv[])
 
   vector<tvalor> vjp;
 
-  tnodo formatjppuro;
-  leerformatstring(sformatjppuro, formatjppuro);
-  leerjps(ficherojp, vjp, formatjppuro);
+  leerjps(ficherojp, vjp, formatjp.m["in"]);
   tnodo nodojp2input, nodoinput2sat, nodopropuestasolucion2sat, nodopropuestasolucion2solucion, nodovalidador;
   leerprograma(ficherojp2input, nodojp2input, "main", getfieldsstruct(formatjp), getfieldsstruct(formatinput));
   leerprograma(ficheroinput2sat, nodoinput2sat, "reduction", getfieldsstruct(formatinput), vector<string> (0));
