@@ -1830,7 +1830,7 @@ int generamuestra(tvalor &valor, string &muestra, string prefijo, int &lineas)
   if (valor.kind == 4) {
     for (int i = 0; i < int(valor.format->m.size()); i++)
       if (generamuestra(valor.m[valor.format->listacampos()[i]], muestra,
-                        prefijo + "." + valor.format->listacampos()[i], lineas))
+                        prefijo + (prefijo == "" ? "" : ".") + valor.format->listacampos()[i], lineas))
         return 1;
   } else if (valor.kind == 2) {
     if (valor.format->hijo[0].tipo == "int" or
@@ -1874,16 +1874,16 @@ int generamuestra(tvalor &valor, string &muestra, string prefijo, int &lineas)
   return 0;
 }
 
-void generamuestra(tvalor &valor, string &muestra, string prefijo)
+void generamuestra(tvalor &valor, string &muestra)
 {
   int lineas = 0;
-  generamuestra(valor, muestra, prefijo, lineas);
+  generamuestra(valor, muestra, "", lineas);
 }
 
-void generamuestra(vector<tvalor> &v, vector<string> &muestra, string prefijo)
+void generamuestra(vector<tvalor> &v, vector<string> &muestra)
 {
   muestra = vector<string> (int(v.size()), "");
-  for (int i = 0; i < int(v.size()); i++) generamuestra(v[i], muestra[i], prefijo);
+  for (int i = 0; i < int(v.size()); i++) generamuestra(v[i], muestra[i]);
 }
 
 void generamuestra(vector<string> &historialinsertsat, string &muestra, string prefijo)
@@ -1943,12 +1943,6 @@ string muestratvalormuestra(tvalor &valor)
   return s;
 }
 */
-string muestratvalorchivato(tvalor &valor, string prefijo)
-{
-  string muestra;
-  generamuestra(valor, muestra, prefijo);
-  return muestra;
-}
 /*
 string muestratvalor(tvalor &valor)
 {
@@ -2259,7 +2253,7 @@ void ejecutareconstruccion(tnodo &reconstructor, tvalor &in, tnodo &formatout, s
   valorpordefecto(formatout, out);
   tiempoejecucion = infinito;
   ejecuta(reconstructor, in, out, "model", modelo);
-  generamuestra(out, muestrasolucion, "  out");
+  generamuestra(out, muestrasolucion);
 
   MODE = inter;
   prefijoerror = "Internal error running: " + ficherovalidador + "\n";
@@ -2627,13 +2621,13 @@ int main(int argc, char *argv[])
   vector<string> muestrainput, muestraoutput;
   ejecuta(nodojp2input, vjp, vinput, formatinput,
     "Internal error running jp2input: " + ficherojp2input + "\n", inter);
-  generamuestra(vinput, muestrainput, "  in");
+  generamuestra(vinput, muestrainput);
   ejecuta(nodoinput2sat, vinput, vsat1, formatsat,
     "Internal error running input2sat: " + ficheroinput2sat + "\n", reduc);
   vector<vector<string> > historialesinsertsat;
   timer tejecucion1b;
   ejecuta(nodopropuestasolucion2sat, vinput, vsat2, formatsat, "", reduc, &historialesinsertsat);
-  generamuestra(historialesinsertsat, muestraoutput, "  ");
+  generamuestra(historialesinsertsat, muestraoutput, "");
   cout << "TIEMPO EJECUCION (to sat) = " << (OUTPUT_RUNTIMES ? tejecucion1a.elapsedstring() : "-1")
        << " (" << (OUTPUT_RUNTIMES ? tejecucion1b.elapsedstring() : "-1")
       << " en propuestasolucion, de los cuales " << fixed << setprecision(3)
