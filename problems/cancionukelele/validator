@@ -1,0 +1,61 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution: the solution reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   msg: string
+// }
+main {
+     valid = 0;
+     
+     inp &= input.song;
+     sol &= solution.positions;
+     n=inp.size;
+     //check that the solution has the correct format
+     if(sol.size!=n){
+       msg="The solution has size "+sol.size+", but it should have the same size as the input ("+n+").";
+       stop;
+     }
+     for i,n in sol {
+       if(n.s<1 or n.s>4){
+	 msg="The pitch "+i+" has assigned the string "+n.s+", which is not a valid string identifier (a number between 1 and 4).";
+	 stop;
+       }
+       if(n.f<0 or n.f>12){
+	 msg="The pitch "+i+" has assigned the fret "+n.f+", which is not a valid fret identifier (a number between 0 and 12).";
+	 stop;
+       }
+     }
+     //chech that notes match
+     for i,n in sol {
+       note=0;
+       if(n.s==1)note=9;
+       if(n.s==2)note=4;
+       if(n.s==3)note=0;
+       if(n.s==4)note=7;
+       note=note+n.f;
+       if(note!=inp[i]){
+	 msg="The pitch number "+i+" is assigned to the string "+n.s+" and the fret "+n.f+", which corresponds to the pitch "+note+", but it should be the pitch "+inp[i]+".";
+	 stop;
+       }
+     }
+     //check that adjacent notes are at adjacent strings/frets
+     n=inp.size;
+     for(i=0;i<n-1;i++){
+       if(sol[i].f!=0 and sol[i+1].f!=0){
+	 st1=sol[i].s; st2=sol[i+1].s;
+	 if(abs(st1-st2)>1){
+	   msg="The pitches number "+i+" and "+(i+1)+" are not assigned to open positions and are assigned to the strings "+st1+" and "+st2+" respectively, which are not adjacent.";
+	   stop;
+	 }
+	 fr1=sol[i].f; fr2=sol[i+1].f;
+	 if(abs(fr1-fr2)>2){
+	   msg="The pitches number "+i+" and "+(i+1)+" are assigned to the frets "+fr1+" and "+fr2+" respectively, and hence are more than 2 frets away.";
+	   stop;
+	 }
+       }
+     }
+     valid=1;
+     msg="And it is correct.";
+}

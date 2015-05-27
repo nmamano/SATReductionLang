@@ -1,0 +1,11 @@
+struct {
+   n: int
+   unavailable_stadiums: array of array [2] of int
+   shared_stadiums: array of array [2] of int
+}
+struct {
+   matches: array of array of struct {
+   	opponent: int
+   	visitant: int
+   }
+}

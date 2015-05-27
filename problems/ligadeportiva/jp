@@ -1,0 +1,76 @@
+----//n, numunavailable, numshared; one row per unavailable: team, round; one row per shared: team, team
+2 0 0
+----//sat
+4 0 0
+----//unsat because of unavailability
+2 2 0
+0 0
+1 0
+----//sat shared stadium
+2 0 1
+0 1
+----//unsat because must play away too much
+6 4 0
+0 0
+0 1
+0 3
+0 4
+----//unsat because must play home too much
+6 12 0
+1 0
+2 0
+3 0
+4 1
+5 1
+1 1
+2 3
+3 3
+4 3
+5 4
+1 4
+2 4
+----//unsat because forced tripitition away
+6 3 0
+0 1
+0 2
+0 3
+----//unsat because forced tripitition home
+4 6 0
+1 0
+2 0
+1 1
+3 1
+2 2
+3 2
+----//sat with shared stadiums
+4 0 2
+0 1
+2 3
+----//sat with shared stadiums
+6 0 3
+0 1
+2 3
+4 5
+----//unsat because teams sharing stadium cannot do complementary matches
+4 2 1
+2 2
+3 2
+0 1
+----//sat
+10 0 0
+----//sat?
+10 10 3
+2 2
+2 5
+2 8
+3 2
+3 5
+3 7
+5 2
+5 5
+5 7
+5 8
+0 1
+4 6
+7 8
+----//test num of matches away..

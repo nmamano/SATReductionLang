@@ -1,0 +1,7 @@
+struct { song: array of int }
+struct { 
+  positions: array of struct {
+  	s: int
+  	f: int
+  }
+}

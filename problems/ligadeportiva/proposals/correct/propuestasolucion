@@ -1,0 +1,83 @@
+reduction
+{
+  //day{i}team{j}team{k}
+  //day{i}team{j}
+
+  for(day=0;day<n-1;day++){
+    for(team=0;team<n;team++){
+      for(team2=0;team2<n;team2++){
+  insertsat("d{day}t{team}t{team2} iff d{day}t{team2}t{team}");
+  insertsat("d{day}t{team}t{team2} => (d{day}t{team} iff -d{day}t{team2})");
+      }
+    }
+  }
+  //every team plays every day
+  for(day=0;day<n-1;day++){
+    for(team=0;team<n;team++){
+      s="exactly 1";
+      for(team2=0;team2<n;team2++){
+  if(team!=team2){
+    s=s+" d{day}t{team}t{team2}";
+  }
+      }
+      insertsat(s);
+    }
+  }
+  //every team plays every other team
+  for(team=0;team<n;team++){
+    for(team2=team+1;team2<n;team2++){
+      s="exactly 1";
+      for(day=0;day<n-1;day++){
+  s=s+" d{day}t{team}t{team2}";
+      }
+      insertsat(s);
+    }
+  }
+  //num matches away
+  for(team=0;team<n;team++){
+    s1="atleast {n/2-1}";
+    s2="atmost {n/2}";
+    for(day=0;day<n-1;day++){
+      s1=s1+" -d{day}t{team}";
+      s2=s2+" -d{day}t{team}";
+    }
+    insertsat(s1);
+    insertsat(s2);
+  }
+  //no tripititions
+  for(team=0;team<n;team++){
+    for(day=0;day<n-1-2;day++){
+      insertsat("d{day}t{team} or d{day+1}t{team} or d{day+2}t{team}");
+      insertsat("-d{day}t{team} or -d{day+1}t{team} or -d{day+2}t{team}");
+    }
+  }
+  //no unavailable stadiums
+  v&=unavailable_stadiums;
+  for(i=0;i<v.size;i++){
+    team=v[i][0];
+    day=v[i][1];
+    insertsat("-d{day}t{team}");
+  }
+  //no shared stadiums both home
+  v&=shared_stadiums;
+  for(i=0;i<v.size;i++){
+    team=v[i][0];
+    team2=v[i][1];
+    for(day=0;day<n-1;day++){
+      insertsat("-d{day}t{team} or -d{day}t{team2}");
+    }
+  }   
+}
+
+reconstruction
+{
+  for(day=0;day<n-1;day++){
+    for(team=0;team<n;team++){
+      if(model["d{day}t{team}"])matches[day][team].visitant=0;
+      else matches[day][team].visitant=1;
+      for(team2=0;team2<n;team2++){
+  if(model["d{day}t{team}t{team2}"])matches[day][team].opponent=team2;
+      }
+    }
+  } 
+}

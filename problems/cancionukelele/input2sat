@@ -1,0 +1,42 @@
+reduction
+{
+  //{i}{j}{k} note string fret
+  //each note assigned once
+  n=song.size;
+  for(i=0;i<n;i++){
+    s="exactly 1";
+    for(j=1;j<=4;j++){
+      for(k=0;k<13;k++){
+	s=s+" {i}{j}{k}";
+      }
+    }
+    insertsat(s);
+  }
+  //notes match
+  for(i=0;i<n;i++){
+    for(j=1;j<=4;j++){
+      note=0;
+      if(j==1)note=9;if(j==2)note=4;if(j==3)note=0;if(j==4)note=7;
+      for(k=0;k<13;k++){
+	note2=note+k;
+	if(note2!=song[i])insertsat("-{i}{j}{k}");
+      }
+    }
+  }
+  //adjacent strings/frets
+  insertsat("-false");
+  for(i=0;i<n-1;i++){
+    for(j=1;j<=4;j++){
+      for(k=1;k<13;k++){
+        s="{i}{j}{k} => false";
+	for(j2=max(1,j-1);j2<=min(4,j+1);j2++){
+	  for(k2=max(1,k-2);k2<=min(12,k+2);k2++){
+	    s=s+" or {i+1}{j2}{k2}";
+	  }
+	}
+	insertsat(s+" or {i+1}{1}{0} or {i+1}{2}{0} or {i+1}{3}{0} or {i+1}{4}{0}");
+      }
+    }
+  }
+	
+}

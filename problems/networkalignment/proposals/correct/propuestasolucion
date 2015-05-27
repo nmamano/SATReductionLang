@@ -1,0 +1,39 @@
+reduction
+{
+  // injection from G1 to G2
+  for(i1=0 ; i1<n1 ; ++i1){
+    s = "exactly 1";
+    for(i2=0 ; i2<n2 ; ++i2)
+      s = s + " map{i1}to{i2}";
+    insertsat(s);
+  }
+  for(i2=0 ; i2<n2 ; ++i2){
+    s = "atmost 1";
+    for(i1=0 ; i1<n1 ; ++i1)
+      s = s + " map{i1}to{i2}";
+    insertsat(s);
+  }
+  // if an edge of E1 is aligned, it is also in the mapped E2
+  insertsat("-false");
+  for e1,p1 in E1{
+    s = "aligned{e1} => false";
+    for e2,p2 in E2{
+      s = s + " | (map{p1[0]}to{p2[0]} & map{p1[1]}to{p2[1]})";
+      s = s + " | (map{p1[1]}to{p2[0]} & map{p1[0]}to{p2[1]})";
+    }
+    insertsat(s);
+  }
+  // minimum number of aligned edges of E1
+  s = "atleast {k}";
+  for e1,p1 in E1
+    s = s + " aligned{e1}";
+  insertsat(s);
+}
+
+reconstruction
+{
+  for(i1=0 ; i1<n1 ; ++i1)
+    for(i2=0 ; i2<n2 ; ++i2)
+      if (model["map{i1}to{i2}"])
+	map[i1] = i2;
+}

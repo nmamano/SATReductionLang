@@ -1,0 +1,142 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution: the solution reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   msg: string
+// }
+main {
+     valid = 0;
+     
+     inp &= input;
+     sol &= solution.matches;
+     n = inp.n;
+     //check that the solution has the correct format
+     if(sol.size<n-1){
+       msg="The solution should contain one entry per round, i.e. n-1 entries ("+(n-1)+"), but it only contains "+sol.size+".";
+       stop;
+     }
+     for(i=0;i<n-1;i++){
+       if(sol[i].size<n){
+	 msg="The solution should contain one column per team, i.e. n columns ("+n+"), but the row "+i+" contains only "+sol[i].size+" columns.";
+	 stop;
+       }
+     }
+     for(i=0;i<n-1;i++){
+       for(j=0;j<n;j++){
+	 if(sol[i][j].opponent < 0 or sol[i][j].opponent >= n){
+	   msg="The field sol["+i+"]["+j+"].opponent contains a "+sol[i][j].opponent+", which is not a valid team identifier (a number between 0 and n-1 ("+(n-1)+")).";
+	   stop;
+	 }
+	 if(sol[i][j].visitant < 0 or sol[i][j].visitant >= n){
+	   msg="The field sol["+i+"]["+j+"].visitant contains a "+sol[i][j].visitant+", but it should be either 0 (to indicate home) or 1 (to indicate away)";
+	   stop;
+	 }
+       }
+     }
+     //check that opponents match
+     for(i=0;i<n;i++){ //for each team
+       for(j=0;j<n;j++){ //for each other team
+	 if(i!=j){
+	   for(k=0;k<n-1;k++){ //for each round
+	     if(sol[k][i].opponent==j){
+	       if(sol[k][j].opponent!=i){
+		 msg="The team "+i+" is scheduled to play against the team "+j+" in the round "+k+", but the team "+j+" is scheduled to play against the team "+sol[k][j].opponent+" in that round.";
+		 stop;
+	       }
+	     }
+	   }
+	 }
+       }
+     }
+     //check that home and away games match
+     for(i=0;i<n-1;i++){
+       for(j=0;j<n;j++){
+	 k=sol[i][j].opponent;
+	 if(sol[i][j].visitant == 1 and sol[i][k].visitant==1){
+	   msg="In round "+i+" the teams "+j+" and "+k+" are scheduled to play against each other, but both are regarded as visitants";
+	   stop;
+	 }
+	 if(sol[i][j].visitant == 0 and sol[i][k].visitant==0){
+	   msg="In round "+i+" the teams "+j+" and "+k+" are scheduled to play against each other, but neither of them are regarded as visitant";
+	   stop;
+	 }
+       }
+     }
+
+     //check that every team plays each other
+     for(i=0;i<n;i++){
+       for(j=i+1;j<n;j++){
+	 count=0;
+	 for(k=0;k<n-1;k++){
+	   if(sol[k][i].opponent==j)count++;
+	 }
+	 if(count==0){
+	   msg="The teams "+i+" and "+j+" are never scheduled to play against each other.";
+	   stop;
+	 }
+       }
+     }
+     //no team plays itself
+     for(i=0;i<n;i++){
+       for(j=0;j<n-1;j++){
+	 if(sol[j][i].opponent==i){
+	   msg="The team "+i+" is scheduled to play itself on round "+j+".";
+	   stop;
+	 }
+       }
+     }
+     //fairness rule
+     for(i=0;i<n;i++){
+       count=0;
+       for(j=0;j<n-1;j++){
+	 count=count+sol[j][i].visitant;
+       }
+       if(count<n/2-1 or count>n/2){
+	 msg="The team "+i+" plays "+count+" games as visitant, and it should play either n/2 ("+(n/2)+") or n/2-1 ("+(n/2-1)+").";
+	 stop;
+       }
+     }
+     //no tripititions
+     for(i=0;i<n;i++){
+       for(j=0;j<n-1-2;j++){
+	 x=sol[j][i].visitant;
+	 if(sol[j+1][i].visitant==x and sol[j+2][i].visitant==x){
+	   if(x==0){
+	     msg="The team "+i+" plays at home 3 times in a row on rounds "+j+", "+(j+1)+", and "+(j+2)+".";
+	     stop;
+	   }
+	   else{
+	     msg="The team "+i+" plays away 3 times in a row on rounds "+j+", "+(j+1)+", and "+(j+2)+".";
+	     stop;
+	   }
+	 }
+       }
+     }
+     //no unavailable matches
+     uss&=inp.unavailable_stadiums;
+     for(i=0;i<uss.size;i++){
+       if(sol[uss[i][1]][uss[i][0]].visitant==0){
+	 msg="The team "+uss[i][0]+" plays home on round "+uss[i][1]+", but its stadium is not available on that round.";
+	 stop;
+       }
+     }
+     //complementary schedules
+     sss&=inp.shared_stadiums;
+     for(i=0;i<sss.size;i++){
+       t1=sss[i][0]; t2=sss[i][1];
+       for(j=0;j<n-1;j++){
+	 if(sol[j][t1].visitant==sol[j][t2].visitant){
+	   if(sol[j][t1].visitant==0){
+	     msg="Teams "+t1+" and "+t2+" share stadium, but are both scheduled to play home on round "+j+".";
+	     stop;
+	   }
+	 }
+       }
+     }
+
+     valid=1;
+     msg="And it is correct.";
+
+}

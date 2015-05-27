@@ -1,0 +1,232 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution: the solution reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   msg: string
+// }
+main {
+     valid = 0;
+     
+     sol &= solution.schedules;
+     n=7;
+     d10=0; Bryan=0; Buttonwillow=0; Paradise=0;
+     d11=1; Eugene=1; Coulterville=1; Quimby=1;
+     d12=2; Greg=2; DalyCity=2; Ripley=2;
+     d13=3; Herman=3; Farley=3; Urbandale=3;
+     d14=4; Luke=4; Jackman=4; Vinalhaven=4;
+     d15=5; Nathan=5; Kent=5; Yreka=5;
+     d16=6; Thomas=6; Manson=6; Zwingle=6;
+     con="conductor";
+     dep="departure";
+     arr="arrival";
+     //check that the solution has the correct format
+     for(i=0;i<n;i++){
+       for(j=0;j<3;j++){
+	 if(sol[i][j]<0 or sol[i][j]>=n){
+	   s="The day June 1"+i+" has assigned the ";
+	   if(j==0)s=s+con; if(j==1)s=s+dep; if(j==2)s=s+arr;
+	   s=s+" "+sol[i][j]+", which is not a valid ";     
+	   if(j==0)s=s+con; if(j==1)s=s+dep; if(j==2)s=s+arr;
+	   msg=s+" identifier (a number between 0 and 6)";
+	   stop;
+	 }
+       }
+     }
+     //5
+     for(i=0;i<n;i++){
+       for(j=i+1;j<n;j++){
+	 for(k=0;k<3;k++){
+	   if(sol[i][k]==sol[j][k]){
+	     s="The days "+i+" and "+j+" have the same ";
+             if(k==0)s=s+con; if(k==1)s=s+dep; if(k==2)s=s+arr;
+	     msg=s+". Thus, the clue 5 is not satisfied.";
+	     stop;
+	   }
+	 }
+       }
+     }
+     //6
+     if(not sol[5][1]==DalyCity and not sol[5][2]==Paradise){
+       s="The conductor working on June 15 is arriving at ";
+       a=sol[5][2];
+       if(a==0)s=s+"Paradise";if(a==1)s=s+"Quimby";if(a==2)s=s+"Ripley";if(a==3)s=s+"Urbandale";if(a==4)s=s+"Vinalhaven";if(a==5)s=s+"Yreka";if(a==6)s=s+"Zwingle";
+       s=s+" and departing from ";
+       d=sol[5][1];
+       if(d==0)s=s+"Buttonwillow";if(d==1)s=s+"Coulterville";if(d==2)s=s+"Daly City";if(d==3)s=s+"Farley";if(d==4)s=s+"Jackman";if(d==5)s=s+"Kent";if(d==6)s=s+"Manson";
+       msg=s+". Thus, the clue 6 is not satisfied.";
+       stop;
+     }
+     //7
+     coultervilleCon=0; paradiseCon=0; day14con=sol[4][0];
+     for(i=0;i<n;i++){
+       if(sol[i][1]==Coulterville)coultervilleCon=sol[i][0];
+       if(sol[i][2]==Paradise)paradiseCon=sol[i][0];
+     }
+     if(not ((coultervilleCon==paradiseCon and Thomas==day14con) or (coultervilleCon==day14con and Thomas==paradiseCon))){
+       s="The person departing from Coulterville is ";
+       d=coultervilleCon;
+       if(d==0)s=s+"Bryan";if(d==1)s=s+"Eugene";if(d==2)s=s+"Greg";if(d==3)s=s+"Herman";if(d==4)s=s+"Luke";if(d==5)s=s+"Nathan";if(d==6)s=s+"Thomas";
+       s=s+", the person arriving at Paradise is ";
+       d=paradiseCon;
+       if(d==0)s=s+"Bryan";if(d==1)s=s+"Eugene";if(d==2)s=s+"Greg";if(d==3)s=s+"Herman";if(d==4)s=s+"Luke";if(d==5)s=s+"Nathan";if(d==6)s=s+"Thomas";
+       s=s+", and the person scheduled to leave on June 14 is ";
+       d=day14con;
+       if(d==0)s=s+"Bryan";if(d==1)s=s+"Eugene";if(d==2)s=s+"Greg";if(d==3)s=s+"Herman";if(d==4)s=s+"Luke";if(d==5)s=s+"Nathan";if(d==6)s=s+"Thomas";
+       msg=s+". Thus, clue 7 is not satisfied.";
+       stop;
+     }
+     //8
+     con15 = sol[5][0];
+     conUrbandale = 0;
+     for(i=0;i<n;i++)if(sol[i][2]==Urbandale)conUrbandale=sol[i][0];
+     if(con15!=Nathan and conUrbandale != Nathan){
+       s="The person working on June 15 is ";
+       d=con15;
+       if(d==0)s=s+"Bryan";if(d==1)s=s+"Eugene";if(d==2)s=s+"Greg";if(d==3)s=s+"Herman";if(d==4)s=s+"Luke";if(d==5)s=s+"Nathan";if(d==6)s=s+"Thomas";
+       s=s+", and the conductor arriving at Urbandale is ";
+       d=conUrbandale;
+       if(d==0)s=s+"Bryan";if(d==1)s=s+"Eugene";if(d==2)s=s+"Greg";if(d==3)s=s+"Herman";if(d==4)s=s+"Luke";if(d==5)s=s+"Nathan";if(d==6)s=s+"Thomas";
+       msg=s+". Thus, clue 8 is not satisfied.";
+       stop;
+     }
+     //9
+     dayQuimby=0; dayZwingle=0;
+     for(i=0;i<n;i++){
+       if(sol[i][2]==Quimby)dayQuimby=i;
+       if(sol[i][2]==Zwingle)dayZwingle=i;
+     }
+     if(dayQuimby != dayZwingle+2){
+       msg="The train arriving at Quimby is scheduled at day 1"+dayQuimby+", whereas the train arriving at Zwingle is scheduled at day 1"+dayZwingle+". Thus, clue 9 is not satisfied.";
+       stop;
+     }
+     //10
+     nathanArrival=0;
+     for(i=0;i<n;i++)if(sol[i][0]==Nathan)nathanArrival=sol[i][2];
+     if(sol[4][0]==Nathan){
+       msg="Nathan is scheduled to work the day June 14, so the clue 10 is not satisfied.";
+       stop;
+     }
+     if(nathanArrival==Vinalhaven){
+       msg="Nathan is arriving at Vinalhaven, so the clue 10 is not satisfied.";
+       stop;
+     }
+     //11
+     mansonDay=0;
+     kentDay=0;
+     for(i=0;i<n;i++){
+       if(sol[i][1]==Manson)mansonDay=i;
+       if(sol[i][1]==Kent)kentDay=i;
+     }
+     if(mansonDay <= kentDay){
+       msg="The conductor departing from Manson will leave the day 1"+mansonDay+", whereas the conductor departing from Kent will leave the day 1"+kentDay+". Thus, the clue 11 is not satisfied.";
+       stop;
+     }
+     //12
+     dayJackman=0; dayFarley=0;
+     for(i=0;i<n;i++){
+       if(sol[i][1]==Jackman)dayJackman=i;
+       if(sol[i][1]==Farley)dayFarley=i;
+     }
+     if(dayJackman != dayFarley+3){
+       msg="The train departing from Jackman is scheduled at day 1"+dayJackman+", whereas the train departing from Farley is scheduled at day 1"+dayFarley+". Thus, clue 12 is not satisfied.";
+       stop;
+     }
+     //13
+     gregArrival=0;
+     for(i=0;i<n;i++)if(sol[i][0]==Greg)gregArrival=sol[i][2];
+     if(gregArrival==Yreka){
+       msg="Greg is arriving at Yreka. Thus, clue 13 is not satisfied.";
+       stop;
+     }
+     //14
+     dayUrbandale=0; dayDalyCity=0;
+     for(i=0;i<n;i++){
+       if(sol[i][2]==Urbandale)dayUrbandale=i;
+       if(sol[i][1]==DalyCity)dayDalyCity=i;
+     }
+     if(dayUrbandale != dayDalyCity+4){
+       msg="The train arriving at Urbandale is scheduled at day 1"+dayUrbandale+", whereas the train departing from Daly City is scheduled at day 1"+dayDalyCity+". Thus, clue 14 is not satisfied.";
+       stop;
+     }
+     //15
+     dayLuke=0; dayVinalhaven=0;
+     for(i=0;i<n;i++){
+       if(sol[i][0]==Luke)dayLuke=i;
+       if(sol[i][2]==Vinalhaven)dayVinalhaven=i;
+     }
+     if(dayLuke != dayVinalhaven-1){
+       msg="Luke is working on the day 1"+dayLuke+", whereas the train arriving at Vinalhaven is scheduled at day 1"+dayVinalhaven+". Thus, clue 15 is not satisfied.";
+       stop;
+     }
+     //16
+     eugeneArrival=0;
+     eugeneDeparting=0;
+     for(i=0;i<n;i++){
+       if(sol[i][0]==Eugene){
+	 eugeneArrival=sol[i][2];
+	 eugeneDeparting=sol[i][1];
+       }
+     }
+     if(eugeneArrival!=Paradise and eugeneDeparting!=DalyCity){
+       msg="Eugene is departing from "+eugeneDeparting+" and is arriving at "+eugeneArrival+". Thus, clue 16 is not satisfied.";
+       stop;
+     }
+     //17
+     buttonwillowCon=0;
+     ripleyCon=0;
+     day11con=sol[1][0];
+     day14con=sol[4][0];
+     for(i=0;i<n;i++){
+       if(sol[i][1]==Buttonwillow)buttonwillowCon=sol[i][0];
+       if(sol[i][2]==Ripley)ripleyCon=sol[i][0];
+     }
+     if(not ((buttonwillowCon==day11con and ripleyCon==day14con) or (buttonwillowCon==day14con and ripleyCon==day11con))){
+       msg="The driver departing from Buttonwillow is ";
+       d=buttonwillowCon;
+       if(d==0)s=s+"Bryan";if(d==1)s=s+"Eugene";if(d==2)s=s+"Greg";if(d==3)s=s+"Herman";if(d==4)s=s+"Luke";if(d==5)s=s+"Nathan";if(d==6)s=s+"Thomas";
+       s=s+", the driver arriving at Ripley is ";
+       d=ripleyCon;
+       if(d==0)s=s+"Bryan";if(d==1)s=s+"Eugene";if(d==2)s=s+"Greg";if(d==3)s=s+"Herman";if(d==4)s=s+"Luke";if(d==5)s=s+"Nathan";if(d==6)s=s+"Thomas";
+       s=s+", the driver working on the day 11 is ";
+       d=day11con;
+       if(d==0)s=s+"Bryan";if(d==1)s=s+"Eugene";if(d==2)s=s+"Greg";if(d==3)s=s+"Herman";if(d==4)s=s+"Luke";if(d==5)s=s+"Nathan";if(d==6)s=s+"Thomas";
+       s=s+", and the driver working on the day 14 is ";
+       d=day14con;
+       if(d==0)s=s+"Bryan";if(d==1)s=s+"Eugene";if(d==2)s=s+"Greg";if(d==3)s=s+"Herman";if(d==4)s=s+"Luke";if(d==5)s=s+"Nathan";if(d==6)s=s+"Thomas";
+       msg=s+". Thus, clue 17 is not satisfied.";
+       stop;
+     }
+     //18
+     yrekaCon=0; day10con=sol[0][0]; farleyCon=0;
+     for(i=0;i<n;i++){
+       if(sol[i][2]==Yreka)yrekaCon=sol[i][0];
+       if(sol[i][1]==Farley)farleyCon=sol[i][0];
+     }
+     if(not ((yrekaCon==farleyCon and day10con==Luke) or (yrekaCon==Luke and farleyCon==day10con))){
+       s="The driver arriving at Yreka is ";
+       d=yrekaCon;
+       if(d==0)s=s+"Bryan";if(d==1)s=s+"Eugene";if(d==2)s=s+"Greg";if(d==3)s=s+"Herman";if(d==4)s=s+"Luke";if(d==5)s=s+"Nathan";if(d==6)s=s+"Thomas";
+       s=s+", the person working on day 10 is ";
+       d=day10con;
+       if(d==0)s=s+"Bryan";if(d==1)s=s+"Eugene";if(d==2)s=s+"Greg";if(d==3)s=s+"Herman";if(d==4)s=s+"Luke";if(d==5)s=s+"Nathan";if(d==6)s=s+"Thomas";
+       s=s+", the driver departing from Farley is ";
+       d=farleyCon;
+       if(d==0)s=s+"Bryan";if(d==1)s=s+"Eugene";if(d==2)s=s+"Greg";if(d==3)s=s+"Herman";if(d==4)s=s+"Luke";if(d==5)s=s+"Nathan";if(d==6)s=s+"Thomas";
+       msg=". Thus, clue 18 is not satisfied.";
+       stop;
+     }
+     //19
+     kentDay=0; bryanDay=0;
+     for(i=0;i<n;i++){
+       if(sol[i][1]==Kent)kentDay=i;
+       if(sol[i][0]==Bryan)bryanDay=i;
+     }
+     if(kentDay != bryanDay-2){
+       msg="The person departing from Kent will leave on June 1"+kentDay+", whereas Bryan will leave on June 1"+bryanDay+". Thus, clue 19 is not satisfied.";
+       stop;
+     }
+     valid=1;
+     msg="And it is correct.";
+}

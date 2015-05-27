@@ -28,5 +28,5 @@ if [ "$#" -eq 3 ]; then
 fi
 
 s="./juezejecutable ${dbg} ${f}jp ${f}jp2input ${f}input2sat ${fproposal}propuestasolucion ${f}validator ${f}format"
-echo "${s}"
+#echo "${s}"
 eval "${s}"

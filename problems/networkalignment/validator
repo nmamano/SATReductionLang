@@ -1,0 +1,47 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution: the solution reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   msg: string
+// }
+main {
+     valid = 0;
+     //check that the solution.map has the correct format
+     if(solution.map.size < input.n1) {
+         msg = "The solution.map has size "+solution.map.size+", but it should have size n1 ("+input.n1+").";
+         stop;
+     }
+     for(i=0;i<input.n1;i++){
+	if(solution.map[i] < 0 or solution.map[i] >= input.n2){
+          msg="The position "+i+" of the solution.map contains a "+solution.map[i]+", which is not a value between 0 and n2-1 ("+input.n2+").";
+	  stop;
+	}
+     }
+     //check no repeated entries
+     for(i=0;i<input.n1;i++){
+       for(j=i+1;j<input.n1;j++){
+	 if(solution.map[i]==solution.map[j]){
+	   msg="The mapping is not valid because nodes "+i+" and "+j+" in G1 are mapped to the same node in G2: "+solution.map[i]+".";
+	   stop;
+	 }
+       }
+     }
+     //count aligned edges
+     count = 0;
+     for(i=0;i<input.m1;i++){
+       x=solution.map[input.E1[i][0]]; y=solution.map[input.E1[i][1]];
+       for(j=0;j<input.m2;j++){
+	 x2=input.E2[j][0]; y2=input.E2[j][1];
+	 if((x==x2 and y==y2) or (x==y2 and y==x2)) count++;
+       }
+     }
+     if(count < input.k){
+       msg="Only "+count+" edges in G1 were aligned to edges in G2, but there should be at least k ("+input.k+").";
+       stop;
+     }
+
+     valid=1;
+     msg="And it is correct.";
+}
