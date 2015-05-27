@@ -383,7 +383,7 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt);
 void parsingin(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
   if (ivt == int(vt.size()) or (vt[ivt].tipo != "identificador" and vt[ivt].tipo != "in"))
-    seesperabaver(vt, ivt, "{\"ident\",\"in\"}");
+    seesperabaver(vt, ivt, "{\"ident\"}");
   nodo = vt[ivt];
 
 
@@ -425,7 +425,7 @@ void parsingin(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 void parsingunarios(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
   if (ivt == int(vt.size()))
-    seesperabaver(vt, ivt, "{\"-\",\"not\",\"ident\",\"constant\",\"string\",\"(\",\"in\",\"out\",\"abs\",\"min\",\"max\"}");
+    seesperabaver(vt, ivt, "{\"-\",\"not\",\"ident\",\"constant\",\"string\",\"(\",\"abs\",\"min\",\"max\"}");
   if (vt[ivt].tipo == "-" or vt[ivt].tipo == "not") {
     nodo = vt[ivt];
     nodo.hijo.push_back(tnodo());
@@ -472,7 +472,7 @@ void parsingunarios(tnodo &nodo, vector<ttoken> &vt, int &ivt)
   } else if (vt[ivt].tipo == "identificador" or vt[ivt].tipo == "in") {
     parsingin(nodo, vt, ivt);
   } else
-    seesperabaver(vt, ivt, "{\"not\",\"-\",\"ident\",\"constant\",\"string\",\"(\",\"in\",\"out\",\"abs\",\"min\",\"max\"}");
+    seesperabaver(vt, ivt, "{\"not\",\"-\",\"ident\",\"constant\",\"string\",\"(\",\"abs\",\"min\",\"max\"}");
 }
 
 void parsingmultiplicaciondivision(tnodo &nodo, vector<ttoken> &vt, int &ivt)
@@ -580,7 +580,7 @@ void parsingasignacionsimple(tnodo &nodo, vector<ttoken> &vt, int &ivt, string t
 void parsingout(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
   if (ivt == int(vt.size()) or vt[ivt].tipo != "out")
-    seesperabaver(vt, ivt, "\"out\"");
+    seesperabaver(vt, ivt, "ident");
   nodo = vt[ivt];
   ivt++;
   int profundidad = 0;
@@ -659,7 +659,7 @@ void parsingforeach(tnodo &nodo,vector<ttoken> &vt,int &ivt) {
 void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
   if (ivt == int(vt.size()))
-    seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"out\",\"stop\"}");
+    seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"stop\"}");
   if (vt[ivt].tipo == "if") {
     nodo = vt[ivt];
     ivt++;
@@ -735,7 +735,7 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
   } else if (vt[ivt].tipo == "in") {
     rechazar("Cannot write to input variable " + vt[ivt+2].texto + ".");
   } else
-    seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"out\",\"stop\"}");
+    seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"stop\"}");
 }
 
 void parsinglistainstrucciones(tnodo &nodo, vector<ttoken> &vt, int &ivt)
@@ -1647,7 +1647,7 @@ tvalor &extraerelemento(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
       rechazarruntime(nodo.linea, nodo.columna, "using the variable \"" + nodo.texto + "\" when no value has been assigned to it.");
     tvalor v = valor[nodo.texto];
     if (v.kind != 3)
-      rechazarruntime(nodo.linea, nodo.columna, nodo.texto + "is not a reference to \"in\" here.");
+      rechazarruntime(nodo.linea, nodo.columna, nodo.texto + "is not a reference to the input here.");
     return *v.ref;
   }
   if (nodo.tipo == "[") {
@@ -1677,7 +1677,7 @@ tvalor &extraerelemento(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
     return v1.m[nodo.texto];
   }
   // Aquest error no s'hauria de donar mai:
-  rechazarruntime(nodo.linea, nodo.columna, "an indexation to \"in\" or \"out\" was expected.");
+  rechazarruntime(nodo.linea, nodo.columna, "an indexation to the input or output was expected.");
   return in;
 }
 
@@ -1690,7 +1690,7 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
     if (valor[nodo.texto].kind == 3) {
       tvalor &v = *valor[nodo.texto].ref;
       if (v.kind != 0 and v.kind != 1)
-        rechazarruntime(nodo.linea, nodo.columna, "only simple types inside \"in\" can be accessed in an expression.");
+        rechazarruntime(nodo.linea, nodo.columna, "only simple types inside the input can be accessed in an expression.");
       return v;
     }
     return valor[nodo.texto];
@@ -1721,7 +1721,7 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
   } else if (nodo.tipo == "in" or nodo.tipo == "back" or nodo.tipo == "[" or nodo.tipo == ".") {
     tvalor &v = extraerelemento(nodo, in, valor, nombremodelo, modelo);
     if (v.kind != 0 and v.kind != 1)
-      rechazarruntime(nodo.linea, nodo.columna, "only simple types inside \"in\" can be accessed in an expression.");
+      rechazarruntime(nodo.linea, nodo.columna, "only simple types inside the input can be accessed in an expression.");
     return v;
   } else if (nodo.tipo == "abs") {
     return abs(ejecutaexpresion(nodo.hijo[0], in, valor, nombremodelo, modelo));
@@ -2083,10 +2083,10 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
       //hijos: 0: indice (opcional), 1: variable, 2: array, 3: instruccion
       int indicereferencia = (nodo.hijo.size() == 3 ? 0 : 1);
       if (nombremodelo != "" and (nodo.hijo[0].texto == nombremodelo or (indicereferencia and nodo.hijo[indicereferencia].texto == nombremodelo)))
-        rechazarruntime(nodo.linea, nodo.columna, "foreach(...;) cannot overwrite the model variable \"" + nombremodelo + "\".");
+        rechazarruntime(nodo.linea, nodo.columna, "for-in cannot overwrite the model variable \"" + nombremodelo + "\".");
       tvalor &v2 = extraerelemento(nodo.hijo[indicereferencia + 1], in, valor, nombremodelo, modelo);
       if (v2.kind != 2)
-        rechazarruntime(nodo.linea, nodo.columna, "foreach(;...) requires a reference to \"in\" being an array.");
+        rechazarruntime(nodo.linea, nodo.columna, "for-in requires a reference to the input being an array.");
       for (int i = 0; i < int(v2.v.size()); i++) {
         if (indicereferencia) {
           valor[nodo.hijo[0].texto].kind = 0;
