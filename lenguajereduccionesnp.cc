@@ -162,11 +162,11 @@ void leeridentificador(const string &s, int &is, vector<ttoken> &vt, int linea, 
   } else if (isfield(id, infields) and (vt.size() == 0 or vt[vt.size()-1].tipo != ".")) {
     //the second condition is for cases such as input:
     //struct { teachers: int subjects: struct { teachers: array of int } }
-    vt.push_back(ttoken("in", "", linea, is + 1 + desplazamientocolumna));
+    vt.push_back(ttoken("__in", "", linea, is + 1 + desplazamientocolumna));
     vt.push_back(ttoken(".", "", linea, is + 1 + desplazamientocolumna));
     vt.push_back(ttoken("identificador", id, linea, is + 1 + desplazamientocolumna));
   } else if (isfield(id, outfields) and (vt.size() == 0 or vt[vt.size()-1].tipo != ".")) {
-    vt.push_back(ttoken("out", "", linea, is + 1 + desplazamientocolumna));
+    vt.push_back(ttoken("__out", "", linea, is + 1 + desplazamientocolumna));
     vt.push_back(ttoken(".", "", linea, is + 1 + desplazamientocolumna));
     vt.push_back(ttoken("identificador", id, linea, is + 1 + desplazamientocolumna));    
   } else {
@@ -382,7 +382,7 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt);
 
 void parsingin(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
-  if (ivt == int(vt.size()) or (vt[ivt].tipo != "identificador" and vt[ivt].tipo != "in"))
+  if (ivt == int(vt.size()) or (vt[ivt].tipo != "identificador" and vt[ivt].tipo != "__in"))
     seesperabaver(vt, ivt, "{\"ident\"}");
   nodo = vt[ivt];
 
@@ -469,9 +469,9 @@ void parsingunarios(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     ivt++;
     parsingexpresion(nodo, vt, ivt);
     saltartipo(vt, ivt, ")");
-  } else if (vt[ivt].tipo == "identificador" or vt[ivt].tipo == "in") {
+  } else if (vt[ivt].tipo == "identificador" or vt[ivt].tipo == "__in") {
     parsingin(nodo, vt, ivt);
-  } else if (vt[ivt].tipo == "out") {
+  } else if (vt[ivt].tipo == "__out") {
     rechazar(vt[ivt].linea, vt[ivt].columna, "cannot read from output variable " + vt[ivt+2].texto + ".");
   } else
     seesperabaver(vt, ivt, "{\"not\",\"-\",\"ident\",\"constant\",\"string\",\"(\",\"abs\",\"min\",\"max\"}");
@@ -581,7 +581,7 @@ void parsingasignacionsimple(tnodo &nodo, vector<ttoken> &vt, int &ivt, string t
 
 void parsingout(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
-  if (ivt == int(vt.size()) or vt[ivt].tipo != "out")
+  if (ivt == int(vt.size()) or vt[ivt].tipo != "__out")
     seesperabaver(vt, ivt, "ident");
   nodo = vt[ivt];
   ivt++;
@@ -686,7 +686,7 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     saltartipo(vt, ivt, ";");
   } else if (vt[ivt].tipo == "identificador" or vt[ivt].tipo == ";" or vt[ivt].tipo == "++" or vt[ivt].tipo == "--") {
     parsingasignacionsimple(nodo, vt, ivt, ";");
-  } else if (vt[ivt].tipo == "out") {
+  } else if (vt[ivt].tipo == "__out") {
     parsingout(nodo, vt, ivt);
     if (ivt < int(vt.size()) and vt[ivt].tipo == "=") {
       tnodo nodoaux = nodo;
@@ -734,7 +734,7 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     nodo = vt[ivt];
     ivt++;
     saltartipo(vt, ivt, ";");
-  } else if (vt[ivt].tipo == "in") {
+  } else if (vt[ivt].tipo == "__in") {
     rechazar(vt[ivt].linea, vt[ivt].columna, "Cannot write to input variable " + vt[ivt+2].texto + ".");
   } else
     seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"stop\"}");
@@ -747,7 +747,7 @@ void parsinglistainstrucciones(tnodo &nodo, vector<ttoken> &vt, int &ivt)
   while (ivt < int(vt.size()) and vt[ivt].tipo != "}") {
     /*
     (vt[ivt].tipo=="if" or vt[ivt].tipo=="identificador" or vt[ivt].tipo=="{"
-    or vt[ivt].tipo=="out" or vt[ivt].tipo=="stop" or vt[ivt].tipo=="while" or
+    or vt[ivt].tipo=="__out" or vt[ivt].tipo=="stop" or vt[ivt].tipo=="while" or
     vt[ivt].tipo=="for" or vt[ivt].tipo==")) {
     */
     nodo.hijo.push_back(tnodo());
@@ -1643,7 +1643,7 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
 tvalor &extraerelemento(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
                         string nombremodelo, sat_solver const *modelo)
 {
-  if (nodo.tipo == "in") return in;
+  if (nodo.tipo == "__in") return in;
   if (nodo.tipo == "identificador") {
     if (valor.count(nodo.texto) == 0)
       rechazarruntime(nodo.linea, nodo.columna, "using the variable \"" + nodo.texto + "\" when no value has been assigned to it.");
@@ -1720,7 +1720,7 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
     tvalor res;
     res.x = modelo->assignment(v2.s);
     return res;
-  } else if (nodo.tipo == "in" or nodo.tipo == "back" or nodo.tipo == "[" or nodo.tipo == ".") {
+  } else if (nodo.tipo == "__in" or nodo.tipo == "back" or nodo.tipo == "[" or nodo.tipo == ".") {
     tvalor &v = extraerelemento(nodo, in, valor, nombremodelo, modelo);
     if (v.kind != 0 and v.kind != 1)
       rechazarruntime(nodo.linea, nodo.columna, "only simple types inside the input can be accessed in an expression.");
@@ -1761,7 +1761,7 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, map<string, tvalor> &valor,
 tvalor &extraerout(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, int &memoria,
                    string nombremodelo, sat_solver const *modelo)
 {
-  if (nodo.tipo == "out") return out;
+  if (nodo.tipo == "__out") return out;
   tvalor &v1 = extraerout(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
   if (nodo.tipo == ".") {
     if (v1.kind != 4)
@@ -2451,20 +2451,17 @@ void separarjps(vector<string> &vs, vector<vector<string> > &vvs)
 
 void leerlineajp(string &s, tvalor &valor, tnodo &format)
 {
-  //cerr<<"1\n";
   if (eliminaespaciosycomentarios(s) == "") return;
   tvalor lista;
   lista.kind = 2;
   lista.format = &format;
   istringstream ci(s);
   int x;
-  //cerr<<"3\n";
   while (ci >> x) {
     lista.v.push_back(x);
     lista.v.back().format = &(format.hijo[0]);
   }
   valor.v.push_back(lista);
-  //cerr<<"2\n";
 }
 
 void leerjp(vector<string> &vs, tvalor &valor, tnodo &format)
@@ -2481,8 +2478,11 @@ void leerjps(string ficherojp, vector<tvalor> &v, tnodo &format)
   vector<vector<string> > vvs;
   separarjps(vs, vvs);
   v = vector<tvalor> (int(vvs.size()));
-  for (int i = 0; i < int(vvs.size()); i++)
-    leerjp(vvs[i], v[i], format);
+  for (int i = 0; i < int(vvs.size()); i++) {
+    v[i].kind=4;
+    v[i].format=&format;
+    leerjp(vvs[i], v[i].m["m"], format.m["m"]);
+  }
 }
 
 void escribirtnodo(tnodo &nodo,int identacion)
@@ -2565,7 +2565,7 @@ void leerpropuestasolucion(string ficheroprograma, tnodo &nodo1, tnodo &nodo2,
 ////////////////////////////////////////////////////////////////////////
 // Programa principal:
 
-string sformatjp = "struct { in : array of array of int }";
+string sformatjp = "struct { m : array of array of int }";
 string sformatsat = "array of array of string";
 string sformatvalidador = "struct { valid : int msg : string }";
 
@@ -2608,7 +2608,8 @@ int main(int argc, char *argv[])
 
   vector<tvalor> vjp;
 
-  leerjps(ficherojp, vjp, formatjp.m["in"]);
+  leerjps(ficherojp, vjp, formatjp);
+
   tnodo nodojp2input, nodoinput2sat, nodopropuestasolucion2sat, nodopropuestasolucion2solucion, nodovalidador;
   leerprograma(ficherojp2input, nodojp2input, "main", getfieldsstruct(formatjp), getfieldsstruct(formatinput));
   leerprograma(ficheroinput2sat, nodoinput2sat, "reduction", getfieldsstruct(formatinput), vector<string> (0));
@@ -2616,8 +2617,8 @@ int main(int argc, char *argv[])
   leerpropuestasolucion(ficheropropuestasolucion, nodopropuestasolucion2sat, nodopropuestasolucion2solucion,
     getfieldsstruct(formatinput), getfieldsstruct(formatsolucion));
 
-  comprobarnoseusatipo(nodopropuestasolucion2sat, "out",
-                       "the \"out\" variable cannot be directly accessed in a reduction to SAT,\nuse \"insertsat\" instead to create your formula.");
+  comprobarnoseusatipo(nodopropuestasolucion2sat, "__out",
+                       "the output cannot be directly accessed in a reduction to SAT,\nuse \"insertsat\" instead to create your formula.");
   
   cout << "TIEMPO LECTURA Y PARSING = " << (OUTPUT_RUNTIMES ? tlectura.elapsedstring() : "-1") << endl;
 

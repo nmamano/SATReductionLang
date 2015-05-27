@@ -1,6 +1,6 @@
 reduction
 {
-  for i,s in in.subjects {
+  for i,s in subjects {
     // specific number of session of the subject
     numsessions = "exactly {s.hours}";
     for d in 0..4
@@ -26,12 +26,12 @@ reduction
     insertsat(oneclassroom);
   }
   // the teacher can attend all the sessions
-  for i,s in in.subjects, t in s.teachers, h in in.teachers[t]
+  for i,s in subjects, t in s.teachers, h in teachers[t]
 	  insertsat("{i}by{t} => -{i}at{h}");
   // sessions from the same course do not overlap, and overlaping
   // sessions (from different courses) have distinct teacher/classroom
   insertsat("true");
-  for i , s0 in in.subjects,j , s1 in in.subjects 
+  for i , s0 in subjects,j , s1 in subjects 
       if (j>i)
 	if (s0.course == s1.course){
 	  nooverlap = "true";
@@ -41,18 +41,18 @@ reduction
 	}else
 	  for h in 0..59{
 	    nooverlap = "{i}at{h} & {j}at{h} => true";
-      for c in 0..in.classrooms-1
+      for c in 0..classrooms-1
 	      nooverlap = nooverlap + " & -({i}in{c} & {j}in{c})";
-      for t in 0..in.teachers.size-1
+      for t in 0..teachers.size-1
 	      nooverlap = nooverlap + " & -({i}by{t} & {j}by{t})";
 	    insertsat(nooverlap);
 	  }
   // at most 6 hours/day per course, and no spare hours between classes
   insertsat("-false");
-  for c in 0..in.courses-1 {
+  for c in 0..courses-1 {
     for h in 0..59 {
       coursehour = "course{c}at{h} <=> false";
-      for i,s in in.subjects
+      for i,s in subjects
 	if (s.course == c)
 	  coursehour = coursehour + " | {i}at{h}";
       insertsat(coursehour);
@@ -74,7 +74,7 @@ reduction
 
 reconstruction
 {
-  for i,s in in.subjects {
+  for i,s in subjects {
     for c in s.classrooms
       if (model["{i}in{c}"])
 	res[i].classroom = c;

@@ -6,7 +6,7 @@ reduction
   //w{i}{j} 	hour i with course j
   //v{i}{j}	subject i day j
 
-  nSubjs = in.subjects.size;
+  nSubjs = subjects.size;
   nHours= 60;
   nDays=5;
   //max 1 hour per subject and day
@@ -16,60 +16,60 @@ reduction
 	insertsat("not z{i}{j} or not z{i}{k}");
   //for each subject, the correct number of days
   for(i=0;i<nSubjs;i++){
-    k=in.subjects[i].hours;
+    k=subjects[i].hours;
     s="exactly "+k;
     for(j=0;j<nDays;j++) s=s+" v{i}{j}";
     insertsat(s);
   }
   //subjects on compatible classrooms
   for(i=0;i<nSubjs;i++){
-    for(j=0;j<in.classrooms;j++){
+    for(j=0;j<classrooms;j++){
       found=0;
-      for(k=0;k<in.subjects[i].classrooms.size;k++)
-	if(j==in.subjects[i].classrooms[k])found=1;
+      for(k=0;k<subjects[i].classrooms.size;k++)
+	if(j==subjects[i].classrooms[k])found=1;
       if(found==0) insertsat("not x{i}{j}");
     }
   }
   //subjects with compatible teachers
   for(i=0;i<nSubjs;i++){
-    for(j=0;j<in.teachers.size;j++){
+    for(j=0;j<teachers.size;j++){
       found=0;
-      for(k=0;k<in.subjects[i].teachers.size;k++)
-	if(j==in.subjects[i].teachers[k])found=1;
+      for(k=0;k<subjects[i].teachers.size;k++)
+	if(j==subjects[i].teachers[k])found=1;
       if(found==0) insertsat("not y{i}{j}");
     }
   }
   //exactly one classroom for subject
   for(i=0;i<nSubjs;i++){
     s="exactly 1";
-    for(j=0;j<in.classrooms;j++) s=s+" x{i}{j}";
+    for(j=0;j<classrooms;j++) s=s+" x{i}{j}";
     insertsat(s);
   }
   //exactly one teacher per subject
   for(i=0;i<nSubjs;i++){
     s="exactly 1";
-    for(j=0;j<in.teachers.size;j++) s=s+" y{i}{j}";
+    for(j=0;j<teachers.size;j++) s=s+" y{i}{j}";
     insertsat(s);
   }
   //all combinations hour-teacher are compatible
   for(i=0;i<nSubjs;i++)
-    for(k=0;k<in.teachers.size;k++)
-      for(t=0;t<in.teachers[k].size;t++)
-	insertsat("not y{i}{k} or not z{i}{in.teachers[k][t]}");
+    for(k=0;k<teachers.size;k++)
+      for(t=0;t<teachers[k].size;t++)
+	insertsat("not y{i}{k} or not z{i}{teachers[k][t]}");
   //max one classroom (and thus, subject) per teacher and class
-  for(i=0;i<in.teachers.size;i++)
+  for(i=0;i<teachers.size;i++)
     for(j=0;j<nHours;j++)
       for(k=0;k<nSubjs;k++)
 	for(t=k+1;t<nSubjs;t++)
 	  insertsat("not z{k}{j} or not z{t}{j} or not y{k}{i} or not y{t}{i}");
   //max one subject for room and hour
-  for(i=0;i<in.classrooms;i++)
+  for(i=0;i<classrooms;i++)
     for(j=0;j<nHours;j++)
       for(k=0;k<nSubjs;k++)
 	for(t=k+1;t<nSubjs;t++)
 	  insertsat("not z{k}{j} or not z{t}{j} or not x{k}{i} or not x{t}{i}");
   //for each course and day, subjects are consecutive
-  for(i=0;i<in.courses;i++){
+  for(i=0;i<courses;i++){
     for(hour=0;hour<nHours;hour++){
       nextHour=hour+1;
       for(j=nextHour+1;j/12 == hour/12;j++)
@@ -77,7 +77,7 @@ reduction
     }
   }
   //max 6 hours per course and day
-  for(i=0;i<in.courses;i++){
+  for(i=0;i<courses;i++){
     for(hour=0;hour<nHours;hour++){
       hour2=hour+6;
       if(hour/12 == hour2/12)
@@ -87,20 +87,20 @@ reduction
   //for each pair of subjects, if their course match, their hours are disjoint
   for(i=0;i<nSubjs;i++)
     for(j=i+1;j<nSubjs;j++)
-      if(in.subjects[i].course == in.subjects[j].course)
+      if(subjects[i].course == subjects[j].course)
 	for(k=0;k<nHours;k++)
 	  insertsat("not z{i}{k} or not z{j}{k}");
   //an hour is asigned to a course iff it is asigned to a subject of that coruse
   //<=
   for(i=0;i<nSubjs;i++)
     for(j=0;j<nHours;j++)
-      insertsat("z{i}{j} => w{j}{in.subjects[i].course}");
+      insertsat("z{i}{j} => w{j}{subjects[i].course}");
   //=>
   for(i=0;i<nHours;i++){
-    for(j=0;j<in.courses;j++){
+    for(j=0;j<courses;j++){
       s="w{i}{j}";
       for(k=0;k<nSubjs;k++)
-	if(in.subjects[k].course==j)
+	if(subjects[k].course==j)
 	  s=s+" or not z{k}{i}";
       insertsat(s);
     }
