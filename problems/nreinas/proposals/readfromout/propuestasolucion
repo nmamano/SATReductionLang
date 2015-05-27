@@ -1,0 +1,45 @@
+reduction
+{
+  // one queen per column and row
+  for i in 0..n-1 {
+    fr = "exactly 1";
+    fc = "exactly 1";
+    for j in 0..n-1 {
+      fr = fr + " row{i}col{j}";
+      fc = fc + " row{j}col{i}";
+    }
+    insertsat(fr);
+    insertsat(fc);
+  }
+  // one queen per diagonal / and one per diagonal \
+  for direction in 0..1, i in 0..n+n-2 {
+      x = min(i,n-1);
+      y = max(0,i-(n-1));
+      if (direction){
+	r = n-1-y;
+	c = x;
+	xd = -1;
+	yd = -1;
+      }else{
+	r = x;
+	c = y;
+	xd = -1;
+	yd = 1;
+      }
+      fd = "atmost 1";
+      for(j=0 ; j<n ; ++j){
+	x = r + xd*j;
+	y = c + yd*j;
+	if (x>=0 and x<n and y>=0 and y<n)
+	  fd = fd + " row{x}col{y}";
+      }
+      insertsat(fd);
+  }
+}
+
+reconstruction
+{
+  x = board[0][0];
+  for i in 0..n-1, j in 0..n-1
+      board[i][j] = model["row{i}col{j}"];
+}

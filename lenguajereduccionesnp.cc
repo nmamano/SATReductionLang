@@ -471,6 +471,8 @@ void parsingunarios(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     saltartipo(vt, ivt, ")");
   } else if (vt[ivt].tipo == "identificador" or vt[ivt].tipo == "in") {
     parsingin(nodo, vt, ivt);
+  } else if (vt[ivt].tipo == "out") {
+    rechazar(vt[ivt].linea, vt[ivt].columna, "cannot read from output variable " + vt[ivt+2].texto + ".");
   } else
     seesperabaver(vt, ivt, "{\"not\",\"-\",\"ident\",\"constant\",\"string\",\"(\",\"abs\",\"min\",\"max\"}");
 }
@@ -733,7 +735,7 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     ivt++;
     saltartipo(vt, ivt, ";");
   } else if (vt[ivt].tipo == "in") {
-    rechazar("Cannot write to input variable " + vt[ivt+2].texto + ".");
+    rechazar(vt[ivt].linea, vt[ivt].columna, "Cannot write to input variable " + vt[ivt+2].texto + ".");
   } else
     seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"stop\"}");
 }

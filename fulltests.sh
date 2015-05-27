@@ -18,7 +18,7 @@ function run_problem {
 	diff answer "${fproposal}answer.cor"
 	#echo "diff answer.long answer.long.cor"
 	diff answer.long "${fproposal}answer.long.cor"
-	echo "diff std.out std.out.cor"
+	#echo "diff std.out std.out.cor"
 	diff std.out "${fproposal}std.out.cor"
 	#echo "diff std.err std.err.cor"
 	diff std.err "${fproposal}std.err.cor"
@@ -31,6 +31,7 @@ run_problem nreinas badred
 run_problem nreinas badrec
 run_problem nreinas mirrorrec
 run_problem nreinas writetoin
+run_problem nreinas readfromout
 run_problem horarios correct
 run_problem ligadeportiva correct
 run_problem horariodetrenes correct
