@@ -937,7 +937,7 @@ void valorpordefecto(tnodo &nodo, tvalor &valor)
   if (nodo.tipo == "int") {
     valor.kind = 0;
     valor.x = 0;
-  } else if (nodo.tipo == "string" or nodo.tipo == "#" or nodo.tipo == "@") {
+  } else if (nodo.tipo == "string") {
     valor.kind = 1;
     valor.s = "";
   } else if (nodo.tipo == "struct") {
@@ -1839,9 +1839,7 @@ int generamuestra(tvalor &valor, string &muestra, string prefijo, int &lineas)
         return 1;
   } else if (valor.kind == 2) {
     if (valor.format->hijo[0].tipo == "int" or
-        valor.format->hijo[0].tipo == "string" or
-        valor.format->hijo[0].tipo == "#" or
-        valor.format->hijo[0].tipo == "@") {
+        valor.format->hijo[0].tipo == "string") {
       string linea = prefijo + "=[";
       for (int i = 0; i < int(valor.v.size()); i++) {
         if (i > 0) linea += " ";
@@ -2148,7 +2146,7 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
         v1.kind = v2.kind;
         v1.x = v2.x;
         v1.s = v2.s;
-      } else if (v1.format->tipo == "string" or v1.format->tipo == "#" or v1.format->tipo == "@") {
+      } else if (v1.format->tipo == "string") {
         // Este error creo que no deberia tener lugar nunca porque el ejecuta expresion siempre da int o string.
         if (v2.kind != 0 and v2.kind != 1)
           rechazarruntime(nodo.linea, nodo.columna, "incompatible types in assignment.\nAn \"int\" or \"string\" was expected.");
@@ -2159,8 +2157,7 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
       } else
         rechazarruntime(nodo.linea, nodo.columna, "incompatible types in assignment.\nOnly simple types can be assigned.");
     } else if (v1.kind == 2) {
-      if (v1.format->hijo[0].tipo != "int" and v1.format->hijo[0].tipo != "string" and
-          v1.format->hijo[0].tipo != "#" and v1.format->hijo[0].tipo != "@")
+      if (v1.format->hijo[0].tipo != "int" and v1.format->hijo[0].tipo != "string")
         rechazarruntime(nodo.linea, nodo.columna, "only simple types can be assigned,\nand the positions of the array do not have simple types.");
       if (v1.format->texto != "") {
         int tamanyo = stoll(v1.format->texto);
@@ -2187,9 +2184,7 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
         if (v1.format->m[v1.format->listacampos()[i - 1]].tipo == "int" and v2.kind != 0)
           rechazarruntime(nodo.linea, nodo.columna, "incompatible types in assignment.\nAn \"int\" was expected in the expresion number " + itos(i) + ".");
         if (v1.format->m[v1.format->listacampos()[i - 1]].tipo != "int" and
-            v1.format->m[v1.format->listacampos()[i - 1]].tipo != "string" and
-            v1.format->m[v1.format->listacampos()[i - 1]].tipo != "#" and
-            v1.format->m[v1.format->listacampos()[i - 1]].tipo != "@")
+            v1.format->m[v1.format->listacampos()[i - 1]].tipo != "string")
           rechazarruntime(nodo.linea, nodo.columna, "incompatible types in assignment.\nThe field number " + itos(i) + " of the struct is not \"int\" or \"string\".");
         v1.m[v1.format->listacampos()[i - 1]].kind = v2.kind;
         v1.m[v1.format->listacampos()[i - 1]].x = v2.x;
