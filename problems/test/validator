@@ -1,0 +1,25 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution: the solution reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   msg: string
+// }
+main {
+  valid=0;
+  s&=solution.sol;
+  if(s[0][0]!=1 and s[0][0]!=2){msg="Wrong number "+s[0][0]+" in pos (0,0)";stop;}
+  if(s[0][1]!=1 and s[0][1]!=2){msg="Wrong number "+s[0][1]+" in pos (0,1)";stop;}
+  if(s[1][0]!=1 and s[1][0]!=2){msg="Wrong number "+s[1][0]+" in pos (1,0)";stop;}
+  if(s[1][1]!=1 and s[1][1]!=2){msg="Wrong number "+s[1][1]+" in pos (1,1)";stop;}
+  if(s[0][0]==s[0][1] or s[1][0]==s[1][1]){msg="Repeated number in a row";stop;}
+  if(s[0][0]==s[1][0] or s[0][1]==s[1][1]){msg="Repeated number in a column";stop;}
+  i&=input.pos;
+  if(i[0][0]!=0 and i[0][0]!=s[0][0]){msg="Number does not match input in pos (0,0)";stop;}
+  if(i[0][1]!=0 and i[0][1]!=s[0][1]){msg="Number does not match input in pos (0,1)";stop;}
+  if(i[1][0]!=0 and i[1][0]!=s[1][0]){msg="Number does not match input in pos (1,0)";stop;}
+  if(i[1][1]!=0 and i[1][1]!=s[1][1]){msg="Number does not match input in pos (1,1)";stop;}
+  valid=1;
+  msg="And it is correct.";
+}

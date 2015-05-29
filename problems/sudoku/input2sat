@@ -1,0 +1,46 @@
+reduction
+{
+  for (i=0;i<9;++i)
+    for (j=0;j<9;++j) {
+      k=(i%3)*3+(j%3);
+      if (k<9-1) {
+	ni=(i/3)*3+(k+1)/3;
+	nj=(j/3)*3+(k+1)%3;
+      }
+      if (pos[i][j]) {
+	insertsat(not "pos{i}{j}value{pos[i][j]}uniquerow");
+	insertsat(not "pos{i}{j}value{pos[i][j]}uniquecolumn");
+	insertsat(not "pos{i}{j}value{pos[i][j]}uniqueblock");
+	if (j<9-1)
+	  insertsat("pos{i}{j+1}value{pos[i][j]}uniquerow");
+	if (i<9-1)
+	  insertsat("pos{i+1}{j}value{pos[i][j]}uniquecolumn");
+	if (k<9-1)
+	  insertsat("pos{ni}{nj}value{pos[i][j]}uniqueblock");
+      } else {
+    insertsat("pos{i}{j}value{1}" or "pos{i}{j}value{2}" or "pos{i}{j}value{3}" or
+    		"pos{i}{j}value{4}" or "pos{i}{j}value{5}" or "pos{i}{j}value{6}" or
+    		"pos{i}{j}value{7}" or "pos{i}{j}value{8}" or "pos{i}{j}value{9}");
+	for (v=1;v<=9;++v) {
+	  insertsat((not "pos{i}{j}value{v}") or (not "pos{i}{j}value{v}uniquerow"));
+	  insertsat((not "pos{i}{j}value{v}") or (not "pos{i}{j}value{v}uniquecolumn"));
+	  insertsat((not "pos{i}{j}value{v}") or (not "pos{i}{j}value{v}uniqueblock"));
+	  if (j<9-1)
+	    insertsat(not "pos{i}{j}value{v}" or "pos{i}{j+1}value{v}uniquerow");
+	  if (i<9-1)
+	    insertsat(not "pos{i}{j}value{v}" or "pos{i+1}{j}value{v}uniquecolumn");
+	  if (k<9-1)
+	    insertsat(not "pos{i}{j}value{v}" or "pos{ni}{nj}value{v}uniqueblock");
+	}
+      }
+      if (j<9-1)
+	for (v=1;v<=9;++v)
+	  insertsat(not "pos{i}{j}value{v}uniquerow" or "pos{i}{j+1}value{v}uniquerow");
+      if (i<9-1)
+	for (v=1;v<=9;++v)
+	  insertsat(not "pos{i}{j}value{v}uniquecolumn" or "pos{i+1}{j}value{v}uniquecolumn");
+      if (k<9-1)
+	for (v=1;v<=9;++v)
+	  insertsat(not "pos{i}{j}value{v}uniqueblock" or "pos{ni}{nj}value{v}uniqueblock");
+    }
+}

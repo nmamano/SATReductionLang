@@ -1,0 +1,2 @@
+struct { pos: array [9] of array [9] of int }
+struct { sol: array [9] of array [9] of int }

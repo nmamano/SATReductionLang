@@ -1,0 +1,60 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution: the solution reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   msg: string
+//   spanish: string
+//   catalan: string
+// }
+main
+{
+  valid=0;
+  for (i=0;i<9;++i)
+    for (j=0;j<9;++j) {
+      if (solution.sol[i][j]<=0 or solution.sol[i][j]>9) {
+	msg="And it is wrong since the value "+solution.sol[i][j]+" found at row="+i+" column="+j+" is not in the range [1,9].";
+	stop;
+      }
+      if (input.pos[i][j] and input.pos[i][j]!=solution.sol[i][j]) {
+	msg="And it is wrong since the value "+solution.sol[i][j]+" found at row="+i+" column="+j+" had to be "+input.pos[i][j]+".";
+	stop;
+      }
+    }
+  for (v=1;v<=9;++v) {
+    for (i=0;i<9;++i) {
+      vocurrences=0;
+      for (j=0;j<9;++j)
+        if (solution.sol[i][j]==v)
+	  ++vocurrences;
+      if (vocurrences!=1) {
+	msg="And it is wrong since the value "+v+" should appear exactly once at row="+i+".";
+	stop;
+      }
+    }
+    for (j=0;j<9;++j) {
+      vocurrences=0;
+      for (i=0;i<9;++i)
+        if (solution.sol[i][j]==v)
+	  ++vocurrences;
+      if (vocurrences!=1) {
+	msg="And it is wrong since the value "+v+" should appear exactly once at column="+j+".";
+	stop;
+      }
+    }
+    for (I=0;I<3;++I)
+      for (J=0;J<3;++J) {
+	vocurrences=0;
+	for (i=0;i<9;++i)
+	  if (solution.sol[I*3+i/3][J*3+i%3]==v)
+	    ++vocurrences;
+	if (vocurrences!=1) {
+	  msg="And it is wrong since the value "+v+" should appear exactly once at the submatrix="+I+","+J+".";
+	  stop;
+	}
+      }
+  }
+  valid=1;
+  msg="And it is correct.";
+}
