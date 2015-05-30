@@ -1832,28 +1832,54 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
       rechazarruntime(nodo.linea, nodo.columna, "invalid arguments for \"and\"");
     }
   } else if (nodo.tipo == "or") {
-    tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
-    tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
-    if (hijo1.esentero() and hijo2.esentero()) {
-      return hijo1.x == 1 or hijo2.x == 1;
-    } else if (hijo1.esstring() and hijo2.esstring()) {
-      if (MODE == reduc) {
-        //cerr<<"or: " << hijo1.s << " " << hijo2.s << endl;
-        string id = generaid();
-        out.v.push_back(tvalor(tvalor(negar(id)), tvalor(hijo1.s), tvalor(hijo2.s)));
-        out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo1.s))));
-        out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo2.s))));
-        return id;
+    if (nodo.hijo.size() == 2) { // binary case
+      tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
+      tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
+      if (hijo1.esentero() and hijo2.esentero()) {
+        return hijo1.x == 1 or hijo2.x == 1;
+      } else if (hijo1.esstring() and hijo2.esstring()) {
+        if (MODE == reduc) {
+          //cerr<<"or: " << hijo1.s << " " << hijo2.s << endl;
+          string id = generaid();
+          out.v.push_back(tvalor(tvalor(negar(id)), tvalor(hijo1.s), tvalor(hijo2.s)));
+          out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo1.s))));
+          out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo2.s))));
+          return id;
+        }
+        else {
+          rechazarruntime(nodo.linea, nodo.columna, "Cannot apply \"and\" to strings");
+        }
+      } else {
+        rechazarruntime(nodo.linea, nodo.columna, "Uncompatible operands of \"and\"");
       }
-      else {
-        rechazarruntime(nodo.linea, nodo.columna, "Cannot apply \"and\" to strings");
+      //old:
+      //if (comprobarentero("or", ejecutaexpresion(nodo.hijo[0], in, valor, nombremodelo, modelo)).x == 1) return 1;
+      //else return comprobarentero("or", ejecutaexpresion(nodo.hijo[1], in, valor, nombremodelo, modelo));
+    } else if (MODE == reduc and nodo.hijo.size() == 1 and nodo.hijo[0].tipo == "lista") {
+      tvalor scopeout;
+      scopeout.format = out.format;
+      ejecutainstruccion(nodo.hijo[0], in, scopeout, valor, memoria, nombremodelo, modelo); //ignoramos el valor de retorno?
+      vector<string> sol;
+      for (tvalor &clause : scopeout.v) {
+        //las clausulas de 1 elemento contienen las variables afirmadas dentro del scope
+        if (clause.v.size() == 1) sol.push_back(clause.v[0].s);
+        //las demas clausulas son las que les dan el significado apropiado
+        else out.v.push_back(clause);
       }
+      if (int(sol.size()) == 1) return sol[0];
+      string id = generaid();
+      tvalor valor;
+      valor.kind = 2;
+      valor.v.push_back(tvalor(negar(id)));
+      for (int i = 0; i < int(sol.size()); i++) {
+        out.v.push_back(tvalor(tvalor(id), tvalor(negar(sol[i]))));
+        valor.v.push_back(tvalor(sol[i]));
+      }
+      out.v.push_back(valor);
+      return id;
     } else {
-      rechazarruntime(nodo.linea, nodo.columna, "Uncompatible operands of \"and\"");
+      rechazarruntime(nodo.linea, nodo.columna, "invalid arguments for \"and\"");
     }
-    //old:
-    //if (comprobarentero("or", ejecutaexpresion(nodo.hijo[0], in, valor, nombremodelo, modelo)).x == 1) return 1;
-    //else return comprobarentero("or", ejecutaexpresion(nodo.hijo[1], in, valor, nombremodelo, modelo));
   } else if (nodo.tipo == "implies") {
     tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
     tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
