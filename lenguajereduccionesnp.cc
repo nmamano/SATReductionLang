@@ -144,7 +144,7 @@ set<string> palabrasclaveprograma = {"main", "stop",
                                  "if", "else", "while", "for", "foreach",
                                  "and", "or", "not", "push", "size",
                                  "back", "min", "max", "abs", "in", //case: for i in v
-                                 "insertsat", "reduction", "reconstruction",
+                                 "reduction", "reconstruction",
                                  "iff", "implies", "atleast", "atmost", "exactly"};
 set<string> cadenasclaveprograma = {"{", "}", "(", ")", "[", "]", "+", "-", "*", "/",
                             "%", "=", "&=", "==", "<", ">", "<=", ">=", "!=",
@@ -713,14 +713,6 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
       nodo.hijo.push_back(tnodo());
       parsinginstruccion(nodo.hijo[2], vt, ivt);
     }
-  } else if (vt[ivt].tipo == "insertsat") {
-    nodo = vt[ivt];
-    ivt++;
-    saltartipo(vt, ivt, "(");
-    nodo.hijo.push_back(tnodo());
-    parsingexpresion(nodo.hijo.back(), vt, ivt);
-    saltartipo(vt, ivt, ")");
-    saltartipo(vt, ivt, ";");
   } else if (vt[ivt].tipo == ";" or vt[ivt].tipo == "++" or vt[ivt].tipo == "--") {
     parsingasignacionsimple(nodo, vt, ivt, ";");
   } else if (vt[ivt].tipo == "identificador") {
@@ -831,92 +823,10 @@ void comprobarnoseusatipo(tnodo const &nodo, string const &tipo, string const &m
     comprobarnoseusatipo(nodo.hijo[i], tipo, mensajeerror);
 }
 
-
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-// Analisis lexico del string que describe clausulas SAT:
-
-set<string> palabrasclavesat;
-
-set<string> cadenasclavesat;
-
-char listapalabrasclavesat[][80] = {"and", "or", "not", "implies", "iff", "if", "atleast", "atmost", "exactly", ""};
-
-char listacadenasclavesat[][80] = {"(", ")", "-", "|", "&", "<=", "=>", "<=>", ""};
-
-void inicializartokensclavesat()
-{
-  palabrasclavesat = cadenasclavesat = set<string> ();
-  for (int i = 0; string(listapalabrasclavesat[i]) != ""; i++)
-    palabrasclavesat.insert(listapalabrasclavesat[i]);
-  for (int i = 0; string(listacadenasclavesat[i]) != ""; i++)
-    cadenasclavesat.insert(listacadenasclavesat[i]);
-}
-
-void leeridentificadorsat(string &s, int &is, vector<ttoken> &vt)
-{
-  int nextis = is;
-  bool dentrodecorchetes = false;
-  while (nextis < int(s.size()) and
-         ((s[nextis] >= 'a' and s[nextis] <= 'z') or
-          (s[nextis] >= 'A' and s[nextis] <= 'Z') or
-          (s[nextis] >= '0' and s[nextis] <= '9') or
-          s[nextis] == '_' or s[nextis] == '{' or s[nextis] == '}') or
-         (dentrodecorchetes and s[nextis] == '-')) {
-    if (s[nextis] == '{') dentrodecorchetes = true;
-    if (s[nextis] == '}') dentrodecorchetes = false;
-    nextis++;
-  }
-  string id = s.substr(is, nextis - is);
-  if (palabrasclavesat.count(id))
-    vt.push_back(ttoken(id, "", 0, is + 1));
-  else
-    vt.push_back(ttoken("identificador", id, 0, is + 1));
-  is = nextis;
-}
-
-void leertokensat(string &s, int &is, vector<ttoken> &vt)
-{
-  if ((s[is] >= 'a' and s[is] <= 'z') or (s[is] >= 'A' and s[is] <= 'Z') or (s[is] >= '0' and s[is] <= '9')
-      or (s[is] == '_') or (s[is] == '{') or s[is] == '}')
-    leeridentificadorsat(s, is, vt);
-  else {
-    set<string>::iterator it = cadenasclavesat.end();
-    do {
-      it--;
-      string c = *it;
-      if (int(s.size()) - is >= int(c.size()) and
-          s.substr(is, int(c.size())) == c) {
-        vt.push_back(ttoken(c, "", 0, is + 1));
-        is += int(c.size());
-        return;
-      }
-    } while (it != cadenasclavesat.begin());
-    rechazar("Execution error in lexical analysis of insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".");
-  }
-}
-
-
-void leerentradasat(string &s, vector<ttoken> &vt)
-{
-  inicializartokensclavesat();
-  int is = 0;
-  saltarblancos(s, is);
-  while (is < int(s.size())) {
-    leertokensat(s, is, vt);
-    saltarblancos(s, is);
-  }
-}
-
-////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 // Definicion de tvalor.
-
-
 
 ll limiteoverflow = 100000;
 ll limitememoria = 1000000;
@@ -940,7 +850,6 @@ void controllimitesizestring(string &s)
   if (int(s.size()) > limitesizestring)
     rechazar("Runtime error: the program produces a too big string.\n" + simplerProgramMsg);
 }
-
 
 struct tvalor {
   int kind; // 0=entero, 1=string, 2=vector de tvalor, 3=referencia a "in", 4=struct
@@ -991,7 +900,6 @@ struct tvalor {
 
 };
 
-
 void valorpordefecto(tnodo &nodo, tvalor &valor)
 {
   valor.format = &nodo;
@@ -1030,14 +938,6 @@ void construirstruct(string campo1, tvalor &valor1, string campo2, tvalor &valor
   valor.m[campo2] = valor2;
 }
 
-
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -1075,13 +975,6 @@ public:
   }
 };
 
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -1207,17 +1100,12 @@ bool compruebasatisfactibilidad(tvalor const &formula,
   return ret;
 }
 
-
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-// Ejecucion de las formulas sat.
-
+// Funciones auxiliares para las formulas logicas
 
 vector<string> *historialinsertsat = NULL;
-double tiempoinsertsat = 0;
-int ejecucionesinsertsat = 0;
 
 int numid = 1;
 string generaid()
@@ -1237,31 +1125,6 @@ string negar(string s)
   if (int(s.size()) > 0 and s[0] == '-') return s.substr(1);
   return "-" + s;
 }
-
-void errorformulasat(string &s, vector<ttoken> &vt, int &ivt)
-{
-  int is = int(s.size());
-  if (ivt < int(vt.size()))
-    is = vt[ivt].columna - 1;
-  rechazar("Execution error in syntax analysis of insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".");
-}
-
-void errorformulasat(string &s, vector<ttoken> &vt, int &ivt, string mensaje)
-{
-  int is = int(s.size());
-  if (ivt < int(vt.size()))
-    is = vt[ivt].columna - 1;
-  rechazar("Execution error in syntax analysis of insertsat: \"" + s.substr(0, is) + "\" {ERROR} \"" + s.substr(is) + "\".\n" + mensaje);
-}
-
-void saltartiposat(string &s, vector<ttoken> &vt, int &ivt, string tipo)
-{
-  if (ivt == int(vt.size()) or tipo != vt[ivt].tipo)
-    errorformulasat(s, vt, ivt);
-  ivt++;
-}
-
-string insertarformulasatiff(string &s, tvalor &out, vector<ttoken> &vt, int &ivt);
 
 void generaclausulasladder(const vector<string>& lista, const string& prefijo, tvalor& out) {
   //hacer que la variable "prefijo + i_j" signifique "i de las j primeras variables son ciertas" con 0<=i<=j<=n
@@ -1335,6 +1198,7 @@ void insertarvariablesconvaloresarbitrarios(const vector<string>& lista, tvalor&
     out.v.push_back(tvalor(tvalor(lista[i]), tvalor(negar(lista[i]))));
   }
 }
+
 string ladderencoding(const string &tipo, int k, const vector<string>& lista, tvalor& out) {
   int n = lista.size();
   //casos extremos
@@ -1390,150 +1254,6 @@ string ladderencoding(const string &tipo, int k, const vector<string>& lista, tv
   return id;
 }
 
-string insertarformulasatbasica(string &s, tvalor &out, vector<ttoken> &vt, int &ivt)
-{
-  if (ivt == int(vt.size()))
-    errorformulasat(s, vt, ivt);
-  if (vt[ivt].tipo == "-" or vt[ivt].tipo == "not") {
-    ivt++;
-    return negar(insertarformulasatbasica(s, out, vt, ivt));
-  } else if (vt[ivt].tipo == "identificador") {
-    return vt[ivt++].texto;
-  } else if (vt[ivt].tipo == "(") {
-    ivt++;
-    string sol = insertarformulasatiff(s, out, vt, ivt);
-    saltartiposat(s, vt, ivt, ")");
-    return sol;
-  } else if (vt[ivt].tipo == "atmost" or vt[ivt].tipo == "atleast" or vt[ivt].tipo == "exactly") {
-    string tipo = vt[ivt].tipo;
-    ivt++;
-    bool const tieneparentesis = (ivt < int(vt.size()) and vt[ivt].tipo == "(");
-    if (tieneparentesis)
-      saltartiposat(s, vt, ivt, "(");
-    int k;
-    if (ivt < int(vt.size()) and vt[ivt].tipo == "identificador" and esenterosat(vt[ivt].texto)) {
-      k = stollsat(vt[ivt].texto);
-      ivt++;
-    } else
-      errorformulasat(s, vt, ivt, "a non-negative integer was expected");
-    vector<string> lista;
-    while (ivt < int(vt.size()) and (not tieneparentesis or vt[ivt].tipo != ")")) {
-      lista.push_back(insertarformulasatiff(s, out, vt, ivt));
-    }
-    if (tieneparentesis)
-      saltartiposat(s, vt, ivt, ")");
-    //if (int(lista.size())==0)
-    //  errorformulasat(s,vt,ivt,"at least one identifier was expected","se esperaba al menos un identificador","s'esperava almenys un identificador");
-    return ladderencoding(tipo, k, lista, out);
-  } else
-    errorformulasat(s, vt, ivt);
-  return "";
-}
-
-string insertarformulasatand(string &s, tvalor &out, vector<ttoken> &vt, int &ivt)
-{
-  vector<string> sol;
-  sol.push_back(insertarformulasatbasica(s, out, vt, ivt));
-  while (ivt < int(vt.size()) and (vt[ivt].tipo == "&" or vt[ivt].tipo == "and")) {
-    ivt++;
-    sol.push_back(insertarformulasatbasica(s, out, vt, ivt));
-  }
-  if (int(sol.size()) == 1) return sol[0];
-  string id = generaid();
-  tvalor valor;
-  valor.kind = 2;
-  valor.v.push_back(tvalor(id));
-  for (int i = 0; i < int(sol.size()); i++) {
-    out.v.push_back(tvalor(tvalor(negar(id)), tvalor(sol[i])));
-    valor.v.push_back(tvalor(negar(sol[i])));
-  }
-  out.v.push_back(valor);
-  return id;
-}
-
-string insertarformulasator(string &s, tvalor &out, vector<ttoken> &vt, int &ivt)
-{
-  vector<string> sol;
-  sol.push_back(insertarformulasatand(s, out, vt, ivt));
-  while (ivt < int(vt.size()) and (vt[ivt].tipo == "|" or vt[ivt].tipo == "or")) {
-    ivt++;
-    sol.push_back(insertarformulasatand(s, out, vt, ivt));
-  }
-  if (int(sol.size()) == 1) return sol[0];
-  string id = generaid();
-  tvalor valor;
-  valor.kind = 2;
-  valor.v.push_back(tvalor(negar(id)));
-  for (int i = 0; i < int(sol.size()); i++) {
-    out.v.push_back(tvalor(tvalor(id), tvalor(negar(sol[i]))));
-    valor.v.push_back(tvalor(sol[i]));
-  }
-  out.v.push_back(valor);
-  return id;
-}
-
-string insertarformulasatimplies(string &s, tvalor &out, vector<ttoken> &vt, int &ivt)
-{
-  string sol1;
-  sol1 = insertarformulasator(s, out, vt, ivt);
-  if (ivt < int(vt.size()) and (vt[ivt].tipo == "=>" or vt[ivt].tipo == "implies")) {
-    ivt++;
-    string sol2 = insertarformulasator(s, out, vt, ivt);
-    string id = generaid();
-    out.v.push_back(tvalor(tvalor(negar(id)), tvalor(negar(sol1)), tvalor(sol2)));
-    out.v.push_back(tvalor(tvalor(id), tvalor(sol1)));
-    out.v.push_back(tvalor(tvalor(id), tvalor(negar(sol2))));
-    return id;
-  } else if (ivt < int(vt.size()) and (vt[ivt].tipo == "<=" or vt[ivt].tipo == "if")) {
-    ivt++;
-    string sol2 = insertarformulasator(s, out, vt, ivt);
-    string id = generaid();
-    out.v.push_back(tvalor(tvalor(negar(id)), tvalor(sol1), tvalor(negar(sol2))));
-    out.v.push_back(tvalor(tvalor(id), tvalor(negar(sol1))));
-    out.v.push_back(tvalor(tvalor(id), tvalor(sol2)));
-    return id;
-  }
-  return sol1;
-}
-
-string insertarformulasatiff(string &s, tvalor &out, vector<ttoken> &vt, int &ivt)
-{
-  string sol1;
-  sol1 = insertarformulasatimplies(s, out, vt, ivt);
-  if (ivt < int(vt.size()) and (vt[ivt].tipo == "<=>" or vt[ivt].tipo == "iff")) {
-    ivt++;
-    string sol2 = insertarformulasatimplies(s, out, vt, ivt);
-    string id = generaid();
-    out.v.push_back(tvalor(tvalor(id), tvalor(negar(sol1)), tvalor(negar(sol2))));
-    out.v.push_back(tvalor(tvalor(id), tvalor(sol1), tvalor(sol2)));
-    out.v.push_back(tvalor(tvalor(negar(id)), tvalor(negar(sol1)), tvalor(sol2)));
-    out.v.push_back(tvalor(tvalor(negar(id)), tvalor(sol1), tvalor(negar(sol2))));
-    return id;
-  }
-  return sol1;
-}
-void insertarformulasat(string &s, tvalor &out, vector<ttoken> &vt)
-{
-  int ivt = 0;
-  string sol = insertarformulasatiff(s, out, vt, ivt);
-  if (ivt < int(vt.size()))
-    errorformulasat(s, vt, ivt);
-  out.v.push_back(tvalor(0, tvalor(sol)));
-}
-
-void insertarformulasat(string &s, tvalor &out)
-{
-  if (historialinsertsat != NULL)
-    historialinsertsat->push_back(s);
-  timer t;
-  vector<ttoken> vt;
-  leerentradasat(s, vt);
-  insertarformulasat(s, out, vt);
-  tiempoinsertsat += t.elapsed();
-  ejecucionesinsertsat++;
-}
-
-////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -2222,17 +1942,17 @@ void muestra2string(tvalor &muestra,string &muestraingles,string &muestraespanyo
 }
 */
 
-void comprobartipoinsertsat(tnodo& nodo, tvalor &out, tvalor &stringinsertsat)
+void comprobartipovariablelogica(tnodo& nodo, tvalor &out, tvalor &variablelogica)
 {
   if (MODE != reduc)
-    rechazarruntime(nodo.linea, nodo.columna, "insertsat can only be used in a reduction to SAT");
+    rechazarruntime(nodo.linea, nodo.columna, "logical formulas can only appear in a reduction to SAT");
 
   if (out.format->tipo != "array" or out.format->texto != "" or
       out.format->hijo[0].tipo != "array" or out.format->hijo[0].texto != "" or
       out.format->hijo[0].hijo[0].tipo != "string")
-    rechazar("Internal error: the out of the reduction does not have the expected format \"array of array of string\"");
+    rechazar("Internal error: the output of the reduction does not have the expected format \"array of array of string\"");
 
-  if (stringinsertsat.kind != 1)
+  if (variablelogica.kind != 1)
     rechazarruntime(nodo.linea, nodo.columna, "stand alone expressions must be logical formulas.");
 }
 
@@ -2252,10 +1972,9 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
       nodo.tipo=="exactly" or nodo.tipo=="not" or nodo.tipo=="implies" or nodo.tipo=="iff" or
       nodo.tipo=="string" or nodo.tipo=="stringparametrizado" or nodo.tipo=="identificador") {
     int lenoutini = int(out.v.size());
-    tvalor strintinsertsat = ejecutaexpresion(nodo, in, out, valor, memoria, nombremodelo, modelo);
-    comprobartipoinsertsat(nodo, out, strintinsertsat);
-    //cerr<<"string insertsat: " << strintinsertsat.s << endl;
-    out.v.push_back(tvalor(0, tvalor(strintinsertsat.s)));
+    tvalor variablelogica = ejecutaexpresion(nodo, in, out, valor, memoria, nombremodelo, modelo);
+    comprobartipovariablelogica(nodo, out, variablelogica);
+    out.v.push_back(tvalor(0, tvalor(variablelogica.s)));
     tnodo* formatarray = &(out.format->hijo[0]);
     tnodo* formatstring = &(out.format->hijo[0].hijo[0]);
     for (int i = lenoutini; i < int(out.v.size()); i++) {
@@ -2443,9 +2162,7 @@ void ejecuta(tnodo &nodo, vector<tvalor> &vin, vector<tvalor> &vout, tnodo &form
   MODE = modo;  
   int tiempoejecucionini = (MODE == inter) ? infinito : finito;
   if (historialesinsertsat != NULL) {
-    *historialesinsertsat = vector<vector<string> >(int(vin.size()), vector<string>());
-    tiempoinsertsat = 0;
-    ejecucionesinsertsat = 0;      
+    *historialesinsertsat = vector<vector<string> >(int(vin.size()), vector<string>());    
   }
 
   tvalor defecto;
@@ -2834,7 +2551,7 @@ int main(int argc, char *argv[])
     getfieldsstruct(formatinput), getfieldsstruct(formatsolucion));
 
   comprobarnoseusatipo(nodopropuestasolucion2sat, "__out",
-                       "the output cannot be directly accessed in a reduction to SAT,\nuse \"insertsat\" instead to create your formula.");
+                       "the output cannot be directly accessed in a reduction to SAT,\nuse logical expressions directly to create your formula.");
   
   cout << "TIEMPO LECTURA Y PARSING = " << (OUTPUT_RUNTIMES ? tlectura.elapsedstring() : "-1") << endl;
 
@@ -2852,9 +2569,7 @@ int main(int argc, char *argv[])
   generamuestra(historialesinsertsat, muestraoutput, "");
   cout << "TIEMPO EJECUCION (to sat) = " << (OUTPUT_RUNTIMES ? tejecucion1a.elapsedstring() : "-1")
        << " (" << (OUTPUT_RUNTIMES ? tejecucion1b.elapsedstring() : "-1")
-      << " en propuestasolucion, de los cuales " << fixed << setprecision(3)
-      << (OUTPUT_RUNTIMES ? tiempoinsertsat : -1) << "s son por los "
-      << ejecucionesinsertsat << " insertsat)" << endl;
+      << " en propuestasolucion)" << endl;
   sat_solver S1[vsat1.size()];
   sat_solver S2[vsat2.size()];
   vector<bool> resultados;
