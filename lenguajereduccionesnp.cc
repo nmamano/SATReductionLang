@@ -1839,7 +1839,6 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
         return hijo1.x == 1 or hijo2.x == 1;
       } else if (hijo1.esstring() and hijo2.esstring()) {
         if (MODE == reduc) {
-          //cerr<<"or: " << hijo1.s << " " << hijo2.s << endl;
           string id = generaid();
           out.v.push_back(tvalor(tvalor(negar(id)), tvalor(hijo1.s), tvalor(hijo2.s)));
           out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo1.s))));
@@ -1903,6 +1902,24 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
     out.v.push_back(tvalor(tvalor(negar(id)), tvalor(negar(hijo1.s)), tvalor(hijo2.s)));
     out.v.push_back(tvalor(tvalor(negar(id)), tvalor(hijo1.s), tvalor(negar(hijo2.s))));
     return id;
+  } else if (nodo.tipo == "atmost" or nodo.tipo == "atleast" or nodo.tipo == "exactly") {
+    tvalor count = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
+    if (not count.esentero()) {
+      rechazarruntime(nodo.hijo[0].linea, nodo.hijo[0].columna, nodo.tipo+" must be followed by a number");
+    } else if (count.x < 0) {
+      rechazarruntime(nodo.hijo[0].linea, nodo.hijo[0].columna, nodo.tipo+" expects a non-negative integer");
+    } 
+    tvalor scopeout;
+    scopeout.format = out.format;
+    ejecutainstruccion(nodo.hijo[1], in, scopeout, valor, memoria, nombremodelo, modelo); //ignoramos el valor de retorno?
+    vector<string> sol;
+    for (tvalor &clause : scopeout.v) {
+      //las clausulas de 1 elemento contienen las variables afirmadas dentro del scope
+      if (clause.v.size() == 1) sol.push_back(clause.v[0].s);
+      //las demas clausulas son las que les dan el significado apropiado
+      else out.v.push_back(clause);
+    }
+    return ladderencoding(nodo.tipo, count.x, sol, out);
   } else {
     tvalor v[2];
     for (int i = 0; i < int(nodo.hijo.size()); i++)
