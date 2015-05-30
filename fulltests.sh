@@ -38,12 +38,14 @@ function run_problem {
 	fi
 	
 	#if the test doesn't fail, don't print anything
-
+	#if the test fails, the output files are not removed so they can be inspected
 	rm -f answer answer.long std.out std.err
 }
 
 run_problem minitest correct
+run_problem minitest scopeexpressions
 run_problem "test" correct
+run_problem "test" scopeexpressions
 run_problem sudoku correct #does not contain cardinality constraints
 run_problem nreinas correct
 run_problem nreinas badred

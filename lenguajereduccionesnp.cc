@@ -145,7 +145,7 @@ set<string> palabrasclaveprograma = {"main", "stop",
                                  "and", "or", "not", "push", "size",
                                  "back", "min", "max", "abs", "in", //case: for i in v
                                  "insertsat", "reduction", "reconstruction",
-                                 "iff", "implies"};
+                                 "iff", "implies", "atleast", "atmost", "exactly"};
 set<string> cadenasclaveprograma = {"{", "}", "(", ")", "[", "]", "+", "-", "*", "/",
                             "%", "=", "&=", "==", "<", ">", "<=", ">=", "!=",
                             ";", ".", ",", "//", "++", "--", ".."};
@@ -380,6 +380,7 @@ string siguientetipo(vector<ttoken> &vt,int &ivt)
 void parsingexpresion(tnodo &nodo, vector<ttoken> &vt, int &ivt);
 void parsingsumasrestas(tnodo &nodo,vector<ttoken> &vt,int &ivt);
 void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt);
+void parsinglistainstrucciones(tnodo &nodo, vector<ttoken> &vt, int &ivt);
 
 void parsingin(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
@@ -426,7 +427,7 @@ void parsingin(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 void parsingunarios(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
   if (ivt == int(vt.size()))
-    seesperabaver(vt, ivt, "{\"-\",\"not\",\"ident\",\"constant\",\"string\",\"(\",\"abs\",\"min\",\"max\"}");
+    seesperabaver(vt, ivt, "{\"-\",\"not\",\"ident\",\"constant\",\"string\",\"(\",\"abs\",\"min\",\"max\",\"atleast\",\"atmost\",\"exactly\",\"and\",\"or\"}");
   if (vt[ivt].tipo == "-" or vt[ivt].tipo == "not") {
     nodo = vt[ivt];
     nodo.hijo.push_back(tnodo());
@@ -474,8 +475,19 @@ void parsingunarios(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     parsingin(nodo, vt, ivt);
   } else if (vt[ivt].tipo == "__out") {
     rechazar(vt[ivt].linea, vt[ivt].columna, "cannot read from output variable " + vt[ivt+2].texto + ".");
+  } else if (vt[ivt].tipo == "and" or vt[ivt].tipo == "or") {
+    nodo = vt[ivt];
+    nodo.hijo = vector<tnodo> (1);
+    ivt++;
+    parsinglistainstrucciones(nodo.hijo[0], vt, ivt);
+  } else if (vt[ivt].tipo == "exactly" or vt[ivt].tipo == "atmost" or vt[ivt].tipo == "atleast") {
+    nodo = vt[ivt];
+    nodo.hijo = vector<tnodo> (2);
+    ivt++;
+    parsingexpresion(nodo.hijo[0], vt, ivt);
+    parsinglistainstrucciones(nodo.hijo[1], vt, ivt);
   } else
-    seesperabaver(vt, ivt, "{\"not\",\"-\",\"ident\",\"constant\",\"string\",\"(\",\"abs\",\"min\",\"max\"}");
+    seesperabaver(vt, ivt, "{\"not\",\"-\",\"ident\",\"constant\",\"string\",\"(\",\"abs\",\"min\",\"max\",\"atleast\",\"atmost\",\"exactly\",\"and\",\"or\"}");
 }
 
 void parsingmultiplicaciondivision(tnodo &nodo, vector<ttoken> &vt, int &ivt)
@@ -557,9 +569,6 @@ void parsingexpresion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     parsingimpl(nodo.hijo[1], vt, ivt);
   }
 }
-
-
-void parsinglistainstrucciones(tnodo &nodo, vector<ttoken> &vt, int &ivt);
 
 void parsingasignacionsimple(tnodo &nodo, vector<ttoken> &vt, int &ivt, string tipomarcafinal)
 {
@@ -1157,7 +1166,8 @@ class sat_solver {
       using namespace std;
       using namespace Minisat;
       for (auto &it : string_codes) {
-        cout<<it.first<<": "<<(S.model[it.second] == l_True)<<endl;
+        cout<<it.first<<": "<<flush;
+        cout<<(S.model[it.second] == l_True)<<endl;
       }
   #elif defined(USE_PICOSAT)
   #endif      
@@ -1680,10 +1690,12 @@ tvalor abs(tvalor v)
   return v.s;
 }
 
-tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor,
+tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, int &memoria,
                         string nombremodelo, sat_solver const *modelo);
+int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, int &memoria,
+            string nombremodelo, sat_solver const *modelo);
 
-tvalor &extraerelemento(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor,
+tvalor &extraerelemento(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, int &memoria,
                         string nombremodelo, sat_solver const *modelo)
 {
   if (nodo.tipo == "__in") return in;
@@ -1696,8 +1708,8 @@ tvalor &extraerelemento(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
     return *v.ref;
   }
   if (nodo.tipo == "[") {
-    tvalor &v1 = extraerelemento(nodo.hijo[0], in, out, valor, nombremodelo, modelo);
-    tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, nombremodelo, modelo);
+    tvalor &v1 = extraerelemento(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
+    tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
     if (v1.kind != 2)
       rechazarruntime(nodo.linea, nodo.columna, "indexed access to a non-array.");
     comprobarentero("array[...]", v2);
@@ -1706,7 +1718,7 @@ tvalor &extraerelemento(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
     return v1.v[v2.x];
   }
   if (nodo.tipo == "back") {
-    tvalor &v1 = extraerelemento(nodo.hijo[0], in, out, valor, nombremodelo, modelo);
+    tvalor &v1 = extraerelemento(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
     if (v1.kind != 2)
       rechazarruntime(nodo.linea, nodo.columna, "back access to a non-array.");
     if (int(v1.v.size()) == 0)
@@ -1714,7 +1726,7 @@ tvalor &extraerelemento(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
     return v1.v.back();
   }
   if (nodo.tipo == ".") {
-    tvalor &v1 = extraerelemento(nodo.hijo[0], in, out, valor, nombremodelo, modelo);
+    tvalor &v1 = extraerelemento(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
     if (v1.kind != 4)
       rechazarruntime(nodo.linea, nodo.columna, "field access to a non-struct.");
     if (v1.m.count(nodo.texto) == 0)
@@ -1726,7 +1738,7 @@ tvalor &extraerelemento(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
   return in;
 }
 
-tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor,
+tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, int &memoria,
                         string nombremodelo, sat_solver const *modelo)
 {
   if (nodo.tipo == "identificador") {
@@ -1746,18 +1758,18 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
   } else if (nodo.tipo == "stringparametrizado") {
     string substringsconcatenados = "";
     for (int i = 0; i < int(nodo.hijo.size()); i++) {
-      tvalor v = ejecutaexpresion(nodo.hijo[i], in, out, valor, nombremodelo, modelo);
+      tvalor v = ejecutaexpresion(nodo.hijo[i], in, out, valor, memoria, nombremodelo, modelo);
       subirastring(v);
       substringsconcatenados += v.s;
     }
     return tvalor(substringsconcatenados);
   } else if (nodo.tipo == "size") {
-    tvalor &v = extraerelemento(nodo.hijo[0], in, out, valor, nombremodelo, modelo);
+    tvalor &v = extraerelemento(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
     if (v.kind != 2)
       rechazarruntime(nodo.linea, nodo.columna, "\"size\" must be applied to an array.");
     return int(v.v.size());
   } else if (nombremodelo != "" and nodo.tipo == "[" and nodo.hijo[0].tipo == "identificador" and nodo.hijo[0].texto == nombremodelo) {
-    tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, nombremodelo, modelo);
+    tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
     if (v2.kind != 1)
       rechazarruntime(nodo.linea, nodo.columna, "the model must be queried with a variable name (a string).");
     tvalor res;
@@ -1765,37 +1777,63 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
     //cerr<<"modelo "<<v2.s<<" "<<res.x<<endl;
     return res;
   } else if (nodo.tipo == "__in" or nodo.tipo == "back" or nodo.tipo == "[" or nodo.tipo == ".") {
-    tvalor &v = extraerelemento(nodo, in, out, valor, nombremodelo, modelo);
+    tvalor &v = extraerelemento(nodo, in, out, valor, memoria, nombremodelo, modelo);
     if (v.kind != 0 and v.kind != 1)
       rechazarruntime(nodo.linea, nodo.columna, "only simple types inside the input can be accessed in an expression.");
     return v;
   } else if (nodo.tipo == "abs") {
-    return abs(ejecutaexpresion(nodo.hijo[0], in, out, valor, nombremodelo, modelo));
+    return abs(ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo));
   } else if (nodo.tipo == "and") {
-    tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, nombremodelo, modelo);
-    tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, nombremodelo, modelo);
-    if (hijo1.esentero() and hijo2.esentero()) {
-      return hijo1.x == 1 and hijo2.x == 1;
-    } else if (hijo1.esstring() and hijo2.esstring()) {
-      if (MODE == reduc) {
-        string id = generaid();
-        out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo1.s)), tvalor(negar(hijo2.s))));
-        out.v.push_back(tvalor(tvalor(negar(id)), hijo1.s));
-        out.v.push_back(tvalor(tvalor(negar(id)), hijo2.s));
-        return id;
+    if (nodo.hijo.size() == 2) { // binary case
+      tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
+      tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
+      if (hijo1.esentero() and hijo2.esentero()) {
+        return hijo1.x == 1 and hijo2.x == 1;
+      } else if (hijo1.esstring() and hijo2.esstring()) {
+        if (MODE == reduc) {
+          string id = generaid();
+          out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo1.s)), tvalor(negar(hijo2.s))));
+          out.v.push_back(tvalor(tvalor(negar(id)), hijo1.s));
+          out.v.push_back(tvalor(tvalor(negar(id)), hijo2.s));
+          return id;
+        }
+        else {
+          rechazarruntime(nodo.linea, nodo.columna, "Cannot apply \"and\" to strings");
+        }
+      } else {
+        rechazarruntime(nodo.linea, nodo.columna, "Uncompatible operands of \"and\"");
       }
-      else {
-        rechazarruntime(nodo.linea, nodo.columna, "Cannot apply \"and\" to strings");
+      //old:
+      //if (comprobarentero("and", ejecutaexpresion(nodo.hijo[0], in, valor, nombremodelo, modelo)).x == 0) return 0;
+      //else return comprobarentero("and", ejecutaexpresion(nodo.hijo[1], in, valor, nombremodelo, modelo));
+    } else if (MODE == reduc and nodo.hijo.size() == 1 and nodo.hijo[0].tipo == "lista") { //scope expression case
+      tvalor scopeout;
+      scopeout.format = out.format;
+      ejecutainstruccion(nodo.hijo[0], in, scopeout, valor, memoria, nombremodelo, modelo); //ignoramos el valor de retorno?
+      vector<string> sol;
+      for (tvalor &clause : scopeout.v) {
+        //las clausulas de 1 elemento contienen las variables afirmadas dentro del scope
+        if (clause.v.size() == 1) sol.push_back(clause.v[0].s);
+        //las demas clausulas son las que les dan el significado apropiado
+        else out.v.push_back(clause);
       }
+      if (int(sol.size()) == 1) return sol[0];
+      string id = generaid();
+      tvalor valor;
+      valor.kind = 2;
+      valor.v.push_back(tvalor(id));
+      for (int i = 0; i < int(sol.size()); i++) {
+        out.v.push_back(tvalor(tvalor(negar(id)), tvalor(sol[i])));
+        valor.v.push_back(tvalor(negar(sol[i])));
+      }
+      out.v.push_back(valor);
+      return id;
     } else {
-      rechazarruntime(nodo.linea, nodo.columna, "Uncompatible operands of \"and\"");
+      rechazarruntime(nodo.linea, nodo.columna, "invalid arguments for \"and\"");
     }
-    //old:
-    //if (comprobarentero("and", ejecutaexpresion(nodo.hijo[0], in, valor, nombremodelo, modelo)).x == 0) return 0;
-    //else return comprobarentero("and", ejecutaexpresion(nodo.hijo[1], in, valor, nombremodelo, modelo));
   } else if (nodo.tipo == "or") {
-    tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, nombremodelo, modelo);
-    tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, nombremodelo, modelo);
+    tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
+    tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
     if (hijo1.esentero() and hijo2.esentero()) {
       return hijo1.x == 1 or hijo2.x == 1;
     } else if (hijo1.esstring() and hijo2.esstring()) {
@@ -1817,8 +1855,8 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
     //if (comprobarentero("or", ejecutaexpresion(nodo.hijo[0], in, valor, nombremodelo, modelo)).x == 1) return 1;
     //else return comprobarentero("or", ejecutaexpresion(nodo.hijo[1], in, valor, nombremodelo, modelo));
   } else if (nodo.tipo == "implies") {
-    tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, nombremodelo, modelo);
-    tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, nombremodelo, modelo);
+    tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
+    tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
     if (not (MODE == reduc and hijo1.esstring() and hijo2.esstring())) {
       rechazarruntime(nodo.linea, nodo.columna, "\"implies\" must be aplied to literals");
     }
@@ -1828,8 +1866,8 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
     out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo2.s))));
     return id;
   } else if (nodo.tipo == "iff") {
-    tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, nombremodelo, modelo);
-    tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, nombremodelo, modelo);
+    tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
+    tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
     if (not (MODE == reduc and hijo1.esstring() and hijo2.esstring())) {
       rechazarruntime(nodo.linea, nodo.columna, "\"iff\" must be aplied to literals");
     }
@@ -1842,7 +1880,7 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
   } else {
     tvalor v[2];
     for (int i = 0; i < int(nodo.hijo.size()); i++)
-      v[i] = ejecutaexpresion(nodo.hijo[i], in, out, valor, nombremodelo, modelo);
+      v[i] = ejecutaexpresion(nodo.hijo[i], in, out, valor, memoria, nombremodelo, modelo);
     if (nodo.tipo == "-") {
       if (int(nodo.hijo.size()) == 1) return -v[0].x;
       return v[0] - v[1];
@@ -1890,7 +1928,7 @@ tvalor &extraerout(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &va
   if (nodo.tipo == "[") {
     if (v1.kind != 2)
       rechazarruntime(nodo.linea, nodo.columna, "indexed access to a non-array.");
-    tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, nombremodelo, modelo);
+    tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
     comprobarentero("array[...]", v2);
     if (v2.x < 0)
       rechazarruntime(nodo.linea, nodo.columna, "out of range in array access.");
@@ -2149,7 +2187,7 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
   if (nodo.tipo == ";") {
   } else if (nodo.tipo == "insertsat") {
     int lenoutini = int(out.v.size());
-    tvalor strintinsertsat = ejecutaexpresion(nodo.hijo.back(), in, out, valor, nombremodelo, modelo);
+    tvalor strintinsertsat = ejecutaexpresion(nodo.hijo.back(), in, out, valor, memoria, nombremodelo, modelo);
     comprobartipoinsertsat(nodo, out, strintinsertsat);
     //cerr<<"string insertsat: " << strintinsertsat.s << endl;
     out.v.push_back(tvalor(0, tvalor(strintinsertsat.s)));
@@ -2166,7 +2204,7 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
   } else if (nodo.tipo == "push") {
     extraerout(nodo, in, out, valor, memoria, nombremodelo, modelo);
   } else if (nodo.tipo == "if") {
-    tvalor r = ejecutaexpresion(nodo.hijo[0], in, out, valor, nombremodelo, modelo);
+    tvalor r = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
     comprobarentero("if (...)", r);
     if (r.x) {
       int e = ejecutainstruccion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
@@ -2177,7 +2215,7 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
     }
   } else if (nodo.tipo == "while") {
     for (;;) {
-      tvalor r = ejecutaexpresion(nodo.hijo[0], in, out, valor, nombremodelo, modelo);
+      tvalor r = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
       comprobarentero("while (...)", r);
       if (not r.x) break;
       int e = ejecutainstruccion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
@@ -2186,9 +2224,9 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
   } else if (nodo.tipo == "foreach") {
     if (nodo.hijo[1].tipo == "..") { //foreach sobre rango
       //hijos: 0: variable, 1: rango, 2: instruccion
-      tvalor rango1 = ejecutaexpresion(nodo.hijo[1].hijo[0], in, out, valor, nombremodelo, modelo);
+      tvalor rango1 = ejecutaexpresion(nodo.hijo[1].hijo[0], in, out, valor, memoria, nombremodelo, modelo);
       comprobarentero(" .. ", rango1);
-      tvalor rango2 = ejecutaexpresion(nodo.hijo[1].hijo[1], in, out, valor, nombremodelo, modelo);
+      tvalor rango2 = ejecutaexpresion(nodo.hijo[1].hijo[1], in, out, valor, memoria, nombremodelo, modelo);
       comprobarentero(" .. ", rango2);
       for (int i = rango1.x; i <= rango2.x; i++) {
         valor[nodo.hijo[0].texto].kind = 0;
@@ -2202,7 +2240,7 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
       int indicereferencia = (nodo.hijo.size() == 3 ? 0 : 1);
       if (nombremodelo != "" and (nodo.hijo[0].texto == nombremodelo or (indicereferencia and nodo.hijo[indicereferencia].texto == nombremodelo)))
         rechazarruntime(nodo.linea, nodo.columna, "for-in cannot overwrite the model variable \"" + nombremodelo + "\".");
-      tvalor &v2 = extraerelemento(nodo.hijo[indicereferencia + 1], in, out, valor, nombremodelo, modelo);
+      tvalor &v2 = extraerelemento(nodo.hijo[indicereferencia + 1], in, out, valor, memoria, nombremodelo, modelo);
       if (v2.kind != 2)
         rechazarruntime(nodo.linea, nodo.columna, "for-in requires a reference to the input being an array.");
       for (int i = 0; i < int(v2.v.size()); i++) {
@@ -2220,7 +2258,7 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
     int e = ejecutainstruccion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
     if (e) return e;
     for (;;) {
-      tvalor r = ejecutaexpresion(nodo.hijo[1], in, out, valor, nombremodelo, modelo);
+      tvalor r = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
       comprobarentero("for (;...;)", r);
       if (not r.x) break;
       int e;
@@ -2230,24 +2268,24 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
       if (e) return e;
     }
   } else if (nodo.tipo == "++") {
-    tvalor valorid = ejecutaexpresion(nodo.hijo[0], in, out, valor, nombremodelo, modelo);
+    tvalor valorid = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
     comprobarentero("++", valorid);
     valor[nodo.hijo[0].texto].x++;
   } else if (nodo.tipo == "--") {
-    tvalor valorid = ejecutaexpresion(nodo.hijo[0], in, out, valor, nombremodelo, modelo);
+    tvalor valorid = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
     comprobarentero("--", valorid);
     valor[nodo.hijo[0].texto].x--;
   } else if (nodo.tipo == "=") {
     if (nombremodelo != "" and (nodo.hijo[0].texto == nombremodelo))
       rechazarruntime(nodo.linea, nodo.columna, "cannot overwrite the model variable \"" + nombremodelo + "\".");
-    tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, nombremodelo, modelo);
+    tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
     //if (nodo.hijo[0].tipo=="identificador")
     // Haria falta aqui comprobar que lo que se asigna es de tipo entero o string?
     valor[nodo.hijo[0].texto] = v2;
   } else if (nodo.tipo == "&=") {
     if (nombremodelo != "" and (nodo.hijo[0].texto == nombremodelo))
       rechazarruntime(nodo.linea, nodo.columna, "cannot overwrite the model variable \"" + nombremodelo + "\".");
-    tvalor &v2 = extraerelemento(nodo.hijo[1], in, out, valor, nombremodelo, modelo);
+    tvalor &v2 = extraerelemento(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
     valor[nodo.hijo[0].texto].kind = 3;
     valor[nodo.hijo[0].texto].ref = &v2;
   } else if (nodo.tipo == "=,") {
@@ -2255,7 +2293,7 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
     memoria -= computausomemoria(v1);
 
     if (int(nodo.hijo.size()) == 2) {
-      tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, nombremodelo, modelo);
+      tvalor v2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
       // Haria falta aqui comprobar que lo que se asigna es de tipo entero o string?
       if (v1.format->tipo == "int") {
         if (v2.kind != 0)
@@ -2287,7 +2325,7 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
         v1.v = vector<tvalor> (int(nodo.hijo.size()) - 1, defecto);
       }
       for (int i = 1; i < int(nodo.hijo.size()); i++) {
-        tvalor v2 = ejecutaexpresion(nodo.hijo[i], in, out, valor, nombremodelo, modelo);
+        tvalor v2 = ejecutaexpresion(nodo.hijo[i], in, out, valor, memoria, nombremodelo, modelo);
         if (v1.format->hijo[0].tipo == "int" and v2.kind != 0)
           rechazarruntime(nodo.linea, nodo.columna, "incompatible types in assignment.\nAn \"int\" was expected in the expresion number " + itos(i) + ".");
         v1.v[i - 1].kind = v2.kind;
@@ -2298,7 +2336,7 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
       if (int(nodo.hijo.size()) - 1 != int(v1.format->m.size()))
         rechazarruntime(nodo.linea, nodo.columna, "the number of expressions does not coincide with the number of fields in the struct.");
       for (int i = 1; i < int(nodo.hijo.size()); i++) {
-        tvalor v2 = ejecutaexpresion(nodo.hijo[i], in, out, valor, nombremodelo, modelo);
+        tvalor v2 = ejecutaexpresion(nodo.hijo[i], in, out, valor, memoria, nombremodelo, modelo);
         if (v1.format->m[v1.format->listacampos()[i - 1]].tipo == "int" and v2.kind != 0)
           rechazarruntime(nodo.linea, nodo.columna, "incompatible types in assignment.\nAn \"int\" was expected in the expresion number " + itos(i) + ".");
         if (v1.format->m[v1.format->listacampos()[i - 1]].tipo != "int" and
@@ -2747,7 +2785,6 @@ int main(int argc, char *argv[])
   timer tejecucion1b;
   ejecuta(nodopropuestasolucion2sat, vinput, vsat2, formatsat, "", reduc, &historialesinsertsat);
   generamuestra(historialesinsertsat, muestraoutput, "");
-  
   cout << "TIEMPO EJECUCION (to sat) = " << (OUTPUT_RUNTIMES ? tejecucion1a.elapsedstring() : "-1")
        << " (" << (OUTPUT_RUNTIMES ? tejecucion1b.elapsedstring() : "-1")
       << " en propuestasolucion, de los cuales " << fixed << setprecision(3)
@@ -2767,7 +2804,7 @@ int main(int argc, char *argv[])
     S2[i].add(vsat2[i]);
     bool respuestaout = S2[i].solve();
     double segresolverout = t2.elapsed();
-    if (DBG_MODE) {
+    if (DBG_MODE and respuestaout) {
       cout << "======================" << endl;
       cout << "modelo SAT: " << i << endl;
       cout << "======================" << endl;
