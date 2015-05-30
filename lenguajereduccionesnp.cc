@@ -698,7 +698,7 @@ void parsingforeach(tnodo &nodo,vector<ttoken> &vt,int &ivt) {
 void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
   if (ivt == int(vt.size()))
-    seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"stop\"}");
+    seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"stop\",\"expr\"}");
   if (vt[ivt].tipo == "if") {
     nodo = vt[ivt];
     ivt++;
@@ -721,8 +721,28 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     parsingexpresion(nodo.hijo.back(), vt, ivt);
     saltartipo(vt, ivt, ")");
     saltartipo(vt, ivt, ";");
-  } else if (vt[ivt].tipo == "identificador" or vt[ivt].tipo == ";" or vt[ivt].tipo == "++" or vt[ivt].tipo == "--") {
+  } else if (vt[ivt].tipo == ";" or vt[ivt].tipo == "++" or vt[ivt].tipo == "--") {
     parsingasignacionsimple(nodo, vt, ivt, ";");
+  } else if (vt[ivt].tipo == "identificador") {
+    //do LL(2) parsing to see if we are inside an expression or an assignment
+    if (ivt+1 == int(vt.size())) {
+      rechazar(vt[ivt].linea, vt[ivt].columna, "Unexpected end of input");
+    } else if (vt[ivt+1].tipo == "=" or vt[ivt+1].tipo == "&=" or
+        vt[ivt+1].tipo == "++" or vt[ivt+1].tipo == "--") {
+      parsingasignacionsimple(nodo, vt, ivt, ";");
+    } else if (vt[ivt+1].tipo == "and" or vt[ivt+1].tipo == "or" or
+        vt[ivt+1].tipo == "iff" or vt[ivt+1].tipo == "implies" or vt[ivt+1].tipo == ";") {
+      parsingexpresion(nodo, vt, ivt);
+      saltartipo(vt, ivt, ";");
+    } else {
+      rechazar(vt[ivt].linea, vt[ivt].columna, "Unexpected token after identifier");
+    }
+  } else if (vt[ivt].tipo == "atleast" or vt[ivt].tipo == "string" or
+      vt[ivt].tipo == "exactly" or vt[ivt].tipo == "or" or vt[ivt].tipo == "not" or
+      vt[ivt].tipo == "atmost" or vt[ivt].tipo == "and" or vt[ivt].tipo == "stringini" or
+      vt[ivt].tipo == "(") {
+    parsingexpresion(nodo, vt, ivt);
+    saltartipo(vt, ivt, ";");
   } else if (vt[ivt].tipo == "__out") {
     parsingout(nodo, vt, ivt);
     if (ivt < int(vt.size()) and vt[ivt].tipo == "=") {
@@ -774,7 +794,7 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
   } else if (vt[ivt].tipo == "__in") {
     rechazar(vt[ivt].linea, vt[ivt].columna, "Cannot write to input variable " + vt[ivt+2].texto + ".");
   } else
-    seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"stop\"}");
+    seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"stop\",\"expr\"}");
 }
 
 void parsinglistainstrucciones(tnodo &nodo, vector<ttoken> &vt, int &ivt)
@@ -2213,7 +2233,7 @@ void comprobartipoinsertsat(tnodo& nodo, tvalor &out, tvalor &stringinsertsat)
     rechazar("Internal error: the out of the reduction does not have the expected format \"array of array of string\"");
 
   if (stringinsertsat.kind != 1)
-    rechazarruntime(nodo.linea, nodo.columna, "insertsat must be applied to a \"string\".");
+    rechazarruntime(nodo.linea, nodo.columna, "stand alone expressions must be logical formulas.");
 }
 
 const int infinito = 1000000000;
@@ -2228,9 +2248,11 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
   if (tiempoejecucion < 0)
     rechazar("Runtime error: the execution time of the reduction is too big.");
   if (nodo.tipo == ";") {
-  } else if (nodo.tipo == "insertsat") {
+  } else if (nodo.tipo=="and" or nodo.tipo=="or" or nodo.tipo=="atmost" or nodo.tipo=="atleast" or
+      nodo.tipo=="exactly" or nodo.tipo=="not" or nodo.tipo=="implies" or nodo.tipo=="iff" or
+      nodo.tipo=="string" or nodo.tipo=="stringparametrizado" or nodo.tipo=="identificador") {
     int lenoutini = int(out.v.size());
-    tvalor strintinsertsat = ejecutaexpresion(nodo.hijo.back(), in, out, valor, memoria, nombremodelo, modelo);
+    tvalor strintinsertsat = ejecutaexpresion(nodo, in, out, valor, memoria, nombremodelo, modelo);
     comprobartipoinsertsat(nodo, out, strintinsertsat);
     //cerr<<"string insertsat: " << strintinsertsat.s << endl;
     out.v.push_back(tvalor(0, tvalor(strintinsertsat.s)));
