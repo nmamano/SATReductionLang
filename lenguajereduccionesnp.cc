@@ -859,6 +859,7 @@ struct tvalor {
   tvalor *ref;
   tnodo *format;
   map<string, tvalor> m;
+  string stringformula;
 
   tvalor() {
     kind = x = 0;
@@ -1105,7 +1106,7 @@ bool compruebasatisfactibilidad(tvalor const &formula,
 ////////////////////////////////////////////////////////////
 // Funciones auxiliares para las formulas logicas
 
-vector<string> *historialinsertsat = NULL;
+bool storestringformula = false;
 
 int numid = 1;
 string generaid()
@@ -1478,6 +1479,15 @@ tvalor &extraerelemento(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
   return in;
 }
 
+string addtab(const string& s) {
+  string res = "  ";
+  for (uint i = 0; i < s.size(); i++) {
+    res.push_back(s[i]);
+    if (s[i] == '\n' and i < s.size()-1) res += "  ";
+  }
+  return res;
+}
+
 /* The AST of stringparametrizado looks like this:
 stringparametrizado
   string(x{)
@@ -1506,7 +1516,9 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
     if (MODE == recon and not insidestringparametrizado) {
       return tvalor(modelo->assignment(nodo.texto));
     } else {
-      return tvalor(nodo.texto);      
+      tvalor t(nodo.texto);
+      if (storestringformula) t.stringformula = nodo.texto;
+      return t;     
     }
   } else if (nodo.tipo == "stringparametrizado") {
     string substringsconcatenados = "";
@@ -1520,7 +1532,9 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
     if (MODE == recon) {
       return tvalor(modelo->assignment(substringsconcatenados));
     } else {
-      return tvalor(substringsconcatenados);
+      tvalor t(substringsconcatenados);
+      if (storestringformula) t.stringformula = substringsconcatenados;
+      return t;
     }
   } else if (nodo.tipo == "size") {
     tvalor &v = extraerelemento(nodo.hijo[0], in, out, valor, memoria, modelo);
@@ -1546,7 +1560,10 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
           out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo1.s)), tvalor(negar(hijo2.s))));
           out.v.push_back(tvalor(tvalor(negar(id)), hijo1.s));
           out.v.push_back(tvalor(tvalor(negar(id)), hijo2.s));
-          return id;
+          tvalor t(id);
+          if (storestringformula)
+            t.stringformula = "and (\n"+addtab(hijo1.stringformula)+"\n"+addtab(hijo2.stringformula)+"\n)";
+          return t;
         }
         else {
           rechazarruntime(nodo.linea, nodo.columna, "Cannot apply \"and\" to strings");
@@ -1565,7 +1582,11 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
         //las demas clausulas son las que les dan el significado apropiado
         else out.v.push_back(clause);
       }
-      if (int(sol.size()) == 1) return sol[0];
+      if (int(sol.size()) == 1) {
+        tvalor t(sol[0]);
+        if (storestringformula) t.stringformula = "and {\n" + addtab(scopeout.stringformula) + "}";
+        return t;
+      }
       string id = generaid();
       tvalor valor;
       valor.kind = 2;
@@ -1575,7 +1596,9 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
         valor.v.push_back(tvalor(negar(sol[i])));
       }
       out.v.push_back(valor);
-      return id;
+      tvalor t(id);
+      if (storestringformula) t.stringformula = "and {\n" + addtab(scopeout.stringformula) + "}";
+      return t;
     } else {
       rechazarruntime(nodo.linea, nodo.columna, "invalid arguments for \"and\"");
     }
@@ -1591,13 +1614,16 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
           out.v.push_back(tvalor(tvalor(negar(id)), tvalor(hijo1.s), tvalor(hijo2.s)));
           out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo1.s))));
           out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo2.s))));
-          return id;
+          tvalor t(id);
+          if (storestringformula)
+            t.stringformula = "or (\n"+addtab(hijo1.stringformula)+"\n"+addtab(hijo2.stringformula)+"\n)";
+          return t;
         }
         else {
-          rechazarruntime(nodo.linea, nodo.columna, "Cannot apply \"and\" to strings");
+          rechazarruntime(nodo.linea, nodo.columna, "Cannot apply \"or\" to strings");
         }
       } else {
-        rechazarruntime(nodo.linea, nodo.columna, "Uncompatible operands of \"and\"");
+        rechazarruntime(nodo.linea, nodo.columna, "Uncompatible operands of \"or\"");
       }
     } else if (MODE == reduc and nodo.hijo.size() == 1 and nodo.hijo[0].tipo == "lista") {
       tvalor scopeout;
@@ -1610,7 +1636,11 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
         //las demas clausulas son las que les dan el significado apropiado
         else out.v.push_back(clause);
       }
-      if (int(sol.size()) == 1) return sol[0];
+      if (int(sol.size()) == 1) {
+        tvalor t(sol[0]);
+        if (storestringformula) t.stringformula = "or {\n" + addtab(scopeout.stringformula) + "}";
+        return t;
+      }
       string id = generaid();
       tvalor valor;
       valor.kind = 2;
@@ -1620,21 +1650,25 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
         valor.v.push_back(tvalor(sol[i]));
       }
       out.v.push_back(valor);
-      return id;
+      tvalor t(id);
+      if (storestringformula) t.stringformula = "or {\n" + addtab(scopeout.stringformula) + "}";
+      return t;
     } else {
-      rechazarruntime(nodo.linea, nodo.columna, "invalid arguments for \"and\"");
+      rechazarruntime(nodo.linea, nodo.columna, "invalid arguments for \"or\"");
     }
   } else if (nodo.tipo == "implies") {
-    tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, modelo);
-    tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, modelo);
-    if (MODE == reduc) {
+      tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, modelo);
+      tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, modelo);
+      if (MODE == reduc) {
       if (not hijo1.esstring() or not hijo2.esstring())
         rechazarruntime(nodo.linea, nodo.columna, "\"implies\" must be aplied to logical formulas");
       string id = generaid();
       out.v.push_back(tvalor(tvalor(negar(id)), tvalor(negar(hijo1.s)), tvalor(hijo2.s)));
       out.v.push_back(tvalor(tvalor(id), tvalor(hijo1.s)));
       out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo2.s))));
-      return id;
+      tvalor t(id);
+      if (storestringformula) t.stringformula = hijo1.stringformula+" implies "+hijo2.stringformula;
+      return t;
     } else if (MODE == recon) {
       if (not hijo1.esentero() or not hijo2.esentero()) {
         rechazarruntime(nodo.linea, nodo.columna, "\"implies\" must be applied to logical formulas");
@@ -1653,15 +1687,19 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
       out.v.push_back(tvalor(tvalor(id), tvalor(hijo1.s), tvalor(hijo2.s)));
       out.v.push_back(tvalor(tvalor(negar(id)), tvalor(negar(hijo1.s)), tvalor(hijo2.s)));
       out.v.push_back(tvalor(tvalor(negar(id)), tvalor(hijo1.s), tvalor(negar(hijo2.s))));
-      return id;
+      tvalor t(id);
+      if (storestringformula) t.stringformula = hijo1.stringformula+" iff "+hijo2.stringformula;
+      return t;
     } else if (MODE == recon) {
       if (not hijo1.esentero() or not hijo2.esentero()) {
-        rechazarruntime(nodo.linea, nodo.columna, "\"implies\" must be applied to logical formulas");
+        rechazarruntime(nodo.linea, nodo.columna, "\"iff\" must be applied to logical formulas");
       }
       if (hijo1.x == 0) return hijo2.x == 0;
       return hijo2.x != 0;      
     }
   } else if (nodo.tipo == "atmost" or nodo.tipo == "atleast" or nodo.tipo == "exactly") {
+    if (MODE != reduc)
+      rechazarruntime(nodo.linea, nodo.columna, nodo.tipo+" can only appear in a reduction");
     tvalor count = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, modelo);
     if (not count.esentero()) {
       rechazarruntime(nodo.hijo[0].linea, nodo.hijo[0].columna, nodo.tipo+" must be followed by a number");
@@ -1678,7 +1716,10 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
       //las demas clausulas son las que les dan el significado apropiado
       else out.v.push_back(clause);
     }
-    return ladderencoding(nodo.tipo, count.x, sol, out);
+    string id = ladderencoding(nodo.tipo, count.x, sol, out);
+    tvalor t(id);
+    if (storestringformula) t.stringformula = nodo.tipo+" "+itos(count.x)+" {\n"+addtab(scopeout.stringformula)+"}";
+    return t;
   } else {
     tvalor v[2];
     for (int i = 0; i < int(nodo.hijo.size()); i++)
@@ -1703,7 +1744,9 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
       if (v[0].esentero()) return !v[0];
       if (v[0].esstring()) {
         if (MODE == reduc) {
-          return negar(v[0].s);
+          tvalor t(negar(v[0].s));
+          if (storestringformula) t.stringformula = "not "+v[0].stringformula;
+          return t;
         }
         else {
           rechazarruntime(nodo.linea, nodo.columna, "Invalid operand on \"not\"");
@@ -1898,6 +1941,7 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
       tvalor variablelogica = ejecutaexpresion(nodo, in, out, valor, memoria, modelo);
       comprobartipovariablelogica(nodo, out, variablelogica);
       out.v.push_back(tvalor(0, tvalor(variablelogica.s)));
+      if (storestringformula) out.stringformula += variablelogica.stringformula+"\n";
       tnodo* formatarray = &(out.format->hijo[0]);
       tnodo* formatstring = &(out.format->hijo[0].hijo[0]);
       for (int i = lenoutini; i < int(out.v.size()); i++) {
@@ -2075,6 +2119,15 @@ void ejecuta(tnodo &nodo, tvalor &in, tvalor &out,
   ejecutainstruccion(nodo.hijo[0], in, out, valor, memoria, modelo);
 }
 
+vector<string> breaklines(const string& s) {
+  vector<string> res(1, "");
+  for (uint i = 0; i < s.size(); i++) {
+    if (s[i] == '\n') res.push_back("");
+    else res.back() += s[i];
+  }
+  return res;
+}
+
 void ejecuta(tnodo &nodo, vector<tvalor> &vin, vector<tvalor> &vout, tnodo &formatout,
              string mensajeprefijoerror, Modo modo, vector<vector<string> > *historialesinsertsat = NULL)
 {
@@ -2090,13 +2143,13 @@ void ejecuta(tnodo &nodo, vector<tvalor> &vin, vector<tvalor> &vout, tnodo &form
   vout = vector<tvalor> (int(vin.size()), defecto);
 
   for (int i = 0; i < int(vin.size()); i++) {
-    if (historialesinsertsat != NULL)
-      historialinsertsat = &(*historialesinsertsat)[i];
     tiempoejecucion = tiempoejecucionini;
+    if (historialesinsertsat != NULL) storestringformula = true;
     ejecuta(nodo, vin[i], vout[i]);
+    storestringformula = false;
+    if (historialesinsertsat != NULL)
+      (*historialesinsertsat)[i] = breaklines(vout[i].stringformula);
   }
-  if (historialesinsertsat != NULL)
-    historialinsertsat = NULL;
 }
 
 void ejecutareconstruccion(tnodo &reconstructor, tvalor &in, tnodo &formatout, sat_solver const *modelo, string &muestrasolucion,
@@ -2486,6 +2539,15 @@ int main(int argc, char *argv[])
   vector<vector<string> > historialesinsertsat;
   timer tejecucion1b;
   ejecuta(nodopropuestasolucion2sat, vinput, vsat2, formatsat, "", reduc, &historialesinsertsat);
+  if (DBG_MODE) {
+    cout << "====== historiales insertsat ======" << endl;
+    for (uint i = 0; i < historialesinsertsat.size(); i++) {
+      cout << ">>>> " << i << ":" << endl;
+      for (uint j = 0; j < historialesinsertsat[i].size(); j++) {
+        cout << historialesinsertsat[i][j] << endl;
+      }
+    }
+  }
   generamuestra(historialesinsertsat, muestraoutput, "");
   cout << "TIEMPO EJECUCION (to sat) = " << (OUTPUT_RUNTIMES ? tejecucion1a.elapsedstring() : "-1")
        << " (" << (OUTPUT_RUNTIMES ? tejecucion1b.elapsedstring() : "-1")
