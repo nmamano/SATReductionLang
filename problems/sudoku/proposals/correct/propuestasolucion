@@ -5,29 +5,29 @@ reduction
 			if (pos[i][j]) {
 				for (v = 1; v <= 9; ++v)
 					if (pos[i][j] == v)
-						insertsat("pos{i}{j}value{v}");
+						"pos{i}{j}value{v}";
 					else
-						insertsat(not "pos{i}{j}value{v}");
+						not "pos{i}{j}value{v}";
 			} else {
-				insertsat("pos{i}{j}value{1}" or "pos{i}{j}value{2}" or "pos{i}{j}value{3}" or
+				"pos{i}{j}value{1}" or "pos{i}{j}value{2}" or "pos{i}{j}value{3}" or
 				"pos{i}{j}value{4}" or "pos{i}{j}value{5}" or "pos{i}{j}value{6}" or
-				"pos{i}{j}value{7}" or "pos{i}{j}value{8}" or "pos{i}{j}value{9}");
+				"pos{i}{j}value{7}" or "pos{i}{j}value{8}" or "pos{i}{j}value{9}";
 				//XXX: not forcing single value in each position...
 			}
 	for (i = 0; i < 9; ++i)
 		for (j = 0; j < 9; ++j)
 			for (v = 1; v <= 9; ++v) {
-				insertsat("pos{i}{j}value{v}" implies not "pos{i}{j}value{v}uniquerow");
+				"pos{i}{j}value{v}" implies not "pos{i}{j}value{v}uniquerow";
 				if (j < 9 - 1) {
-					insertsat("pos{i}{j}value{v}" implies "pos{i}{j+1}value{v}uniquerow");
-					insertsat("pos{i}{j}value{v}uniquerow" implies "pos{i}{j+1}value{v}uniquerow");
+					"pos{i}{j}value{v}" implies "pos{i}{j+1}value{v}uniquerow";
+					"pos{i}{j}value{v}uniquerow" implies "pos{i}{j+1}value{v}uniquerow";
 				}
-				insertsat("pos{i}{j}value{v}" implies not "pos{i}{j}value{v}uniquecolumn");
+				"pos{i}{j}value{v}" implies not "pos{i}{j}value{v}uniquecolumn";
 				if (i < 9 - 1) {
-					insertsat("pos{i}{j}value{v}" implies "pos{i+1}{j}value{v}uniquecolumn");
-					insertsat("pos{i}{j}value{v}uniquecolumn" implies "pos{i+1}{j}value{v}uniquecolumn");
+					"pos{i}{j}value{v}" implies "pos{i+1}{j}value{v}uniquecolumn";
+					"pos{i}{j}value{v}uniquecolumn" implies "pos{i+1}{j}value{v}uniquecolumn";
 				}
-				insertsat("pos{i}{j}value{v}" implies not "pos{i}{j}value{v}uniqueblock");
+				"pos{i}{j}value{v}" implies not "pos{i}{j}value{v}uniqueblock";
 				bi = (i % 3);
 				bj = (j % 3);
 				if (bi != 2 or bj != 2) {
@@ -39,8 +39,8 @@ reduction
 					}
 					bi = (i / 3) * 3 + bi;
 					bj = (j / 3) * 3 + bj;
-					insertsat("pos{i}{j}value{v}" implies "pos{bi}{bj}value{v}uniqueblock");
-					insertsat("pos{i}{j}value{v}uniqueblock" implies "pos{bi}{bj}value{v}uniqueblock");
+					"pos{i}{j}value{v}" implies "pos{bi}{bj}value{v}uniqueblock";
+					"pos{i}{j}value{v}uniqueblock" implies "pos{bi}{bj}value{v}uniqueblock";
 				}
 			}
 }

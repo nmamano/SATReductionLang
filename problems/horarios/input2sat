@@ -13,21 +13,20 @@ reduction
   for(i=0;i<nSubjs;i++)
     for(j=0;j<nHours;j++)
       for(k=j+1;k/12 == j/12;k++)
-	insertsat("not z{i}{j} or not z{i}{k}");
+        not "z{i}{j}" or not "z{i}{k}";
   //for each subject, the correct number of days
   for(i=0;i<nSubjs;i++){
-    k=subjects[i].hours;
-    s="exactly "+k;
-    for(j=0;j<nDays;j++) s=s+" v{i}{j}";
-    insertsat(s);
+    exactly subjects[i].hours { 
+      for(j=0;j<nDays;j++) "v{i}{j}";
+    };
   }
   //subjects on compatible classrooms
   for(i=0;i<nSubjs;i++){
     for(j=0;j<classrooms;j++){
       found=0;
       for(k=0;k<subjects[i].classrooms.size;k++)
-	if(j==subjects[i].classrooms[k])found=1;
-      if(found==0) insertsat("not x{i}{j}");
+	     if(j==subjects[i].classrooms[k])found=1;
+      if(found==0) not "x{i}{j}";
     }
   }
   //subjects with compatible teachers
@@ -35,45 +34,45 @@ reduction
     for(j=0;j<teachers.size;j++){
       found=0;
       for(k=0;k<subjects[i].teachers.size;k++)
-	if(j==subjects[i].teachers[k])found=1;
-      if(found==0) insertsat("not y{i}{j}");
+	      if(j==subjects[i].teachers[k])found=1;
+      if(found==0) not "y{i}{j}";
     }
   }
   //exactly one classroom for subject
   for(i=0;i<nSubjs;i++){
-    s="exactly 1";
-    for(j=0;j<classrooms;j++) s=s+" x{i}{j}";
-    insertsat(s);
+    exactly 1 {
+      for(j=0;j<classrooms;j++) "x{i}{j}";
+    };
   }
   //exactly one teacher per subject
   for(i=0;i<nSubjs;i++){
-    s="exactly 1";
-    for(j=0;j<teachers.size;j++) s=s+" y{i}{j}";
-    insertsat(s);
+    exactly 1 {
+      for(j=0;j<teachers.size;j++) "y{i}{j}";
+    };
   }
   //all combinations hour-teacher are compatible
   for(i=0;i<nSubjs;i++)
     for(k=0;k<teachers.size;k++)
       for(t=0;t<teachers[k].size;t++)
-	insertsat("not y{i}{k} or not z{i}{teachers[k][t]}");
+        not "y{i}{k}" or not "z{i}{teachers[k][t]}";
   //max one classroom (and thus, subject) per teacher and class
   for(i=0;i<teachers.size;i++)
     for(j=0;j<nHours;j++)
       for(k=0;k<nSubjs;k++)
-	for(t=k+1;t<nSubjs;t++)
-	  insertsat("not z{k}{j} or not z{t}{j} or not y{k}{i} or not y{t}{i}");
+      	for(t=k+1;t<nSubjs;t++)
+          not "z{k}{j}" or not "z{t}{j}" or not "y{k}{i}" or not "y{t}{i}";
   //max one subject for room and hour
   for(i=0;i<classrooms;i++)
     for(j=0;j<nHours;j++)
       for(k=0;k<nSubjs;k++)
-	for(t=k+1;t<nSubjs;t++)
-	  insertsat("not z{k}{j} or not z{t}{j} or not x{k}{i} or not x{t}{i}");
+      	for(t=k+1;t<nSubjs;t++)
+          not "z{k}{j}" or not "z{t}{j}" or not "x{k}{i}" or not "x{t}{i}";
   //for each course and day, subjects are consecutive
   for(i=0;i<courses;i++){
     for(hour=0;hour<nHours;hour++){
       nextHour=hour+1;
       for(j=nextHour+1;j/12 == hour/12;j++)
-	insertsat("not w{hour}{i} or not w{j}{i} or w{nextHour}{i}");
+        not "w{hour}{i}" or not "w{j}{i}" or "w{nextHour}{i}";
     }
   }
   //max 6 hours per course and day
@@ -81,7 +80,7 @@ reduction
     for(hour=0;hour<nHours;hour++){
       hour2=hour+6;
       if(hour/12 == hour2/12)
-	insertsat("not w{hour}{i} or not w{hour2}{i}");
+        not "w{hour}{i}" or not "w{hour2}{i}";
     }
   }
   //for each pair of subjects, if their course match, their hours are disjoint
@@ -89,34 +88,36 @@ reduction
     for(j=i+1;j<nSubjs;j++)
       if(subjects[i].course == subjects[j].course)
 	for(k=0;k<nHours;k++)
-	  insertsat("not z{i}{k} or not z{j}{k}");
+	  not "z{i}{k}" or not "z{j}{k}";
   //an hour is asigned to a course iff it is asigned to a subject of that coruse
   //<=
   for(i=0;i<nSubjs;i++)
     for(j=0;j<nHours;j++)
-      insertsat("z{i}{j} => w{j}{subjects[i].course}");
+      "z{i}{j}" implies "w{j}{subjects[i].course}";
   //=>
   for(i=0;i<nHours;i++){
     for(j=0;j<courses;j++){
-      s="w{i}{j}";
-      for(k=0;k<nSubjs;k++)
-	if(subjects[k].course==j)
-	  s=s+" or not z{k}{i}";
-      insertsat(s);
+      or {
+        "w{i}{j}";
+        for(k=0;k<nSubjs;k++)
+          if(subjects[k].course==j)
+            not "z{k}{i}";
+      };
     }
   }
   //a subject is assigned to a day if at some hour that day the subject is given
   for(i=0;i<nDays;i++)
     for(j=i*12;j/12 == i;j++)
       for(k=0;k<nSubjs;k++)
-	insertsat("not z{k}{j} or v{k}{i}");
+        not "z{k}{j}" or "v{k}{i}";
   //if there is a subject in a given day, then there is an hour in that day in which the subject is given
   for(i=0;i<nSubjs;i++){
     for(j=0;j<nDays;j++){
-      s="not v{i}{j}";
-      for(k=j*12;k/12==j;k++)
-	s=s+" or z{i}{k}";
-      insertsat(s);
+      or {
+        not "v{i}{j}";
+        for(k=j*12;k/12==j;k++)
+          "z{i}{k}";
+      };
     }
-  }		  
+  }
 }

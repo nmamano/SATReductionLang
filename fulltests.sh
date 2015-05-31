@@ -21,14 +21,14 @@ function run_problem {
 	#the test failed if either answer.long or std.out differs
 	if [[ $(diff -q answer.long ${fproposal}answer.long.cor) ]] || [[ $(diff -q std.out ${fproposal}std.out.cor) ]]; then
 		echo "===== FAILED TEST ====="
-		echo ">>>> diff answer answer.cor"
-		diff answer "${fproposal}answer.cor"
-		echo ">>>> diff answer.long answer.long.cor"
-		diff answer.long "${fproposal}answer.long.cor"
 		echo ">>>> diff std.out std.out.cor"
 		diff std.out "${fproposal}std.out.cor"
 		echo ">>>> diff std.err std.err.cor"
 		diff std.err "${fproposal}std.err.cor"
+		echo ">>>> diff answer answer.cor"
+		diff answer "${fproposal}answer.cor"
+		echo ">>>> diff answer.long answer.long.cor"
+		diff answer.long "${fproposal}answer.long.cor"
 
 		#execute again with debug flag, save output in test/dbg
 		./juezejecutable -d "${f}"jp "${f}"jp2input "${f}"input2sat "${fproposal}"propuestasolucion "${f}"validator "${f}"format > dbg 2> /dev/null

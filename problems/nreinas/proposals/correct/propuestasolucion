@@ -2,16 +2,16 @@ reduction
 {
   // one queen per column and row
   for i in 0..n - 1 {
-  insertsat(exactly 1 {
+  exactly 1 {
     for j in 0..n - 1 {
-      insertsat("row{i}col{j}");
+      "row{i}col{j}";
       }
-    });
-    insertsat(exactly 1 {
+    };
+    exactly 1 {
       for j in 0..n - 1 {
-      insertsat("row{j}col{i}");
+      "row{j}col{i}";
       }
-    });
+    };
   }
   // one queen per diagonal / and one per diagonal \
   for direction in 0..1, i in 0..n + n - 2 {
@@ -28,14 +28,14 @@ reduction
       xd = -1;
       yd = 1;
     }
-    insertsat(atmost 1 {
+    atmost 1 {
       for (j = 0 ; j < n ; ++j) {
         x = r + xd * j;
         y = c + yd * j;
         if (x >= 0 and x<n and y >= 0 and y < n)
-          insertsat("row{x}col{y}");
+          "row{x}col{y}";
       }      
-    });
+    };
   }
 }
 

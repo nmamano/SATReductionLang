@@ -2,71 +2,66 @@ reduction
 {
   for i,s in subjects {
     // specific number of session of the subject
-    numsessions = "exactly {s.hours}";
-    for d in 0..4
-      numsessions = numsessions + " {i}atday{d}";
-    insertsat(numsessions);
+    exactly s.hours {
+      for d in 0..4 "{i}atday{d}";  
+    };
     // with no more than one session per day
     for d in 0..4 {
-      daybound = "";
-      for h in 0..11
-	daybound = daybound + " {i}at{d*12+h}";
-      insertsat("{i}atday{d} => exactly 1"+daybound);
-      insertsat("{i}atday{d} <= atleast 1"+daybound);
+      "{i}atday{d}" implies exactly 1 {
+        for h in 0..11 "{i}at{d*12+h}";
+      };
+      atleast 1 {
+        for h in 0..11 "{i}at{d*12+h}";
+      } implies "{i}atday{d}";
     }
     // with one specific teacher
-    oneteacher = "exactly 1";
-    for t in s.teachers
-      oneteacher = oneteacher + " {i}by{t}";
-    insertsat(oneteacher);
+    exactly 1 {
+      for t in s.teachers "{i}by{t}";
+    };
     // with one specific classroom
-    oneclassroom = "exactly 1";
-    for c in s.classrooms
-      oneclassroom = oneclassroom + " {i}in{c}";
-    insertsat(oneclassroom);
+    exactly 1 {
+      for c in s.classrooms "{i}in{c}";
+    };
   }
   // the teacher can attend all the sessions
   for i,s in subjects, t in s.teachers, h in teachers[t]
-	  insertsat("{i}by{t} => -{i}at{h}");
+    "{i}by{t}" implies not "{i}at{h}";
   // sessions from the same course do not overlap, and overlaping
   // sessions (from different courses) have distinct teacher/classroom
-  insertsat("true");
-  for i , s0 in subjects,j , s1 in subjects 
-      if (j>i)
-	if (s0.course == s1.course){
-	  nooverlap = "true";
-	  for h in 0..59
-	    nooverlap = nooverlap + " & -({i}at{h} & {j}at{h})";
-	  insertsat(nooverlap);
-	}else
-	  for h in 0..59{
-	    nooverlap = "{i}at{h} & {j}at{h} => true";
-      for c in 0..classrooms-1
-	      nooverlap = nooverlap + " & -({i}in{c} & {j}in{c})";
-      for t in 0..teachers.size-1
-	      nooverlap = nooverlap + " & -({i}by{t} & {j}by{t})";
-	    insertsat(nooverlap);
-	  }
+  for i, s0 in subjects, j, s1 in subjects {
+    if (j>i) {
+      if (s0.course == s1.course){
+        for h in 0..59 not ("{i}at{h}" and "{j}at{h}");
+      } 
+      else {
+        for h in 0..59 {
+          ("{i}at{h}" and "{j}at{h}") implies and {
+            for c in 0..classrooms-1
+              not ("{i}in{c}" and "{j}in{c}");
+            for t in 0..teachers.size-1
+              not ("{i}by{t}" and "{j}by{t}");
+          };
+        }
+      }
+    }
+  }
   // at most 6 hours/day per course, and no spare hours between classes
-  insertsat("-false");
   for c in 0..courses-1 {
     for h in 0..59 {
-      coursehour = "course{c}at{h} <=> false";
-      for i,s in subjects
-	if (s.course == c)
-	  coursehour = coursehour + " | {i}at{h}";
-      insertsat(coursehour);
+      "course{c}at{h}" iff or {
+        for i,s in subjects
+          if (s.course == c) "{i}at{h}";
+      };
     }
     for d in 0..4 {
-      daybound = "atmost 6";
-      for h in 0..11
-	daybound = daybound + " course{c}at{d*12+h}";
-      insertsat(daybound);
+      atmost 6 {
+        for h in 0..11 "course{c}at{d*12+h}";
+      };
       for h1 in 1..10 {
-	compact = "course{c}at{d*12+h1-1} & -course{c}at{d*12+h1} => true";
-  for h2 in h1+1..11
-	  compact = compact + " & -course{c}at{d*12+h2}";
-	insertsat(compact);
+        "course{c}at{d*12+h1-1}" and not "course{c}at{d*12+h1}" implies and {
+          for h2 in h1+1..11
+            not "course{c}at{d*12+h2}";
+        };
       }
     }
   }
@@ -77,12 +72,12 @@ reconstruction
   for i,s in subjects {
     for c in s.classrooms
       if (model["{i}in{c}"])
-	res[i].classroom = c;
+  res[i].classroom = c;
     for t in s.teachers
       if (model["{i}by{t}"])
-	res[i].teacher = t;
+  res[i].teacher = t;
     for(h=0 ; h<60 ; ++h)
       if (model["{i}at{h}"])
-	res[i].hours.push = h;
+  res[i].hours.push = h;
   }
 }

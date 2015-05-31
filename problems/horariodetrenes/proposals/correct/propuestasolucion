@@ -1,5 +1,6 @@
-reduction {
-   n=7;
+reduction
+{
+  n=7;
   d10=0; Bryan=0; Buttonwillow=0; Paradise=0;
   d11=1; Eugene=1; Coulterville=1; Quimby=1;
   d12=2; Greg=2; DalyCity=2; Ripley=2;
@@ -7,138 +8,137 @@ reduction {
   d14=4; Luke=4; Jackman=4; Vinalhaven=4;
   d15=5; Nathan=5; Kent=5; Yreka=5;
   d16=6; Thomas=6; Manson=6; Zwingle=6;
-  //each day a different conductor/departure/arrival                                                                                             
+  //each day a different conductor/departure/arrival
   for(i=0;i<n;i++){
-    sx="exactly 1"; sx2="exactly 1";
-    sy="exactly 1"; sy2="exactly 1";
-    sz="exactly 1"; sz2="exactly 1";
-    for(j=0;j<n;j++){
-      sx=sx+" day{i}con{j}"; sx2=sx2+" day{j}con{i}";
-      sy=sy+" day{i}dep{j}"; sy2=sy2+" day{j}dep{i}";
-      sz=sz+" day{i}arr{j}"; sz2=sz2+" day{j}arr{i}";
-    }
-    insertsat(sx); insertsat(sx2);
-    insertsat(sy); insertsat(sy2);
-    insertsat(sz); insertsat(sz2);
+    exactly 1 {
+      for(j=0;j<n;j++) "day{i}con{j}";
+    } and exactly 1 {
+      for(j=0;j<n;j++) "day{j}con{i}";
+    } and exactly 1 {
+      for(j=0;j<n;j++) "day{i}dep{j}";
+    } and exactly 1 {
+      for(j=0;j<n;j++) "day{j}dep{i}";
+    } and exactly 1 {
+      for(j=0;j<n;j++) "day{i}arr{j}";
+    } and exactly 1 {
+      for(j=0;j<n;j++) "day{j}arr{i}";
+    };
   }
-  //dotate u,v,w variables of their meaning                                                                                                      
+  //dotate u,v,w variables of their meaning
   for(i=0;i<n;i++){
-    sx="exactly 1"; sx2="exactly 1";
-    sy="exactly 1"; sy2="exactly 1";
-    sz="exactly 1"; sz2="exactly 1";
-    for(j=0;j<n;j++){
-      sx=sx+" con{i}dep{j}"; sx2=sx2+" con{j}dep{i}";
-      sy=sy+" con{i}arr{j}"; sy2=sy2+" con{j}arr{i}";
-      sz=sz+" dep{i}arr{j}"; sz2=sz2+" dep{j}arr{i}";
-    }
-    insertsat(sx); insertsat(sx2);
-    insertsat(sy); insertsat(sy2);
-    insertsat(sz); insertsat(sz2);
+    exactly 1 {
+      for(j=0;j<n;j++) "con{i}dep{j}";
+    } and exactly 1 {
+      for(j=0;j<n;j++) "con{j}dep{i}";
+    } and exactly 1 {
+      for(j=0;j<n;j++) "con{i}arr{j}";
+    } and exactly 1 {
+      for(j=0;j<n;j++) "con{j}arr{i}";
+    } and exactly 1 {
+      for(j=0;j<n;j++) "dep{i}arr{j}";
+    } and exactly 1 {
+      for(j=0;j<n;j++) "dep{j}arr{i}";
+    };
   }
- for(i=0;i<n;i++){
+  for(i=0;i<n;i++){
     for(j=0;j<n;j++){
       for(k=0;k<n;k++){
-        insertsat("day{i}con{j} and day{i}dep{k} => con{j}dep{k}");
-        insertsat("day{i}con{j} and day{i}arr{k} => con{j}arr{k}");
-        insertsat("day{i}dep{j} and day{i}arr{k} => dep{j}arr{k}");
+        "day{i}con{j}" and "day{i}dep{k}" implies "con{j}dep{k}";
+        "day{i}con{j}" and "day{i}arr{k}" implies "con{j}arr{k}";
+        "day{i}dep{j}" and "day{i}arr{k}" implies "dep{j}arr{k}";
       }
     }
   }
-  //dotate a variables of their meaning                                                                                                          
+  //dotate a variables of their meaning
   for(i=0;i<n;i++){
     for(j=0;j<n;j++){
-        if(i<j)insertsat("a{i}{j}");
-        else insertsat("-a{i}{j}");
+        if(i<j)"a{i}{j}";
+        else not "a{i}{j}";
     }
   }
-  //1 The conductor working on June 15 is either the person                                                                                      
-  //arriving at Paradise or the conductor departing from Daly City.                                                                              
+  //1 The conductor working on June 15 is either the person
+  //arriving at Paradise or the conductor departing from Daly City.
   for(con=0;con<n;con++){
-            insertsat("day{d15}con{con} => con{con}arr{Paradise} or con{con}dep{DalyCity}");
+    "day{d15}con{con}" implies "con{con}arr{Paradise}" or "con{con}dep{DalyCity}";
   }
-  //2 Of the person departing from Coulterville and Thomas,                                                                                      
-  //one will arrive at Paradise and the other is scheduled                                                                                       
-  //to leave on June 14.                                                                                                                         
-  s="(day{d14}con{Thomas})";
-  s2="(dep{Coulterville}arr{Paradise})";
-  s3="(con{Thomas}arr{Paradise} and day{d14}dep{Coulterville})";
-  insertsat("("+s+"=>"+s2+") and ( not "+s+" => "+s3+")");
-
-  //3 Nathan is either the person working on June 15 or the                                                                                      
-  //conductor arriving at Urbandale.                                                                                                             
-  s1="(day{d15}con{Nathan} and not con{Nathan}arr{Urbandale})";
-  s2="(not day{d15}con{Nathan} and con{Nathan}arr{Urbandale})";
-    insertsat(s1+" or "+s2);                                                                                                                   
-   //   insertsat("day{d15}con{Nathan} or con{Nathan}arr{Urbandale}");
-  //4 The person arriving at Quimby will leave 2 days after                                                                                      
-  //the conductor arriving at Zwingle.                                                                                                           
+  //2 Of the person departing from Coulterville and Thomas,
+  //one will arrive at Paradise and the other is scheduled
+  //to leave on June 14.
+  //Equiv: if Thomas leaves on June 14, then, the person
+  //departing from Coulterville arrives at Paradise.
+  //Otherwise, Thomas arrives at Paradise and the person
+  //deprating from Coulterville leaves on June 14.
+  ("day{d14}con{Thomas}" and "dep{Coulterville}arr{Paradise}") or
+  ("con{Thomas}arr{Paradise}" and "day{d14}dep{Coulterville}");
+  //3 Nathan is either the person working on June 15 or the
+  //conductor arriving at Urbandale.
+  "day{d15}con{Nathan}" or "con{Nathan}arr{Urbandale}";
+  //4 The person arriving at Quimby will leave 2 days after
+  //the conductor arriving at Zwingle.
   for(day=0;day<n-2;day++){
-      insertsat("day{day}arr{Zwingle} iff day{day+2}arr{Quimby}");
+    "day{day}arr{Zwingle}" iff "day{day+2}arr{Quimby}";
   }
-      insertsat("not day{n-1}arr{Zwingle} and not day{n-2}arr{Zwingle}");
-      insertsat("not day{0}arr{Quimby} and not day{1}arr{Quimby}");
-  //5 Neither the conductor working on June 14 nor the                                                                                           
-  //person arriving at Vinalhaven is Nathan.                                                                                                     
-      insertsat("not day{d14}con{Nathan}");
-      insertsat("not con{Nathan}arr{Vinalhaven}");
-  //6 The conductor departing from Manson will leave sometime                                                                                    
-  //after the person departing from Kent.                                                                                                        
+  not "day{n-1}arr{Zwingle}" and not "day{n-2}arr{Zwingle}";
+  not "day{0}arr{Quimby}" and not "day{1}arr{Quimby}";
+  //5 Neither the conductor working on June 14 nor the
+  //person arriving at Vinalhaven is Nathan.
+  not "day{d14}con{Nathan}";
+  not "con{Nathan}arr{Vinalhaven}";
+  //6 The conductor departing from Manson will leave sometime
+  //after the person departing from Kent.
   for(day1=0;day1<n;day1++){
     for(day2=0;day2<n;day2++){
-                  insertsat("(day{day1}dep{Manson} and day{day2}dep{Kent}) => a{day2}{day1}");
+      ("day{day1}dep{Manson}" and "day{day2}dep{Kent}") implies "a{day2}{day1}";
     }
   }
-  //7 The person departing from Jackman will leave 3 days                                                                                        
-  //after the person departing from Farley.                                                                                                      
+  //7 The person departing from Jackman will leave 3 days
+  //after the person departing from Farley.
   for(day=0;day<n-3;day++){
-            insertsat("day{day}dep{Farley} iff day{day+3}dep{Jackman}");
+    "day{day}dep{Farley}" iff "day{day+3}dep{Jackman}";
   }
-      insertsat("not day{n-1}dep{Farley} and not day{n-2}dep{Farley} and not day{n-3}dep{Farley}");
-      insertsat("not day{0}dep{Jackman} and not day{1}dep{Jackman} and not day{2}dep{Jackman}");
-  //8 Greg won't arrive at Yreka.                                                                                                                
-        insertsat("not con{Greg}arr{Yreka}");
-  //9 The conductor arriving at Urbandale will leave 4                                                                                           
-  //days after the conductor departing from Daly City.                                                                                           
+  not "day{n-1}dep{Farley}" and not "day{n-2}dep{Farley}" and not "day{n-3}dep{Farley}";
+  not "day{0}dep{Jackman}" and not "day{1}dep{Jackman}" and not "day{2}dep{Jackman}";
+  //8 Greg won't arrive at Yreka.
+  not "con{Greg}arr{Yreka}";
+  //9 The conductor arriving at Urbandale will leave 4
+  //days after the conductor departing from Daly City.
   for(day=0;day<n-4;day++){
-        insertsat("day{day}dep{DalyCity} iff day{day+4}arr{Urbandale}");
+    "day{day}dep{DalyCity}" iff "day{day+4}arr{Urbandale}";
   }
-      insertsat("not day{n-1}dep{DalyCity} and not day{n-2}dep{DalyCity} and not day{n-3}dep{DalyCity} and not day{n-4}dep{DalyCity}");
-      insertsat("not day{0}arr{Urbandale} and not day{1}arr{Urbandale} and not day{2}arr{Urbandale} and not day{3}arr{Urbandale}");
-      insertsat("not dep{DalyCity}arr{Urbandale}");
-  //10 Luke will leave 1 day before the conductor arriving                                                                                       
-  //at Vinalhaven.                                                                                                                               
+  not "day{n-1}dep{DalyCity}" and not "day{n-2}dep{DalyCity}" and not "day{n-3}dep{DalyCity}" and not "day{n-4}dep{DalyCity}";
+  not "day{0}arr{Urbandale}" and not "day{1}arr{Urbandale}" and not "day{2}arr{Urbandale}" and not "day{3}arr{Urbandale}";
+  not "dep{DalyCity}arr{Urbandale}";
+  //10 Luke will leave 1 day before the conductor arriving
+  //at Vinalhaven.
   for(day=0;day<n-1;day++){
-      insertsat("day{day}con{Luke} iff day{day+1}arr{Vinalhaven}");
+    "day{day}con{Luke}" iff "day{day+1}arr{Vinalhaven}";
   }
-      insertsat("not day{n-1}con{Luke} and not day{0}arr{Vinalhaven}");
-      insertsat("not con{Luke}arr{Vinalhaven}");
-  //11 Eugene is either the person arriving at Paradise                                                                                          
-  //or the person departing from Daly City.                                                                                                      
-  s1="(con{Eugene}arr{Paradise} and not con{Eugene}dep{DalyCity})";
-  s2="(not con{Eugene}arr{Paradise} and con{Eugene}dep{DalyCity})";
-      insertsat(s1+" or "+s2);
-  //  insertsat("con{Eugene}arr{Paradise} or con{Eugene}dep{DalyCity}");                                                                         
-  //12 Of the conductor departing from Buttonwillow and the                                                                                      
-  //conductor arriving at Ripley, one is scheduled to leave on                                                                                   
-  //June 11 and the other is scheduled to leave on June 14.                                                                                      
-  s1="(day{d11}dep{Buttonwillow} and day{d14}arr{Ripley})";
-  s2="(day{d11}arr{Ripley} and day{d14}dep{Buttonwillow})";
-      insertsat(s1+" or "+s2);
-  //13 Of the conductor arriving at Yreka and the person                                                                                         
-  //working on June 10, one will depart from Farley and the                                                                                      
-  //other is Luke.                                                                                                                               
-    s1="(dep{Farley}arr{Yreka} and day{d10}con{Luke})";
-  s2="(con{Luke}arr{Yreka} and day{d10}dep{Farley})";
-  insertsat(s1+" or "+s2);
-  //14 The person departing from Kent will leave 2 days                                                                                          
-  //before Bryan.                                                                                                                                
+  not "day{n-1}con{Luke}" and not "day{0}arr{Vinalhaven}";
+  not "con{Luke}arr{Vinalhaven}";
+  //11 Eugene is either the person arriving at Paradise
+  //or the person departing from Daly City.
+  ("con{Eugene}arr{Paradise}" and not "con{Eugene}dep{DalyCity}") or
+  (not "con{Eugene}arr{Paradise}" and "con{Eugene}dep{DalyCity}");
+  //12 Of the conductor departing from Buttonwillow and the
+  //conductor arriving at Ripley, one is scheduled to leave on
+  //June 11 and the other is scheduled to leave on June 14.
+  ("day{d11}dep{Buttonwillow}" and "day{d14}arr{Ripley}") or
+  ("day{d11}arr{Ripley}" and "day{d14}dep{Buttonwillow}");
+  //13 Of the conductor arriving at Yreka and the person
+  //working on June 10, one will depart from Farley and the
+  //other is Luke.
+  ("dep{Farley}arr{Yreka}" and "day{d10}con{Luke}") or
+  ("con{Luke}arr{Yreka}" and "day{d10}dep{Farley}");
+  //14 The person departing from Kent will leave 2 days
+  //before Bryan.
   for(day=0;day<n-2;day++){
-      insertsat("day{day}dep{Kent} iff day{day+2}con{Bryan}");
+    "day{day}dep{Kent}" iff "day{day+2}con{Bryan}";
   }
-    insertsat("not day{n-1}dep{Kent} and not day{n-2}dep{Kent}");
-    insertsat("not day{0}con{Bryan} and not day{1}con{Bryan}");
-
+  not "day{n-1}dep{Kent}" and not "day{n-2}dep{Kent}";
+  not "day{0}con{Bryan}" and not "day{1}con{Bryan}";
 }
+ 
+
 reconstruction
 {
   n=7;

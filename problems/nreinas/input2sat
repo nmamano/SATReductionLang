@@ -3,28 +3,28 @@ reduction
   //x{i}{j}: queen at position (i,j)
   //exactly one per row
   for(i=0;i<n;i++){
-    insertsat(exactly 1 {
-      for(j=0;j<n;j++)insertsat("x{i}{j}");
-    });
+    exactly 1 {
+      for(j=0;j<n;j++)"x{i}{j}";
+    };
   }
   //atmost 1 per column
   for(j=0;j<n;j++){
-    insertsat(atmost 1 {
-      for(i=0;i<n;i++)insertsat("x{i}{j}");
-    });
+    atmost 1 {
+      for(i=0;i<n;i++)"x{i}{j}";
+    };
   }
   for(i=-n;i<n;i++){
-    insertsat(atmost 1 {
-      for(j=0;j<n;j++)insertsat("x{i+j}{j}");
-    });
+    atmost 1 {
+      for(j=0;j<n;j++)"x{i+j}{j}";
+    };
   }
   for(i=-n;i<n;i++){
-    insertsat(atmost 1 {
+    atmost 1 {
       for(j=0;j<n;j++){
         row=i+j;
         col=n-1-j;
-        insertsat("x{row}{col}");
+        "x{row}{col}";
       }
-    });
+    };
   }
 }
