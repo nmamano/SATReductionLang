@@ -1478,6 +1478,15 @@ tvalor &extraerelemento(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
   return in;
 }
 
+/* The AST of stringparametrizado looks like this:
+stringparametrizado
+  string(x{)
+  constante(1)
+  string(})
+Hence in the reconstruction we must not check the model with strings
+that are part of a stringparametrizado */
+bool insidestringparametrizado = false;
+
 tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, int &memoria,
                         string nombremodelo, sat_solver const *modelo)
 {
@@ -1494,15 +1503,25 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
   } else if (nodo.tipo == "constante") {
     return stoll(nodo.texto);
   } else if (nodo.tipo == "string") {
-    return tvalor(nodo.texto);
+    if (MODE == recon and not insidestringparametrizado) {
+      return tvalor(modelo->assignment(nodo.texto));
+    } else {
+      return tvalor(nodo.texto);      
+    }
   } else if (nodo.tipo == "stringparametrizado") {
     string substringsconcatenados = "";
     for (int i = 0; i < int(nodo.hijo.size()); i++) {
+      insidestringparametrizado = true;
       tvalor v = ejecutaexpresion(nodo.hijo[i], in, out, valor, memoria, nombremodelo, modelo);
+      insidestringparametrizado = false;
       subirastring(v);
       substringsconcatenados += v.s;
     }
-    return tvalor(substringsconcatenados);
+    if (MODE == recon) {
+      return tvalor(modelo->assignment(substringsconcatenados));
+    } else {
+      return tvalor(substringsconcatenados);
+    }
   } else if (nodo.tipo == "size") {
     tvalor &v = extraerelemento(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
     if (v.kind != 2)
@@ -1622,26 +1641,40 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
   } else if (nodo.tipo == "implies") {
     tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
     tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
-    if (not (MODE == reduc and hijo1.esstring() and hijo2.esstring())) {
-      rechazarruntime(nodo.linea, nodo.columna, "\"implies\" must be aplied to literals");
+    if (MODE == reduc) {
+      if (not hijo1.esstring() or not hijo2.esstring())
+        rechazarruntime(nodo.linea, nodo.columna, "\"implies\" must be aplied to logical formulas");
+      string id = generaid();
+      out.v.push_back(tvalor(tvalor(negar(id)), tvalor(negar(hijo1.s)), tvalor(hijo2.s)));
+      out.v.push_back(tvalor(tvalor(id), tvalor(hijo1.s)));
+      out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo2.s))));
+      return id;
+    } else if (MODE == recon) {
+      if (not hijo1.esentero() or not hijo2.esentero()) {
+        rechazarruntime(nodo.linea, nodo.columna, "\"implies\" must be applied to logical formulas");
+      }
+      if (hijo1.x == 0) return 1;
+      return hijo2.x != 0;
     }
-    string id = generaid();
-    out.v.push_back(tvalor(tvalor(negar(id)), tvalor(negar(hijo1.s)), tvalor(hijo2.s)));
-    out.v.push_back(tvalor(tvalor(id), tvalor(hijo1.s)));
-    out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo2.s))));
-    return id;
   } else if (nodo.tipo == "iff") {
     tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
     tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, nombremodelo, modelo);
-    if (not (MODE == reduc and hijo1.esstring() and hijo2.esstring())) {
-      rechazarruntime(nodo.linea, nodo.columna, "\"iff\" must be aplied to literals");
+    if (MODE == reduc) {
+      if (not (hijo1.esstring() and hijo2.esstring()))
+        rechazarruntime(nodo.linea, nodo.columna, "\"iff\" must be aplied to logical formulas");
+      string id = generaid();
+      out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo1.s)), tvalor(negar(hijo2.s))));
+      out.v.push_back(tvalor(tvalor(id), tvalor(hijo1.s), tvalor(hijo2.s)));
+      out.v.push_back(tvalor(tvalor(negar(id)), tvalor(negar(hijo1.s)), tvalor(hijo2.s)));
+      out.v.push_back(tvalor(tvalor(negar(id)), tvalor(hijo1.s), tvalor(negar(hijo2.s))));
+      return id;
+    } else if (MODE == recon) {
+      if (not hijo1.esentero() or not hijo2.esentero()) {
+        rechazarruntime(nodo.linea, nodo.columna, "\"implies\" must be applied to logical formulas");
+      }
+      if (hijo1.x == 0) return hijo2.x == 0;
+      return hijo2.x != 0;      
     }
-    string id = generaid();
-    out.v.push_back(tvalor(tvalor(id), tvalor(negar(hijo1.s)), tvalor(negar(hijo2.s))));
-    out.v.push_back(tvalor(tvalor(id), tvalor(hijo1.s), tvalor(hijo2.s)));
-    out.v.push_back(tvalor(tvalor(negar(id)), tvalor(negar(hijo1.s)), tvalor(hijo2.s)));
-    out.v.push_back(tvalor(tvalor(negar(id)), tvalor(hijo1.s), tvalor(negar(hijo2.s))));
-    return id;
   } else if (nodo.tipo == "atmost" or nodo.tipo == "atleast" or nodo.tipo == "exactly") {
     tvalor count = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, nombremodelo, modelo);
     if (not count.esentero()) {
