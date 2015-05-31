@@ -42,5 +42,5 @@ reduction
 reconstruction
 {
   for i in 0..n - 1, j in 0..n - 1
-  board[i][j] = model["row{i}col{j}"];
+  board[i][j] = "row{i}col{j}";
 }

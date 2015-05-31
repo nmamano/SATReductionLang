@@ -35,7 +35,7 @@ reconstruction
   for i,p in song
     for(s=1 ; s<=4 ; ++s)
       for(f=0 ; f<=12 ; ++f)
-  if (model["{s}{f}for{i}th"]){
+  if ("{s}{f}for{i}th"){
     positions[i].s = s;
     positions[i].f = f;
   }

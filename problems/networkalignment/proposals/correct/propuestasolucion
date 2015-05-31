@@ -33,6 +33,6 @@ reconstruction
 {
   for(i1=0 ; i1<n1 ; ++i1)
     for(i2=0 ; i2<n2 ; ++i2)
-      if (model["map{i1}to{i2}"])
+      if ("map{i1}to{i2}")
 	map[i1] = i2;
 }

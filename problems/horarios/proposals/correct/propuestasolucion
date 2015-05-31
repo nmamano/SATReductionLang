@@ -71,13 +71,13 @@ reconstruction
 {
   for i,s in subjects {
     for c in s.classrooms
-      if (model["{i}in{c}"])
+      if ("{i}in{c}")
   res[i].classroom = c;
     for t in s.teachers
-      if (model["{i}by{t}"])
+      if ("{i}by{t}")
   res[i].teacher = t;
     for(h=0 ; h<60 ; ++h)
-      if (model["{i}at{h}"])
+      if ("{i}at{h}")
   res[i].hours.push = h;
   }
 }

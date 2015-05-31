@@ -52,7 +52,7 @@ reconstruction
 			if (pos[i][j])sol[i][j]=pos[i][j];
 			else{
 				for (v = 1; v <= 9; ++v){
-					if (model["pos{i}{j}value{v}"])sol[i][j]=v;
+					if ("pos{i}{j}value{v}")sol[i][j]=v;
 				}
 			}
 		}

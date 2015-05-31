@@ -71,10 +71,10 @@ reconstruction
 {
   for(day=0;day<n-1;day++){
     for(team=0;team<n;team++){
-      if(model["d{day}t{team}"])matches[day][team].visitant=0;
+      if("d{day}t{team}")matches[day][team].visitant=0;
       else matches[day][team].visitant=1;
       for(team2=0;team2<n;team2++){
-  if(model["d{day}t{team}t{team2}"])matches[day][team].opponent=team2;
+  if("d{day}t{team}t{team2}")matches[day][team].opponent=team2;
       }
     }
   } 

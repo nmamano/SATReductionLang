@@ -44,9 +44,11 @@ function run_problem {
 
 run_problem minitest correct
 run_problem minitest scopeexpressions
+run_problem minitest reconexpressions
 run_problem "test" correct
 run_problem "test" scopeexpressions
 run_problem "test" emptyscopeexpressions
+run_problem "test" reconexpressions
 run_problem sudoku correct #does not contain cardinality constraints
 run_problem nreinas correct
 run_problem nreinas badred
