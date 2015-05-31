@@ -1875,20 +1875,24 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
   } else if (nodo.tipo=="and" or nodo.tipo=="or" or nodo.tipo=="atmost" or nodo.tipo=="atleast" or
       nodo.tipo=="exactly" or nodo.tipo=="not" or nodo.tipo=="implies" or nodo.tipo=="iff" or
       nodo.tipo=="string" or nodo.tipo=="stringparametrizado" or nodo.tipo=="identificador") {
-    int lenoutini = int(out.v.size());
-    tvalor variablelogica = ejecutaexpresion(nodo, in, out, valor, memoria, nombremodelo, modelo);
-    comprobartipovariablelogica(nodo, out, variablelogica);
-    out.v.push_back(tvalor(0, tvalor(variablelogica.s)));
-    tnodo* formatarray = &(out.format->hijo[0]);
-    tnodo* formatstring = &(out.format->hijo[0].hijo[0]);
-    for (int i = lenoutini; i < int(out.v.size()); i++) {
-      memoria += 1 + computausomemoria(out.v[i]);
-      tvalor &valoraux = out.v[i];
-      valoraux.format = formatarray;
-      for (int j = 0; j < int(valoraux.v.size()); j++)
-        valoraux.v[j].format = formatstring;
+    if (MODE == reduc) {
+      int lenoutini = int(out.v.size());
+      tvalor variablelogica = ejecutaexpresion(nodo, in, out, valor, memoria, nombremodelo, modelo);
+      comprobartipovariablelogica(nodo, out, variablelogica);
+      out.v.push_back(tvalor(0, tvalor(variablelogica.s)));
+      tnodo* formatarray = &(out.format->hijo[0]);
+      tnodo* formatstring = &(out.format->hijo[0].hijo[0]);
+      for (int i = lenoutini; i < int(out.v.size()); i++) {
+        memoria += 1 + computausomemoria(out.v[i]);
+        tvalor &valoraux = out.v[i];
+        valoraux.format = formatarray;
+        for (int j = 0; j < int(valoraux.v.size()); j++)
+          valoraux.v[j].format = formatstring;
+      }
+      controlmemoria(memoria);
+    } else {
+      rechazarruntime(nodo.linea, nodo.columna, "stand alone expressions can only appear in the reduction");
     }
-    controlmemoria(memoria);
   } else if (nodo.tipo == "push") {
     extraerout(nodo, in, out, valor, memoria, nombremodelo, modelo);
   } else if (nodo.tipo == "if") {
