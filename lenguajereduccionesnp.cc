@@ -1480,6 +1480,7 @@ tvalor &extraerelemento(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
 }
 
 string addtab(const string& s) {
+  if (s == "") return s;
   string res = "  ";
   for (uint i = 0; i < s.size(); i++) {
     res.push_back(s[i]);
