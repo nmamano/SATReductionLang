@@ -1035,7 +1035,7 @@ class sat_solver {
         for (vector<tvalor>::const_iterator j = i->v.begin(); j != i->v.end(); ++j) {
           string const literal = (j->kind == 0) ? itos(j->x) : j->s;
           //cerr<<"add "<<literal<<endl;
-          if (not literal.empty() and literal[0] == '-')
+          if (not literal.empty() and literal[0] == '}')
             clause.push_back(pair<bool, string>(false, literal.substr(1)));
           else
             clause.push_back(pair<bool, string>(true, literal));
@@ -1122,9 +1122,9 @@ void subirastring(tvalor &v)
 }
 
 string negar(string s)
-{
-  if (int(s.size()) > 0 and s[0] == '-') return s.substr(1);
-  return "-" + s;
+{ //using char "}" because it cannot be parsed correctly, so there are no conflicts with the user's logic variables' names
+  if (int(s.size()) > 0 and s[0] == '}') return s.substr(1);
+  return "}" + s;
 }
 
 void generaclausulasladder(const vector<string>& lista, const string& prefijo, tvalor& out) {
