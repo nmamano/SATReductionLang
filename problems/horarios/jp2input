@@ -1,22 +1,22 @@
 //row 1:nCourses,nRooms,nTeachrs,nSubjs.1 row x teachr: nForbid. hrs, hrs. 3 rows x subj: row1: course,hrs,nRooms,nTechrs. row2:rooms. row3:teachers
 main
 {
-  courses = m[0][0];
-  classrooms = m[0][1];
-  for(i=0;i<m[0][2];i++){
+  courses = jp[0][0];
+  classrooms = jp[0][1];
+  for(i=0;i<jp[0][2];i++){
     teachers.push;
-    for(j=0;j<m[1+i][0];j++){
-      teachers[i][j]=m[1+i][1+j];
+    for(j=0;j<jp[1+i][0];j++){
+      teachers[i][j]=jp[1+i][1+j];
     }
   }
-  for(i=0;i<m[0][3];i++){
-    subjects[i].course=m[1+m[0][2]+3*i][0];
-    subjects[i].hours=m[1+m[0][2]+3*i][1];
-    for(j=0;j<m[1+m[0][2]+3*i][2];j++){
-      subjects[i].classrooms[j]=m[1+m[0][2]+3*i+1][j];
+  for(i=0;i<jp[0][3];i++){
+    subjects[i].course=jp[1+jp[0][2]+3*i][0];
+    subjects[i].hours=jp[1+jp[0][2]+3*i][1];
+    for(j=0;j<jp[1+jp[0][2]+3*i][2];j++){
+      subjects[i].classrooms[j]=jp[1+jp[0][2]+3*i+1][j];
     }
-    for(j=0;j<m[1+m[0][2]+3*i][3];j++){
-      subjects[i].teachers[j]=m[1+m[0][2]+3*i+2][j];
+    for(j=0;j<jp[1+jp[0][2]+3*i][3];j++){
+      subjects[i].teachers[j]=jp[1+jp[0][2]+3*i+2][j];
     }
   }
 }

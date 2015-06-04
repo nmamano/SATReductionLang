@@ -1,6 +1,6 @@
 main
 {
-  for(i=0;i<m[0].size;i++){
-    song[i]=m[0][i];
+  for(i=0;i<jp[0].size;i++){
+    song[i]=jp[0][i];
   }
 }

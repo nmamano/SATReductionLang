@@ -1,0 +1,11 @@
+main
+{
+  n = jp[0][0];
+  m = jp[0][1];
+  k = jp[0][2];
+  tasks.push; //add 0'th row
+  for (i=0;i<jp[0][1];++i) {
+    for (j=0;j<jp[0][0];++j)
+      tasks[i][j]=jp[i+1][j];
+  }
+}

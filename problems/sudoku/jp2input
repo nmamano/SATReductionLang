@@ -2,5 +2,5 @@ main
 {
   for (i=0;i<9;++i)
     for (j=0;j<9;++j)
-      pos[i][j]=m[i][j];
+      pos[i][j]=jp[i][j];
 }

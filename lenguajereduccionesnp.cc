@@ -2388,7 +2388,7 @@ void leerjps(string ficherojp, vector<tvalor> &v, tnodo &format)
   for (int i = 0; i < int(vvs.size()); i++) {
     v[i].kind=4;
     v[i].format=&format;
-    leerjp(vvs[i], v[i].m["m"], format.m["m"]);
+    leerjp(vvs[i], v[i].m["jp"], format.m["jp"]);
   }
 }
 
@@ -2472,7 +2472,7 @@ void leerpropuestasolucion(string ficheroprograma, tnodo &nodo1, tnodo &nodo2,
 ////////////////////////////////////////////////////////////////////////
 // Programa principal:
 
-string sformatjp = "struct { m : array of array of int }";
+string sformatjp = "struct { jp : array of array of int }";
 string sformatsat = "array of array of string";
 string sformatvalidador = "struct { valid : int msg : string }";
 

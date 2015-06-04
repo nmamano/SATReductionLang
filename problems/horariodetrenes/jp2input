@@ -1,4 +1,4 @@
 main
 {
-  __waste = m[0][0];
+  __waste = jp[0][0];
 }
