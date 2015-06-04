@@ -60,6 +60,7 @@ run_problem nreinas writetoin
 run_problem nreinas readfromout
 run_problem nreinas varnamedout
 run_problem horarios correct
+run_problem horarios showred
 run_problem ligadeportiva correct
 run_problem horariodetrenes correct
 run_problem cancionukelele correct
