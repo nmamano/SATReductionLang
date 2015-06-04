@@ -86,3 +86,4 @@ run_problem consejo correct
 run_problem selecciontrabajadores correct
 run_problem sequencealignment correct
 run_problem simulaciondevuelo correct
+run_problem hospitalpsiquiatrico correct

@@ -1,0 +1,6 @@
+main
+{
+  n = jp[0][0];
+  m = jp[0][1];
+  for(i=0;i<jp[1].size;i++)patients[i]=jp[1][i];
+}

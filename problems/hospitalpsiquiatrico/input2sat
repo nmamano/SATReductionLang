@@ -1,0 +1,59 @@
+reduction
+{
+  r=n+m;
+  pats&=patients;
+  p=pats.size;
+  //variables "pat{i}room{j}"
+  //every patient assigned to a single room
+  for(i=0;i<p;i++){
+    exactly 1 {
+      for(j=0;j<r;j++)"pat{i}room{j}";
+    };
+  }
+  //room capacity respected
+  for i in 0..r-1 {
+    if (i < n) c = 4;
+    else c = 6;
+    atmost c {
+      for(j=0;j<p;j++)"pat{j}room{i}";
+      for(j=0;j<p;j++)if(pats[j]==4)"pat{j}room{i}";
+      for(j=0;j<p;j++)if(pats[j]==4)"pat{j}room{i}";
+    };
+  }
+  //profiles
+  for(i=0;i<p;i++){
+    if(pats[i]==1)for(j=0;j<n;j++)not "pat{i}room{j}";
+    if(pats[i]==2){
+      for(j=0;j<r;j++){
+        "pat{i}room{j}" implies atmost 3 {
+          for(k=0;k<p;k++)"pat{k}room{j}";
+        };
+      }
+    }
+    if(pats[i]==3){
+      for(j=0;j<r;j++){
+        "pat{i}room{j}" implies atleast 2 {
+        for(k=0;k<p;k++)"pat{k}room{j}";
+        };
+      }
+    }
+  }
+  //dangerous profiles
+  for(i=0;i<p;i++)if(pats[i]==3 or pats[i]==5)
+    for(j=i+1;j<p;j++)if(pats[j]==3 or pats[j]==5)
+      for(k=0;k<r;k++)
+        not "pat{i}room{k}" or not "pat{j}room{k}";
+  
+  // no 3 agoraphobics in a small room
+  for(i=0;i<n;i++){
+    atmost 2 {
+      for(j=0;j<p;j++)if(pats[j]==2)"pat{j}room{i}";
+    };
+  }
+  // no 4 claustrophobics in a large room
+  for(i=n;i<r;i++){
+    atmost 3 {
+      for(j=0;j<p;j++)if(pats[j]==1)"pat{j}room{i}";
+    };
+  }
+}

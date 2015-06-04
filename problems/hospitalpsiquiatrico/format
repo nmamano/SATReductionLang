@@ -1,0 +1,6 @@
+struct {
+   n: int
+   m: int
+   patients: array of int
+}
+struct { rooms: array of int }
