@@ -788,7 +788,7 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     ivt++;
     saltartipo(vt, ivt, ";");
   } else if (vt[ivt].tipo == "__in") {
-    rechazar(vt[ivt].linea, vt[ivt].columna, "Cannot write to input variable " + vt[ivt+2].texto + ".");
+    rechazar(vt[ivt].linea, vt[ivt].columna, "we expected to see {\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"stop\",\"expr\"}, but we found input variable \""+vt[ivt+2].texto+"\".");
   } else
     seesperabaver(vt, ivt, "{\"if\",\"ident\",\"++\",\"--\",\"{\",\"while\",\"for\",\"stop\",\"expr\"}");
 }

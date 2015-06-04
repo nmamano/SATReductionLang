@@ -57,6 +57,9 @@ run_problem "test" missingsemicolonscopeexpression2
 run_problem "test" missingsemicolonscopeexpression3
 run_problem "test" numexpr
 run_problem "test" foundstringini
+run_problem "test" foundin
+run_problem "test" foundin2
+run_problem "test" foundin3
 run_problem sudoku correct #does not contain cardinality constraints
 run_problem nreinas correct
 run_problem nreinas badred
