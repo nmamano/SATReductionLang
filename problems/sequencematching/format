@@ -1,0 +1,6 @@
+struct {
+       n: int
+       M: array of array of int
+       S: array of int
+}
+struct{step:array of array of int}

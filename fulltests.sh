@@ -89,3 +89,4 @@ run_problem simulaciondevuelo correct
 run_problem hospitalpsiquiatrico correct
 run_problem explorargraella correct
 run_problem explorargraella2 correct
+run_problem sequencematching correct

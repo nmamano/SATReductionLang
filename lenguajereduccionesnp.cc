@@ -1575,9 +1575,10 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
   } else if (nodo.tipo == "and") {
     if (nodo.hijo.size() == 2) { // binary case
       tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, modelo);
+      if (hijo1.esentero() and hijo1.x == 0) return 0; //lazy evaluation
       tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, modelo);
       if (hijo1.esentero() and hijo2.esentero()) {
-        return hijo1.x == 1 and hijo2.x == 1;
+        return hijo1.x != 0 and hijo2.x != 0;
       } else if (hijo1.esstring() and hijo2.esstring()) {
         if (MODE == reduc) {
           string id = generaid();
@@ -1643,9 +1644,10 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
   } else if (nodo.tipo == "or") {
     if (nodo.hijo.size() == 2) { // binary case
       tvalor hijo1 = ejecutaexpresion(nodo.hijo[0], in, out, valor, memoria, modelo);
+      if (hijo1.esentero() and hijo1.x != 0) return 1; //lazy evaluation
       tvalor hijo2 = ejecutaexpresion(nodo.hijo[1], in, out, valor, memoria, modelo);
       if (hijo1.esentero() and hijo2.esentero()) {
-        return hijo1.x == 1 or hijo2.x == 1;
+        return hijo1.x != 0 or hijo2.x != 0;
       } else if (hijo1.esstring() and hijo2.esstring()) {
         if (MODE == reduc) {
           string id = generaid();

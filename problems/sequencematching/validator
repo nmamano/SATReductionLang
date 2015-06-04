@@ -1,0 +1,78 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution.step: the solution.step reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   msg: string
+// }
+main {
+     valid = 0;
+     n = input.n;
+     //check that the solution.step has the correct format
+     if(solution.step.size < n) {
+       msg = "The solution.step only has "+solution.step.size+" rows, but it should have n ("+n+").";
+       stop;
+     }
+     for(i=0;i<n;i++) {
+       if(solution.step[i].size < n) {
+	 msg="The "+i+" row of the solution.step only has "+solution.step[i].size+" columns, but it should have n ("+n+").";
+	 stop;
+       }
+     }
+     for(i=0;i<n;i++){
+       for(j=0;j<n;j++){
+	 if(solution.step[i][j]<0 or solution.step[i][j]>=n*n){
+	   msg="The position ("+i+","+j+") of the solution.step contains a "+solution.step[i][j]+" which is not a valid index, i.e. a value betweeen 0 and n*n ("+n*n+").";
+	   stop;
+	 }
+       }
+     }
+     //check no repeats
+     for(i=0;i<n;i++){
+       for(j=0;j<n;j++){
+	 for(i2=i;i2<n;i2++){
+	   for(j2=j+1;j2<n;j2++){
+	     if(solution.step[i][j]==solution.step[i2][j2]){
+	       msg="The positions ("+i+","+j+") and ("+i2+","+j2+") have assigned the index "+solution.step[i][j]+" assigned, but the path should not repeat any cell.";
+	       stop;
+	     }
+	   }
+	 }
+       }
+     }
+     //check starts at top-left corner
+     if(solution.step[0][0] != 0){
+       msg="The position (0,0) has assigned the index "+solution.step[0][0]+" but it should have the index 0.";
+       stop;
+     }
+     //check no jumps
+     for(i=0;i<n;i++){
+       for(j=0;j<n;j++){
+	 num=solution.step[i][j];
+	 if(num != n*n-1) {
+	   found=0;
+	   if(i>0 and solution.step[i-1][j] == num+1) found++;
+	   if(i<n-1 and solution.step[i+1][j] == num+1) found++;
+	   if(j>0 and solution.step[i][j-1] == num+1) found++;
+	   if(j<n-1 and solution.step[i][j+1] == num+1) found++;
+	   if(found==0){
+	     msg="There is a discontinuity in the path at index "+num+" (cell ("+i+","+j+")).";
+	     stop;
+           }
+	 }
+       }
+     }
+     //check path matches sequence
+     for(i=0;i<n;i++){
+       for(j=0;j<n;j++){
+	 if(input.M[i][j] != input.S[solution.step[i][j]]) {
+	   msg="The path does not match the sequence at index "+solution.step[i][j]+" (cell ("+i+","+j+")). It should be a "+input.S[solution.step[i][j]]+", but it is a "+input.M[i][j]+".";
+	   stop;
+	 }
+       }
+     }
+
+     valid=1;
+     msg="And it is correct.";
+}
