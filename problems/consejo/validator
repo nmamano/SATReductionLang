@@ -1,0 +1,80 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution: the solution reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   msg: string
+// }
+main {
+     valid = 0;
+     sol &= solution.committee;
+     mems &= input.members;
+     inp &= input;
+     n = inp.n;
+     //check that the solution has the correct format
+     if(sol.size<n){
+       msg="The solution only contains "+sol.size+" elements, but it should contain as many as members ("+n+").";
+       stop;
+     }
+     for(i=0;i<n;i++){
+       if(sol[i]!=0 and sol[i]!=1){
+	 msg="The position "+i+" of the solution contains a "+sol[i]+", but it should contain either a 0 or a 1";
+	 stop;
+       }
+     }
+     //check the committee is not empty
+     count=0;
+     for(i=0;i<n;i++){
+       if(sol[i]==1)count++;
+     }
+     if(count==0){
+       msg="The committee is empty. It should have at least one member.";
+       stop;
+     }
+     //check that every guy is happy
+     for(i=0;i<n;i++){
+       pref=mems[i].preference;
+       if(pref==2){
+	 if(sol[i]==0){
+	   msg="The member "+i+" wants to be in the committee (preference type 2), but it is not in it.";
+	   stop;
+	 }
+       }
+       if(pref==3){
+	 if(sol[i]==0){
+	   for(j=0;j<mems[i].chosen_members.size;j++){
+	     if(sol[mems[i].chosen_members[j]]==0){
+	       msg="The member "+i+" (preference type 3) is not in the committee and one of its representants, member "+j+", is not in it either.";
+	       stop;
+	     }
+	   }
+	 }
+       }
+       if(pref==4){
+	 if(sol[i]==0){
+	   for(j=0;j<mems[i].chosen_members.size;j++){
+	     if(sol[mems[i].chosen_members[j]]==1){
+	       msg="The member "+i+" (preference type 4) is not in the committee but the member "+j+", who has opposite views, is in it.";
+	       stop;
+	     }
+	   }
+	 }
+       }
+       if(pref==5){
+	 if(sol[i]==1){
+	   msg="The member "+i+" does not want to be in the committee (preference type 5), but is in it.";
+	   stop;
+	 }
+       }
+     }
+     //check no conflicts
+     for(i=0;i<inp.conflicts.size;i++){
+       if(sol[inp.conflicts[i][0]] == 1 and sol[inp.conflicts[i][1]] == 1){
+	 msg="The members "+inp.conflicts[i][0]+" and "+inp.conflicts[i][1]+" are both part of the committee, but there is a conflict between them.";
+	 stop;
+       }
+     }
+     valid=1;
+     msg="And it is correct.";
+}

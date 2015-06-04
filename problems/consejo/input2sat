@@ -1,0 +1,28 @@
+reduction
+{
+  //x{i}: member x is in the committee
+
+  //committee not empty
+  atleast 1 {
+    for i in 0..n - 1 "x{i}";
+  };
+
+  //no conflicts
+  for (i = 0; i < conflicts.size; i++)
+    not "x{conflicts[i][0]}" or not "x{conflicts[i][1]}";
+
+  //everyone happy
+  for (i = 0; i < n; i++) {
+    pref = members[i].preference;
+    if (pref == 2) "x{i}";
+    if (pref == 5) not "x{i}";
+    if (pref == 3)
+      "x{i}" or and {
+        for j in members[i].chosen_members "x{j}";
+      };
+    if (pref == 4)
+      or {
+        for j in members[i].chosen_members "x{j}";
+      } implies "x{i}";
+  }
+}

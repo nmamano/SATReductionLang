@@ -1,0 +1,11 @@
+struct {
+  n: int
+  members: array of struct {
+    preference: int
+    chosen_members: array of int
+  }
+  conflicts: array of array [2] of int
+}
+struct {
+  committee: array of int
+}

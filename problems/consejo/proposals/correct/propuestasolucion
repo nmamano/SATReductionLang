@@ -1,0 +1,31 @@
+reduction
+{
+  // non-empty committee
+  or {
+    for i in 0..n-1 "{i}";
+  };
+  // respect preferences of each one
+  for i,m in members{
+    if (m.preference == 1){
+      // doesn't care
+    }else if (m.preference == 2){
+      "{i}";
+    }else if (m.preference == 3){
+      "{i}" or and {
+        for j,c in m.chosen_members "{c}";
+      };
+    }else if (m.preference == 4){
+      for c in m.chosen_members "{c}" implies "{i}";
+    }else if (m.preference == 5){
+      not "{i}";
+    }
+  }
+  // avoid conflicts
+  for c in conflicts not ("{c[0]}" and "{c[1]}");
+}
+
+reconstruction
+{
+  for(i=0 ; i<n ; ++i)
+    committee[i] = "{i}";
+}
