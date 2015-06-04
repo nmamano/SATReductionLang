@@ -1,0 +1,42 @@
+reduction
+{
+  not "false";
+  //compute max path size
+  numWalkable = 0;
+  for(i=0;i<n;i++)
+    for(j=0;j<n;j++)
+      if(grid[i][j]==0)numWalkable++;
+  if((numWalkable-1)*5 > cost){
+    "false";
+    stop;
+  }
+  l=numWalkable+(cost-(numWalkable-1)*5)/2;
+  //each step at most 1 cell
+  for(k=0;k<l;k++){
+    exactly 1 {
+      for(i=0;i<n;i++)
+        for(j=0;j<n;j++) "cell{k}at{i}{j}";
+    };
+  }
+  //path is continuous
+  for(k=1;k<l;k++)
+    for(i=0;i<n;i++)
+      for(j=0;j<n;j++)
+        "cell{k}at{i}{j}" implies ("cell{k-1}at{i-1}{j}" or "cell{k-1}at{i+1}{j}"
+          or "cell{k-1}at{i}{j-1}" or "cell{k-1}at{i}{j+1}");
+  //dont step out of the grid
+  for(i=0;i<l;i++)
+    for(j=0;j<n;j++)
+      not ("cell{i}at{j}{-1}" or "cell{i}at{j}{n}" or "cell{i}at{-1}{j}" or "cell{i}at{n}{j}");
+  //visit every cell and dont step on walls
+  for(i=0;i<n;i++)
+    for(j=0;j<n;j++){
+      f = or {
+        for(k=0;k<l;k++)"cell{k}at{i}{j}";
+      };
+      if(grid[i][j]==0) f;
+      else not f;
+    }
+  //start at s
+  "cell{0}at{s.i}{s.j}";
+}

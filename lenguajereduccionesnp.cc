@@ -749,7 +749,9 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     } else if (vt[ivt+1].tipo == "and" or vt[ivt+1].tipo == "or" or
         vt[ivt+1].tipo == "iff" or vt[ivt+1].tipo == "implies" or vt[ivt+1].tipo == ";") {
       parsingexpresion(nodo, vt, ivt);
-      saltartipo(vt, ivt, ";");
+      if (ivt == int(vt.size()) or vt[ivt].tipo != ";")
+        seesperabaver(vt, ivt, "{\";\",\"or\",\"and\",\"implies\",\"iff\"}");
+      ivt++;
     } else {
       rechazar(vt[ivt].linea, vt[ivt].columna, "Unexpected token after identifier");
     }

@@ -1,0 +1,65 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution: the solution reconstructed by propuestasolucion
+// }
+//  struct {
+//   valid: int
+//   msg: string
+// }
+main {
+     valid = 0;
+     
+     inp &= input;
+     sol &= solution.path;
+     n = inp.n;
+     grid&=inp.grid;
+     cost = inp.cost;
+     k = sol.size;
+     //check that the solution has the correct format
+     for(i=0;i<k;i++){
+       if(sol[i].i<0 or sol[i].i>=n or sol[i].j<0 or sol[i].j>=n){
+	 msg="The element "+i+" of the solution is (i="+sol[i].i+", "+sol[i].j+"), which is not a valid cell. Cells range from (0, 0) to (n-1, n-1), and n = "+n+".";
+	 stop;
+       }
+     }
+     //check that path is continuous
+     for(i=0;i<k-1;i++){
+       mh=abs(sol[i].i-sol[i+1].i);
+       mv=abs(sol[i].j-sol[i+1].j);
+       if(not ((mh==1 and mv==0) or (mh==0 and mv==1))){
+	 msg="The step "+(i+1)+" from ("+sol[i].i+", "+sol[i].j+") to ("+sol[i+1].i+", "+sol[i+1].j+") is not valid because the cells are not adjacent.";
+	 stop;
+       }
+     }
+     //check that path doesn't walk into walls
+     for(i=0;i<k;i++)if(grid[sol[i].i][sol[i].j]==1){
+	 msg="The path includes the cell ("+sol[i].i+", "+sol[i].j+") in the position "+i+", which is a wall.";
+	 stop;
+       }
+     //check that the path starts at s
+     if(sol[0].i!=inp.s.i or sol[0].j!=inp.s.j){
+       msg="The first cell of the solution is ("+sol[0].i+", "+sol[0].j+"), which is not s (s = ("+inp.s.i+", "+inp.s.j+")).";
+       stop;
+     } 
+     //check that path visits every cell
+     for(i=0;i<n;i++)for(j=0;j<n;j++)if(grid[i][j]==0){
+	   found=0;
+	   for(h=0;h<k;h++)if(sol[h].i==i and sol[h].j==j)found=1;
+	   if(found==0){
+	     msg="The path does not include the cell ("+i+", "+j+"), which is walkable.";
+	     stop;
+	   }
+	 }
+     //check cost bound
+     //if we reached this point, we know that we have visited every cell.
+     numWalkable=0;
+     for(i=0;i<n;i++)for(j=0;j<n;j++)if(grid[i][j]==0)numWalkable++;
+     pathCost = (numWalkable-1)*5; //this is the cost of new cells
+     pathCost = pathCost + ((k-1)-(numWalkable-1))*2; //the remaining steps are to already visited cells, i.e. have cost 2
+     if(pathCost > cost){
+       msg="The path has cost "+pathCost+", which exceeds the maximum cost ("+cost+").";
+       stop;
+     }
+     valid=1;
+     msg="And it is correct.";
+}

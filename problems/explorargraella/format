@@ -1,0 +1,13 @@
+struct {
+   n: int
+   grid: array of array of int
+   s: struct {
+      i: int
+      j: int
+   }
+   cost: int
+}
+struct { path: array of struct {
+   i: int
+   j: int
+}}
