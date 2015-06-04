@@ -12,6 +12,7 @@ mkdir problems/"${NAME}"
 cp other/reduccionessat/"${NAME}"/{format,jp,jp2input,input2sat,validator} problems/"${NAME}"/
 mkdir -p problems/"${NAME}"/proposals/correct
 touch problems/"${NAME}"/proposals/correct/propuestasolucion
+touch problems/"${NAME}"/proposals/correct/std.out.cor
 cp problems/nreinas/proposals/correct/{answer.cor,answer.long.cor,std.err.cor} problems/"${NAME}"/proposals/correct/
 echo "run_problem ${NAME} correct" >> fulltests.sh
 
