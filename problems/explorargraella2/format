@@ -1,0 +1,23 @@
+struct {
+   n: int
+   grid: array of array of int
+   s: struct {
+      i: int
+      j: int
+   }
+   teleports: array of struct {
+      source: struct {
+         i: int
+         j: int
+      }
+      target: struct {
+         i: int
+	 j: int
+      }
+   }
+   k: int
+}
+struct { path: array of struct {
+   i: int
+   j: int
+}}

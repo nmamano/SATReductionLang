@@ -1,0 +1,71 @@
+reduction
+{
+  not "false";
+  l = k;
+  //each step at most 1 cell
+  for (k_ = 0; k_ < l; k_++) {
+    exactly 1{
+      for (i = 0; i < n; i++)
+        for (j = 0; j < n; j++) "cell{k_}at{i}{j}";
+    };
+  }
+  //path is continuous
+  for (k_ = 1; k_ < l; k_++)
+    for (i = 0; i < n; i++)
+      for (j = 0; j < n; j++)
+        if (i != s.i or j != s.j) {
+          "cell{k_}at{i}{j}" implies or {
+            if (i > 0)"cell{k_-1}at{i-1}{j}";
+            if (j > 0)"cell{k_-1}at{i}{j-1}";
+            if (i < n - 1)"cell{k_-1}at{i+1}{j}";
+            if (j < n - 1)"cell{k_-1}at{i}{j+1}";
+            //add teleports
+            for t in teleports {
+              sou &= t.source; tar &= t.target;
+              adjacent = (abs(sou.i - tar.i) == 1 and sou.j == tar.j)
+                         or (abs(sou.j - tar.j) == 1 and sou.i == tar.i);
+              if (not adjacent)
+                if (t.target.i == i and t.target.j == j)
+                  "cell{k_-1}at{t.source.i}{t.source.j}";
+            }
+          };
+        }
+  //dont reuse teleports
+  for t in teleports {
+    sou &= t.source; tar &= t.target;
+    adjacent = (abs(sou.i - tar.i) == 1 and sou.j == tar.j)
+               or (abs(sou.j - tar.j) == 1 and sou.i == tar.i);
+    if (not adjacent) {
+      atmost 1 {
+        for (k_ = 0; k_ < l - 1; k_++)
+          ("cell{k_}at{t.source.i}{t.source.j}" and "cell{k_}at{t.target.i}{t.target.j}");
+      };
+    }
+  }
+  // dont step on walls
+  for (i = 0; i < n; i++)
+    for (j = 0; j < n; j++)
+      if (grid[i][j] == 1)
+        not or {
+          for (k_ = 0; k_ < l; k_++) "cell{k_}at{i}{j}";
+        };
+  // see every cell
+  for (i = 0; i < n; i++)
+    for (j = 0; j < n; j++)
+      if (grid[i][j] == 0)
+        or {
+          for (k_ = 0; k_ < l; k_++) {
+            "cell{k_}at{i}{j}";
+            if (i > 0 and j > 0)"cell{k_}at{i-1}{j-1}";
+            if (i > 0)"cell{k_}at{i-1}{j}";
+            if (j > 0)"cell{k_}at{i}{j-1}";
+            if (i < n - 1 and j < n - 1)"cell{k_}at{i+1}{j+1}";
+            if (i < n - 1)"cell{k_}at{i+1}{j}";
+            if (j < n - 1)"cell{k_}at{i}{j+1}";
+            if (i > 0 and j < n - 1)"cell{k_}at{i-1}{j+1}";
+            if (i < n - 1 and j > 0)"cell{k_}at{i+1}{j-1}";
+          }
+        };
+  //start at s
+  "cell{0}at{s.i}{s.j}";
+}
