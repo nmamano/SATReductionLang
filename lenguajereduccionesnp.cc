@@ -818,11 +818,6 @@ void parsinglistainstrucciones(tnodo &nodo, vector<ttoken> &vt, int &ivt)
   nodo.tipo = "lista";
   saltartipo(vt, ivt, "{");
   while (ivt < int(vt.size()) and vt[ivt].tipo != "}") {
-    /*
-    (vt[ivt].tipo=="if" or vt[ivt].tipo=="identificador" or vt[ivt].tipo=="{"
-    or vt[ivt].tipo=="outprefix" or vt[ivt].tipo=="stop" or vt[ivt].tipo=="while" or
-    vt[ivt].tipo=="for" or vt[ivt].tipo==")) {
-    */
     nodo.hijo.push_back(tnodo());
     parsinginstruccion(nodo.hijo.back(), vt, ivt);
   }
@@ -2257,7 +2252,7 @@ void mensajeaceptacionconreconstruccion()
 ////////////////////////////////////////////////////////////
 // Analisis lexico del formateador (analizador de tipo):
 
-set<string> palabrasclaveformat = {"struct", "array", "int", "string", "index", "of"};
+set<string> palabrasclaveformat = {"struct", "array", "int", "string", "of"};
 set<string> cadenasclaveformat = {"{", "}", "[", "]", ":", "//"};
 
 void leerentradaformat(string &s, vector<ttoken> &vt, int linea)
