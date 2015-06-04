@@ -1755,7 +1755,11 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
     }
     if (nodo.tipo == "max") return max(v[0], v[1]);
     if (nodo.tipo == "min") return min(v[0], v[1]);
-    if (nodo.tipo == "+") return v[0] + v[1];
+    if (nodo.tipo == "+") {
+      if (MODE == reduc and (v[0].esstring() or v[1].esstring()))
+        rechazarruntime(nodo.linea, nodo.columna, "Invalid operands on \"+\"");
+      return v[0] + v[1];
+    } 
     if (nodo.tipo == "*") return v[0] * v[1];
     if (nodo.tipo == "/") return v[0] / v[1];
     if (nodo.tipo == "%") return v[0] % v[1];
@@ -1772,9 +1776,6 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
           tvalor t(negar(v[0].s));
           if (storestringformula) t.stringformula = "not "+v[0].stringformula;
           return t;
-        }
-        else {
-          rechazarruntime(nodo.linea, nodo.columna, "Invalid operand on \"not\"");
         }
       }
       rechazarruntime(nodo.linea, nodo.columna, "Invalid operand on \"not\"");
