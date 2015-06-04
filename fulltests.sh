@@ -64,6 +64,8 @@ run_problem "test" foundout
 run_problem "test" foundout2
 run_problem "test" logicformularecon
 run_problem "test" addstringsred
+run_problem "test" missingred
+run_problem "test" missingrec
 run_problem sudoku correct #does not contain cardinality constraints
 run_problem nreinas correct
 run_problem nreinas badred

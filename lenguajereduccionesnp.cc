@@ -831,8 +831,10 @@ void parsinglistainstrucciones(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 
 void parsing(tnodo &nodo, vector<ttoken> &vt, int &ivt, string tipoprograma)
 {
-  if (ivt == int(vt.size()) or vt[ivt].tipo != tipoprograma)
-    rechazar("The program must have the format \""+tipoprograma+" { <instructions> }\"");
+  if (ivt == int(vt.size()) or vt[ivt].tipo != tipoprograma) {
+    if (tipoprograma == "main") rechazar("The program must have the format \"main { <instructions> }\"");
+    else rechazar("The program must have the format \"reduction { <instructions> }    reconstruction { <instructions> }\"");
+  }
   nodo = vt[ivt];
   nodo.hijo.push_back(tnodo());
   ivt++;
