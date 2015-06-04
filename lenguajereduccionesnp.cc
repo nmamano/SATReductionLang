@@ -186,7 +186,7 @@ void leerconstante(const string &s, int &is, vector<ttoken> &vt, int linea, int 
   if (nextis - is >= limitenumdigitos)
     rechazar(linea, is + 1 + desplazamientocolumna, "the constant \"" + s.substr(is, nextis - is) + "\" is too big.\n" +
           simplerProgramMsg);
-  vt.push_back(ttoken("constante", s.substr(is, nextis - is), linea, is + 1 + desplazamientocolumna));
+  vt.push_back(ttoken("constant", s.substr(is, nextis - is), linea, is + 1 + desplazamientocolumna));
   is = nextis;
 }
 
@@ -354,6 +354,7 @@ void seesperabaver(vector<ttoken> &vt, int &ivt, string t)
 {
   if (ivt == int(vt.size()))
     rechazar("Error: the end of the program was reached when we expected to see " + t + ".");
+  string foundtype = vt[ivt].tipo;
   rechazar(vt[ivt].linea, vt[ivt].columna, "we expected to see " + t + ", but we found \"" +
         vt[ivt].tipo + "\".");
 }
@@ -433,7 +434,7 @@ void parsingunarios(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     nodo.hijo.push_back(tnodo());
     ivt++;
     parsingunarios(nodo.hijo[0], vt, ivt);
-  } else if (vt[ivt].tipo == "constante" or vt[ivt].tipo == "string") {
+  } else if (vt[ivt].tipo == "constant" or vt[ivt].tipo == "string") {
     nodo = vt[ivt];
     ivt++;
   } else if (vt[ivt].tipo=="stringini") {
@@ -1513,7 +1514,7 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
       return v;
     }
     return valor[nodo.texto];
-  } else if (nodo.tipo == "constante") {
+  } else if (nodo.tipo == "constant") {
     return stoll(nodo.texto);
   } else if (nodo.tipo == "string") {
     if (MODE == recon and not insidestringparametrizado) {
@@ -2283,8 +2284,8 @@ void parsingformat(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     ivt++;
     if (ivt < int(vt.size()) and vt[ivt].tipo == "[") {
       ivt++;
-      if (ivt == int(vt.size()) or vt[ivt].tipo != "constante")
-        seesperabaver(vt, ivt, "\"constante\"");
+      if (ivt == int(vt.size()) or vt[ivt].tipo != "constant")
+        seesperabaver(vt, ivt, "\"constant\"");
       nodo.texto = vt[ivt].texto;
       ivt++;
       saltartipo(vt, ivt, "]");
