@@ -65,3 +65,5 @@ run_problem ligadeportiva correct
 run_problem horariodetrenes correct
 run_problem cancionukelele correct
 run_problem networkalignment correct
+run_problem consejo correct
+run_problem selecciontrabajadores correct

@@ -1,0 +1,49 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution.set: the solution.set reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   msg: string
+// }
+
+main {
+    n = input.n;
+    m = input.m;
+    k = input.k;
+    s = solution.set.size;
+    if (s < n) {
+        msg = "The array of the solution.set has size smaller than n.";
+        valid = 0;
+        stop;
+    }
+    count = 0;
+    for (i = 0; i <n ; i++) {
+        if (solution.set[i] == 1) count = count+1;
+	    if (solution.set[i] != 0 and solution.set[i] != 1) {
+	        msg = "The array of the solution.set contains values other than 0 or 1.";
+	        valid = 0;
+	        stop;
+	    }
+    }
+    if (count != k) {
+        msg = "The set does not contain k workers (it contains " + count + " instead of " + k + ").";
+        valid = 0;
+        stop;
+    }
+    for (i = 0; i < m; i++) {
+        foundWorker = 0;
+        for (j = 0; j < n and foundWorker == 0; j++) {
+            if (input.tasks[i][j] == 1 and solution.set[j] == 1) {
+                foundWorker = 1;
+            }
+        }
+        if (foundWorker == 0) {
+            msg = "The set has k workers, but none of them can perform one of the tasks.";
+            valid = 0;
+            stop;
+        }
+    }
+    msg="And it is correct.";
+    valid = 1;
+}

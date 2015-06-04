@@ -1,0 +1,9 @@
+reduction {
+  exactly k {
+    for i in 0..n-1 "{i}";
+  };
+  //each task has a worker who can do it
+  for i in 0..m-1 atleast 1 {
+    for j in 0..n-1 if (tasks[i][j]) "{j}";
+  };
+}

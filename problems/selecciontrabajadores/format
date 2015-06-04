@@ -1,0 +1,9 @@
+struct {
+n: int
+m: int
+k: int
+tasks: array of array of int
+}
+struct {
+set:array of int
+}
