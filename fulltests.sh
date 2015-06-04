@@ -85,3 +85,4 @@ run_problem networkalignment correct
 run_problem consejo correct
 run_problem selecciontrabajadores correct
 run_problem sequencealignment correct
+run_problem simulaciondevuelo correct

@@ -1,0 +1,11 @@
+struct {
+   h: int
+   l: int
+   A: int
+   B: int
+   cave: array of array of int
+}
+struct {
+   planeA: array of int
+   planeB: array of int
+}

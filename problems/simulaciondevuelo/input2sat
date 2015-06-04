@@ -1,0 +1,32 @@
+reduction
+{
+  //path defined
+  for i in 0..l - 1 {
+    exactly 1 {
+      for j in 0..h - 1 "A{i}{j}";
+    };
+    exactly 1 {
+      for j in 0..h - 1 "B{i}{j}";
+    };
+  }
+  //correct start
+  "A{0}{A}";
+  "B{0}{B}";
+  //continuous path
+  for i in 0..l-2, j in 0..h-1, k in 0..h-1 {
+    if (abs(j-k)>1) {
+      "A{i}{j}" implies not "A{i+1}{k}";
+      "B{i}{j}" implies not "B{i+1}{k}";
+    }
+  }
+  //crashes
+  for (i = 0; i < l; i++)
+    for (j = 0; j < h; j++) {
+      not "A{i}{j}" or not "B{i}{j}";
+      if (cave[j][i] == 1) not "A{i}{j}" and not "B{i}{j}";
+    }
+  //A below B at the end
+  for (i = 0; i < h; i++)
+    for (j = i + 1; j < h; j++)
+      "A{l-1}{i}" implies not "B{l-1}{j}";
+}

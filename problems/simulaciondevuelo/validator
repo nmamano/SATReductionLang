@@ -1,0 +1,83 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution: the solution reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   msg: string
+
+// }
+main {
+     valid = 0;
+     
+     inp &= input;
+     sol &= solution;
+     h=inp.h;l=inp.l;A=inp.A;B=inp.B;cave&=inp.cave;
+     routeA&=sol.planeA;routeB&=sol.planeB;
+     //check that the solution has the correct format
+     if(routeA.size<l){
+       msg="The array planeA of the solution has only size "+routeA.size+", but it should have size l ("+l+").";
+       stop;
+     }
+     if(routeB.size<l){
+       msg="The array planeB of the solution has only size "+routeB.size+", but it should have size l ("+l+").";
+       stop;
+     }
+     for(i=0;i<l;i++){
+       if(routeA[i]<0 or routeA[i]>=h){
+         msg="The "+i+" element of the array planeA is a "+routeA[i]+", which is not a valid row, a value between 0 and h-1 ("+(h-1)+").";
+	 stop;
+       }
+       if(routeB[i]<0 or routeB[i]>=h){
+	 msg="The "+i+" element of the array planeB is a "+routeB[i]+", which is not a valid row, a value between 0 and h-1 ("+(h-1)+").";
+	 stop;
+       }
+     }
+     //check that planes moves are legal
+     for(i=1;i<l;i++){
+       if(abs(routeA[i-1]-routeA[i])>1){
+	 msg="Plane A cannot move from square ("+routeA[i-1]+", "+(i-1)+") to square ("+routeA[i]+", "+i+").";
+	 stop;
+       }
+       if(abs(routeB[i-1]-routeB[i])>1){
+	 msg="Plane B cannot move from square ("+routeB[i-1]+", "+(i-1)+") to square ("+routeB[i]+", "+i+").";
+	 stop;
+       }
+     }
+     //check that planes start in the right place
+     if(routeA[0]!=A){
+       msg="Plane A was supposed to start at square (A, 0), but it starts at square ("+routeA[0]+", 0) instead (A = "+A+").";
+       stop;
+     }
+     if(routeB[0]!=B){
+       msg="Plane B was supposed to start at square (B, 0), but it starts at square ("+routeB[0]+", 0) instead (B = "+B+").";
+       stop;
+     }
+     //check that planes never crash into obstacles
+     for(i=0;i<l;i++){
+       if(cave[routeA[i]][i]==1){
+	 msg="The plane A crashes into an obstacle at square ("+routeA[i]+", "+i+").";
+	 stop;
+       }
+       if(cave[routeB[i]][i]==1){
+	 msg="The plane B crashes into an obstacle at square ("+routeB[i]+", "+i+").";
+	 stop;
+       }
+     }
+     //check that planes dont crash into each other
+     for(i=0;i<l;i++){
+       if(routeA[i]==routeB[i]){
+	 msg="Planes crash into each other at square ("+routeA[i]+", "+i+").";
+	 stop;
+       }
+     }
+     //plane A ends below plane B
+     if(routeA[l-1]<routeB[l-1]){
+       msg="Plane A ends in square ("+routeA[l-1]+", "+(l-1)+"), whereas plane B ends in square ("+routeB[l-1]+", "+(l-1)+"), but the plane A had to end below plane B.";
+       stop;
+     }
+
+
+     valid=1;
+     msg="And it is correct.";
+}
