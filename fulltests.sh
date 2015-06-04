@@ -62,6 +62,7 @@ run_problem "test" foundin2
 run_problem "test" foundin3
 run_problem "test" foundout
 run_problem "test" foundout2
+run_problem "test" logicformularecon
 run_problem sudoku correct #does not contain cardinality constraints
 run_problem nreinas correct
 run_problem nreinas badred

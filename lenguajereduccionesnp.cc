@@ -1978,7 +1978,7 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
       }
       controlmemoria(memoria);
     } else {
-      rechazarruntime(nodo.linea, nodo.columna, "stand alone expressions can only appear in the reduction");
+      rechazarruntime(nodo.linea, nodo.columna, "stand-alone logical formulas can only appear in the reduction.");
     }
   } else if (nodo.tipo == "push") {
     extraerout(nodo, in, out, valor, memoria, modelo);
