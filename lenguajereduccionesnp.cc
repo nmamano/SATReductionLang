@@ -30,6 +30,14 @@ bool DBG_MODE = false;
 //set this to false to make diffs directly between outputs
 bool OUTPUT_RUNTIMES = false; 
 
+string inprefix = "__in__";
+string outprefix = "__out__";
+string jpstring = "jp";
+
+//using char "}" because it cannot be parsed correctly,
+//so there are no conflicts with the user's logic variables' names
+char neglitchar = '}'; 
+
 typedef long long int ll;
 
 ll stollsat(string s)
@@ -163,11 +171,11 @@ void leeridentificador(const string &s, int &is, vector<ttoken> &vt, int linea, 
   } else if (isfield(id, infields) and (vt.size() == 0 or vt[vt.size()-1].tipo != ".")) {
     //the second condition is for cases such as input:
     //struct { teachers: int subjects: struct { teachers: array of int } }
-    vt.push_back(ttoken("__in", "", linea, is + 1 + desplazamientocolumna));
+    vt.push_back(ttoken(inprefix, "", linea, is + 1 + desplazamientocolumna));
     vt.push_back(ttoken(".", "", linea, is + 1 + desplazamientocolumna));
     vt.push_back(ttoken("identificador", id, linea, is + 1 + desplazamientocolumna));
   } else if (isfield(id, outfields) and (vt.size() == 0 or vt[vt.size()-1].tipo != ".")) {
-    vt.push_back(ttoken("__out", "", linea, is + 1 + desplazamientocolumna));
+    vt.push_back(ttoken("outprefix", "", linea, is + 1 + desplazamientocolumna));
     vt.push_back(ttoken(".", "", linea, is + 1 + desplazamientocolumna));
     vt.push_back(ttoken("identificador", id, linea, is + 1 + desplazamientocolumna));    
   } else {
@@ -356,10 +364,10 @@ void seesperabaver(vector<ttoken> &vt, int &ivt, string t)
     rechazar("Error: the end of the program was reached when we expected to see " + t + ".");
   string foundtype = vt[ivt].tipo;
   if (foundtype == "stringini") foundtype = "string";
-  if (foundtype == "__out") 
+  if (foundtype == "outprefix") 
     rechazar(vt[ivt].linea, vt[ivt].columna, "we expected to see " + t + ", but we found " +
         "output variable \""+vt[ivt+2].texto+"\".");
-  if (foundtype == "__in")
+  if (foundtype == inprefix)
     rechazar(vt[ivt].linea, vt[ivt].columna, "we expected to see " + t + ", but we found " +
         "input variable \""+vt[ivt+2].texto+"\".");
   rechazar(vt[ivt].linea, vt[ivt].columna, "we expected to see " + t + ", but we found \"" +
@@ -392,7 +400,7 @@ void parsinglistainstrucciones(tnodo &nodo, vector<ttoken> &vt, int &ivt);
 
 void parsingin(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
-  if (ivt == int(vt.size()) or (vt[ivt].tipo != "identificador" and vt[ivt].tipo != "__in"))
+  if (ivt == int(vt.size()) or (vt[ivt].tipo != "identificador" and vt[ivt].tipo != inprefix))
     seesperabaver(vt, ivt, "{\"ident\"}");
   nodo = vt[ivt];
 
@@ -479,9 +487,9 @@ void parsingunarios(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     ivt++;
     parsingexpresion(nodo, vt, ivt);
     saltartipo(vt, ivt, ")");
-  } else if (vt[ivt].tipo == "identificador" or vt[ivt].tipo == "__in") {
+  } else if (vt[ivt].tipo == "identificador" or vt[ivt].tipo == inprefix) {
     parsingin(nodo, vt, ivt);
-  } else if (vt[ivt].tipo == "__out") {
+  } else if (vt[ivt].tipo == "outprefix") {
     rechazar(vt[ivt].linea, vt[ivt].columna, "cannot read from output variable " + vt[ivt+2].texto + ".");
   } else if (vt[ivt].tipo == "and" or vt[ivt].tipo == "or") {
     nodo = vt[ivt];
@@ -626,7 +634,7 @@ void parsingasignacionsimple(tnodo &nodo, vector<ttoken> &vt, int &ivt, string t
 
 void parsingout(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
-  if (ivt == int(vt.size()) or vt[ivt].tipo != "__out")
+  if (ivt == int(vt.size()) or vt[ivt].tipo != "outprefix")
     seesperabaver(vt, ivt, "ident");
   nodo = vt[ivt];
   ivt++;
@@ -753,7 +761,7 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     if (ivt == int(vt.size()) or vt[ivt].tipo != ";")
       seesperabaver(vt, ivt, "{\";\",\"or\",\"and\",\"implies\",\"iff\"}");
     ivt++;
-  } else if (vt[ivt].tipo == "__out") {
+  } else if (vt[ivt].tipo == "outprefix") {
     parsingout(nodo, vt, ivt);
     if (ivt < int(vt.size()) and vt[ivt].tipo == "=") {
       tnodo nodoaux = nodo;
@@ -812,7 +820,7 @@ void parsinglistainstrucciones(tnodo &nodo, vector<ttoken> &vt, int &ivt)
   while (ivt < int(vt.size()) and vt[ivt].tipo != "}") {
     /*
     (vt[ivt].tipo=="if" or vt[ivt].tipo=="identificador" or vt[ivt].tipo=="{"
-    or vt[ivt].tipo=="__out" or vt[ivt].tipo=="stop" or vt[ivt].tipo=="while" or
+    or vt[ivt].tipo=="outprefix" or vt[ivt].tipo=="stop" or vt[ivt].tipo=="while" or
     vt[ivt].tipo=="for" or vt[ivt].tipo==")) {
     */
     nodo.hijo.push_back(tnodo());
@@ -1051,7 +1059,7 @@ class sat_solver {
         for (vector<tvalor>::const_iterator j = i->v.begin(); j != i->v.end(); ++j) {
           string const literal = (j->kind == 0) ? itos(j->x) : j->s;
           //cerr<<"add "<<literal<<endl;
-          if (not literal.empty() and literal[0] == '}')
+          if (not literal.empty() and literal[0] == neglitchar)
             clause.push_back(pair<bool, string>(false, literal.substr(1)));
           else
             clause.push_back(pair<bool, string>(true, literal));
@@ -1138,9 +1146,9 @@ void subirastring(tvalor &v)
 }
 
 string negar(string s)
-{ //using char "}" because it cannot be parsed correctly, so there are no conflicts with the user's logic variables' names
-  if (int(s.size()) > 0 and s[0] == '}') return s.substr(1);
-  return "}" + s;
+{ 
+  if (int(s.size()) > 0 and s[0] == neglitchar) return s.substr(1);
+  return string(1, neglitchar) + s;
 }
 
 void generaclausulasladder(const vector<string>& lista, const string& prefijo, tvalor& out) {
@@ -1455,7 +1463,7 @@ int ejecutainstruccion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor>
 tvalor &extraerelemento(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, int &memoria,
                         sat_solver const *modelo)
 {
-  if (nodo.tipo == "__in") return in;
+  if (nodo.tipo == inprefix) return in;
   if (nodo.tipo == "identificador") {
     if (valor.count(nodo.texto) == 0)
       rechazarruntime(nodo.linea, nodo.columna, "using the variable \"" + nodo.texto + "\" when no value has been assigned to it.");
@@ -1558,7 +1566,7 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
     if (v.kind != 2)
       rechazarruntime(nodo.linea, nodo.columna, "\"size\" must be applied to an array.");
     return int(v.v.size());
-  } else if (nodo.tipo == "__in" or nodo.tipo == "back" or nodo.tipo == "[" or nodo.tipo == ".") {
+  } else if (nodo.tipo == inprefix or nodo.tipo == "back" or nodo.tipo == "[" or nodo.tipo == ".") {
     tvalor &v = extraerelemento(nodo, in, out, valor, memoria, modelo);
     if (v.kind != 0 and v.kind != 1)
       rechazarruntime(nodo.linea, nodo.columna, "only simple types inside the input can be accessed in an expression.");
@@ -1778,7 +1786,7 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
 tvalor &extraerout(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor> &valor, int &memoria,
                    sat_solver const *modelo)
 {
-  if (nodo.tipo == "__out") return out;
+  if (nodo.tipo == "outprefix") return out;
   tvalor &v1 = extraerout(nodo.hijo[0], in, out, valor, memoria, modelo);
   if (nodo.tipo == ".") {
     if (v1.kind != 4)
@@ -2404,7 +2412,7 @@ void leerjps(string ficherojp, vector<tvalor> &v, tnodo &format)
   for (int i = 0; i < int(vvs.size()); i++) {
     v[i].kind=4;
     v[i].format=&format;
-    leerjp(vvs[i], v[i].m["jp"], format.m["jp"]);
+    leerjp(vvs[i], v[i].m[jpstring], format.m[jpstring]);
   }
 }
 
@@ -2488,7 +2496,7 @@ void leerpropuestasolucion(string ficheroprograma, tnodo &nodo1, tnodo &nodo2,
 ////////////////////////////////////////////////////////////////////////
 // Programa principal:
 
-string sformatjp = "struct { jp : array of array of int }";
+string sformatjp = "struct { "+jpstring+" : array of array of int }";
 string sformatsat = "array of array of string";
 string sformatvalidador = "struct { valid : int msg : string }";
 
@@ -2540,7 +2548,7 @@ int main(int argc, char *argv[])
   leerpropuestasolucion(ficheropropuestasolucion, nodopropuestasolucion2sat, nodopropuestasolucion2solucion,
     getfieldsstruct(formatinput), getfieldsstruct(formatsolucion));
 
-  comprobarnoseusatipo(nodopropuestasolucion2sat, "__out",
+  comprobarnoseusatipo(nodopropuestasolucion2sat, "outprefix",
                        "the output cannot be directly accessed in a reduction to SAT,\nuse logical expressions directly to create your formula.");
   
   cout << "TIEMPO LECTURA Y PARSING = " << (OUTPUT_RUNTIMES ? tlectura.elapsedstring() : "-1") << endl;
