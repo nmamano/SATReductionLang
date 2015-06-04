@@ -355,8 +355,9 @@ void seesperabaver(vector<ttoken> &vt, int &ivt, string t)
   if (ivt == int(vt.size()))
     rechazar("Error: the end of the program was reached when we expected to see " + t + ".");
   string foundtype = vt[ivt].tipo;
+  if (foundtype == "stringini") foundtype = "string";
   rechazar(vt[ivt].linea, vt[ivt].columna, "we expected to see " + t + ", but we found \"" +
-        vt[ivt].tipo + "\".");
+        foundtype + "\".");
 }
 
 void comprobartipo(vector<ttoken> &vt,int &ivt,string t)
