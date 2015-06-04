@@ -1,0 +1,33 @@
+----//format: n1,n2,k. row: strand1: row: strand2
+2 1 1
+0 0
+0
+----//trivial sat input
+2 1 1
+0 1
+1
+----//trivial unsat input
+2 1 1
+0 1
+2
+----//unsat
+3 2 1
+0 1 2
+2 0
+----//sat
+3 1 0
+0 1 2
+3
+----//unsat input (forces that ordering matters)
+4 2 2
+2 0 1 2
+1 0
+----//sat
+10 1 1
+0 1 2 0 1 2 3 0 1 2
+3
+----//sat
+10 5 4
+0 2 2 1 1 1 1 1 1 0 2
+0 1 2 0 2
+----

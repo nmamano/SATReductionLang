@@ -1,0 +1,12 @@
+main
+{
+  n1 = jp[0][0];
+  n2 = jp[0][1];
+  k = jp[0][2];
+  for(i=0;i<jp[0][0];i++){
+    strand1[i]=jp[1][i];
+  }
+  for(i=0;i<jp[0][1];i++){
+    strand2[i]=jp[2][i];
+  }
+}

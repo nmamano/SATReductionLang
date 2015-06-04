@@ -1,0 +1,46 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution: the solution reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   msg: string
+// }
+main {
+     valid = 0;
+     
+     inp &= input;
+     sol &= solution.index;
+     s1 &= inp.strand1;
+     s2 &= inp.strand2;
+     n1=inp.n1;
+     n2=inp.n2;
+     k=inp.k;
+     //check that the solution has the correct format
+     if(sol.size<n2){
+       msg="The solution should have size n2 ("+n2+"), but it has size "+sol.size+".";
+       stop;
+     }
+     for(i=0;i<n2;i++){
+       if(sol[i]<0 or sol[i]>=n1){
+	 msg="Each value in the solution should be a value between 0 and n1-1, but the element "+i+" is "+sol[i]+".";
+	 stop;
+       }
+     }
+     for(i=0;i<n2-1;i++){
+       if(sol[i]>=sol[i+1]){
+	 msg="The amino acid "+i+" has a larger index than the amino acid "+(i+1)+".";
+	 stop;
+       }
+     }
+     count=0;
+     for(i=0;i<n2;i++){
+       if(s2[i]==s1[sol[i]])count++;
+     }
+     if(count<k){
+       msg="Only "+count+" amino acids match, but at least k ("+k+") should match.";
+       stop;
+     }
+     valid=1;
+     msg="And it is correct.";
+}

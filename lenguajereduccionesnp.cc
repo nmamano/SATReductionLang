@@ -1604,6 +1604,20 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
         //las demas clausulas son las que les dan el significado apropiado
         else out.v.push_back(clause);
       }
+      if (int(sol.size()) == 0) {
+        string id = generaid();
+        tvalor valor;
+        valor.kind = 2;
+        valor.v.push_back(tvalor(id));
+        valor.v.push_back(tvalor(id));
+        /* Why is id added 2 times in the same clause?
+        See comment for the or case
+        */
+        out.v.push_back(valor);
+        tvalor t(id);
+        if (storestringformula) t.stringformula = "and {\n" + addtab(scopeout.stringformula) + "}";
+        return t;
+      }
       if (int(sol.size()) == 1) {
         tvalor t(sol[0]);
         if (storestringformula) t.stringformula = "and {\n" + addtab(scopeout.stringformula) + "}";
@@ -1657,6 +1671,30 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
         if (clause.v.size() == 1) sol.push_back(clause.v[0].s);
         //las demas clausulas son las que les dan el significado apropiado
         else out.v.push_back(clause);
+      }
+      if (int(sol.size()) == 0) {
+        string id = generaid();
+        tvalor valor;
+        valor.kind = 2;
+        valor.v.push_back(tvalor(negar(id)));
+        valor.v.push_back(tvalor(negar(id)));
+        /* Why is negar(id) added 2 times in the same clause?
+        Because the rule with expression-scopes is that clauses with a single variable
+        contain variables that are logically equivalent to an explicitly stated formula,
+        such as '"x" or "y"' in: 'or { "x" or "y"; };'
+        while clauses with more than one variable are the clausules needed to enforce the meaning
+        of these variables.
+        In this case, id is the variable equivalent to the stated empty or, and it should be
+        logically equivalent to false. Hence, we need to enforce negar(id).
+        We add it two times to show that it is not a stated formula.
+
+        This should be refactorized, dotating variables with an attribute
+        "stated" or "auxiliar"
+        */
+        out.v.push_back(valor);
+        tvalor t(id);
+        if (storestringformula) t.stringformula = "or {\n" + addtab(scopeout.stringformula) + "}";
+        return t;
       }
       if (int(sol.size()) == 1) {
         tvalor t(sol[0]);

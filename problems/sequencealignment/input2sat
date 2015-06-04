@@ -1,0 +1,33 @@
+reduction
+{
+  //vars {i}{j} amino acid i has index j
+
+  //every amino has an index
+  for i in 0..n2-1 {
+    exactly 1 {
+      for j in 0..n1-1 "{i}{j}";
+    };
+  }
+  //indexes are different
+  for i in 0..n1-1 {
+    atmost 1 {
+      for j in 0..n2-1 "{j}{i}";
+    };
+  }
+  //indexes are ordered
+  for i in 0..n2-2, j in 1..n1-1 {
+    "{i}{j}" implies and {
+      for u in 0..j-1 not "{i+1}{u}";
+    };
+  }
+  //at least k aligned
+  for i in 0..n2-1 {
+    "{i}" iff or {
+      for j in 0..n1-1
+        if (strand2[i]==strand1[j]) "{i}{j}";
+    };
+  }
+  atleast k {
+    for i in 0..n2-1 "{i}";
+  };
+}

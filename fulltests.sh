@@ -66,6 +66,8 @@ run_problem "test" logicformularecon
 run_problem "test" addstringsred
 run_problem "test" missingred
 run_problem "test" missingrec
+run_problem "test" orneuter
+run_problem "test" andneuter
 run_problem sudoku correct #does not contain cardinality constraints
 run_problem nreinas correct
 run_problem nreinas badred
@@ -82,3 +84,4 @@ run_problem cancionukelele correct
 run_problem networkalignment correct
 run_problem consejo correct
 run_problem selecciontrabajadores correct
+run_problem sequencealignment correct

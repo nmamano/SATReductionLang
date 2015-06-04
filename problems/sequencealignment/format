@@ -1,0 +1,10 @@
+struct {
+   n1: int
+   n2: int
+   strand1: array of int
+   strand2: array of int
+   k: int
+}
+struct {
+  index: array of int
+}
