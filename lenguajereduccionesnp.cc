@@ -734,7 +734,9 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
       vt[ivt].tipo == "atmost" or vt[ivt].tipo == "and" or vt[ivt].tipo == "stringini" or
       vt[ivt].tipo == "(") {
     parsingexpresion(nodo, vt, ivt);
-    saltartipo(vt, ivt, ";");
+    if (ivt == int(vt.size()) or vt[ivt].tipo != ";")
+      seesperabaver(vt, ivt, "{\";\",\"or\",\"and\",\"implies\",\"iff\"}");
+    ivt++;
   } else if (vt[ivt].tipo == "__out") {
     parsingout(nodo, vt, ivt);
     if (ivt < int(vt.size()) and vt[ivt].tipo == "=") {

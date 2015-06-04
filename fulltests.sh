@@ -52,6 +52,9 @@ run_problem "test" reconexpressions
 run_problem "test" varwithdash
 run_problem "test" showred
 run_problem "test" stopinred
+run_problem "test" missingsemicolonscopeexpression
+run_problem "test" missingsemicolonscopeexpression2
+run_problem "test" missingsemicolonscopeexpression3
 run_problem sudoku correct #does not contain cardinality constraints
 run_problem nreinas correct
 run_problem nreinas badred
