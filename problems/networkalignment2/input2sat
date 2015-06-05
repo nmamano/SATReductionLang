@@ -1,0 +1,64 @@
+reduction{
+
+  //a{i}{j} node i mapped to node j
+
+  //each node in G1 maps to a single node in G2
+  for (i = 0; i < n1; i++) {
+    exactly 1 {
+      s = "exactly 1";
+      for (j = 0; j < n2; j++)"a{i}{j}";
+    };
+  }
+  //each node in G2 mapped to at most one node in G1
+  for (i = 0; i < n2; i++) {
+    atmost 1{
+      for (j = 0; j < n1; j++)"a{j}{i}";
+    };
+  }
+
+  //e{i}{j} edge (i,j) is aligned
+
+  //if the nodes of an edge in G1 are mapped to the nodes
+  //of an edge in G2, then that edge is aligned
+  for (i = 0; i < m1; i++) {
+    x1 = E1[i][0];
+    y1 = E1[i][1];
+    for (j = 0; j < m2; j++) {
+      x2 = E2[j][0];
+      y2 = E2[j][1];
+      ("a{x1}{x2}" and "a{y1}{y2}") or ("a{x1}{y2}" and "a{y1}{x2}") implies "e{x2}{y2}";
+    }
+  }
+  //if an edge in G2 is aligned, then the images of its nodes
+  //are adjacent
+  for (j = 0; j < m2; j++) {
+    x2 = E2[j][0];
+    y2 = E2[j][1];
+    "e{x2}{y2}" implies atleast 1 {
+      for (i = 0; i < m1; i++) {
+        x1 = E1[i][0];
+        y1 = E1[i][1];
+        "a{x1}{x2}" and "a{y1}{y2}";
+        "a{x1}{y2}" and "a{y1}{x2}";
+      }
+    };
+  }
+  //d{i}{j} edge (i,j) is selected
+  for (i = 0; i < m2; i++) {
+    x = E2[i][0]; y = E2[i][1];
+    "d{x}{y}" iff atleast 1 {
+      for (j = 0; j < n1; j++) "a{j}{x}";
+    } and atleast 1 {
+      for (j = 0; j < n1; j++) "a{j}{y}";
+    };
+  }
+
+  //f{i}{j} selected but not aligned
+  for (i = 0; i < m2; i++) {
+    x = E2[i][0]; y = E2[i][1];
+    "f{x}{y}" iff "d{x}{y}" and not "e{x}{y}";
+  }
+  atmost k {
+    for (i = 0; i < m2; i++) "f{E2[i][0]}{E2[i][1]}";
+  };
+}

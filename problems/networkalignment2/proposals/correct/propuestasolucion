@@ -1,0 +1,44 @@
+reduction
+{
+  // injection from G1 to G2
+  for(i1=0 ; i1<n1 ; ++i1){
+    exactly 1{
+    for(i2=0 ; i2<n2 ; ++i2)
+      "map{i1}to{i2}";
+    };
+  }
+  for(i2=0 ; i2<n2 ; ++i2){
+    atmost 1{
+    for(i1=0 ; i1<n1 ; ++i1)
+      "map{i1}to{i2}";
+    };
+  }
+  // if an edge of E2 is fine, then it is aligned to one of E1 or not mapped
+  for e2,p2 in E2 {
+    "fine{e2}" implies or{
+      for e1,p1 in E1 {
+        "map{p1[0]}to{p2[0]}" and "map{p1[1]}to{p2[1]}";
+        "map{p1[1]}to{p2[0]}" and "map{p1[0]}to{p2[1]}";
+      }
+      for(e=0 ; e<2 ; ++e){
+        and {
+          for(i1=0 ; i1<n1 ; ++i1)
+            not "map{i1}to{p2[e]}";
+        };
+      }
+    };
+  }
+  // minimum number of fine edges of E2
+  atmost k {
+    for e2,p2 in E2
+      not "fine{e2}";
+  };
+}
+
+reconstruction
+{
+  for(i1=0 ; i1<n1 ; ++i1)
+    for(i2=0 ; i2<n2 ; ++i2)
+      if ("map{i1}to{i2}")
+	map[i1] = i2;
+}

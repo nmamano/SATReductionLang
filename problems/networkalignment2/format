@@ -1,0 +1,10 @@
+struct {
+    n1: int
+    n2: int
+    m1: int
+    m2: int
+    k: int
+    E1: array of array [2] of int
+    E2: array of array [2] of int
+}
+struct{map:array of int}

@@ -1,0 +1,58 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution.map: the solution.map reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   msg: string
+// }
+main {
+     valid = 0;
+     //check that the solution.map has the correct format
+     if(solution.map.size < input.n1) {
+         msg = "The solution.map has size "+solution.map.size+", but it should have size n1 ("+input.n1+").";
+         stop;
+     }
+     for(i=0;i<input.n1;i++){
+	if(solution.map[i] < 0 or solution.map[i] >= input.n2){
+          msg="The position "+i+" of the solution.map contains a "+solution.map[i]+", which is not a value between 0 and n2-1 ("+input.n2+").";
+	  stop;
+	}
+     }
+     //check no repeated entries
+     for(i=0;i<input.n1;i++){
+       for(j=i+1;j<input.n1;j++){
+	 if(solution.map[i]==solution.map[j]){
+	   msg="The mapping is not valid because nodes "+i+" and "+j+" in G1 are mapped to the same node in G2: "+solution.map[i]+".";
+	   stop;
+	 }
+       }
+     }
+     //count edges between mapped nodes
+     count1 = 0;
+     for(j=0;j<input.m2;j++){
+	x2=input.E2[j][0]; y2=input.E2[j][1];
+	x2isimage = 0; y2isimage = 0;
+	for(i=0;i<input.n1;i++){
+	  if(solution.map[i]==x2) x2isimage=1;
+	  if(solution.map[i]==y2) y2isimage=1;
+	}
+	if(x2isimage == 1 and y2isimage == 1) count1++;
+     }
+     //count aligned edges
+     count2 = 0;
+     for(i=0;i<input.m1;i++){
+       x=solution.map[input.E1[i][0]]; y=solution.map[input.E1[i][1]];
+       for(j=0;j<input.m2;j++){
+	 x2=input.E2[j][0]; y2=input.E2[j][1];
+	 if((x==x2 and y==y2) or (x==y2 and y==x2)) count2++;
+       }
+     }
+     if(count1-count2 > input.k){
+       msg="Out of "+count1+" edges in G2 between nodes that are image of some node in G1, "+(count1-count2)+" of them were not aligned, but there should be at most k ("+input.k+").";
+       stop;
+     }
+
+     valid=1;
+     msg="And it is correct.";
+}
