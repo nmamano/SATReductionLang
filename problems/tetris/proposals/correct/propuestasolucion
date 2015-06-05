@@ -1,0 +1,59 @@
+reduction
+{
+  // each position occupied by at most one shape
+  for (r = 0 ; r < n ; ++r)
+    for (c = 0 ; c < m ; ++c)
+      atmost 1 {
+        for (i = 0 ; i < shapes.size ; ++i)"{r}{c}has{i}th";
+      };
+  // each shape occupies 4 positions
+  for (i = 0 ; i < shapes.size ; ++i) {
+    exactly 4 {
+      for (r = 0 ; r < n ; ++r)
+        for (c = 0 ; c < m ; ++c)"{r}{c}has{i}th";
+    };
+  }
+  // each shape is directly supported by the ground or a previous shape
+  for (i = 0 ; i < shapes.size ; ++i) {
+    or{
+      for (r = 0 ; r < n ; ++r)
+        for (c = 0 ; c < m ; ++c)
+          if (r == n - 1)"{r}{c}has{i}th";
+          else if (i > 0) "{r}{c}has{i}th" and or {
+            for (j = 0 ; j < i ; ++j) "{r+1}{c}has{j}th";
+          };
+    };
+  }
+  // each shape is not directly supported by a subsequent shape
+  // (the implied {r+1}{c}has{i}th is redundant, but helps minisat)
+  for (i = 0 ; i < shapes.size - 1 ; ++i)
+    for (r = 0 ; r < n - 1 ; ++r)
+      for (c = 0 ; c < m ; ++c)
+        "{r}{c}has{i}th" implies "{r+1}{c}has{i}th" or and {
+          for (j = i + 1 ; j < shapes.size ; ++j)not "{r+1}{c}has{j}th";
+        };
+  // proper and connex form for each of the shapes
+  for i, s in shapes
+    exactly 1 {
+      for bitmask in bitmasks[i]
+        for (r = 0 ; r <= n - bitmask.size ; ++r)
+          for (c = 0 ; c <= m - bitmask[0].size ; ++c)
+            and {
+              for rr, bitrow in bitmask
+                for cc, bit in bitrow
+                  if (bit) "{r+rr}{c+cc}has{i}th";
+            };
+    };
+}
+
+reconstruction
+{
+  for (r = 0 ; r < n ; ++r)
+    for (c = 0 ; c < m ; ++c) {
+      val = -1;
+      for (i = 0 ; i < shapes.size ; ++i)
+        if ("{r}{c}has{i}th")
+          val = i;
+      piece[r][c] = val;
+    }
+}

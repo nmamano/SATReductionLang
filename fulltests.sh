@@ -92,3 +92,4 @@ run_problem explorargraella2 correct
 run_problem sequencematching correct
 run_problem networkalignment2 correct
 run_problem planificacionaceria correct
+run_problem tetris correct

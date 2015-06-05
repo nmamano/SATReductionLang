@@ -1,0 +1,169 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution: the solution reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   msg: string
+// }
+main {
+     valid = 0;
+     //check that the solution has the correct format
+     sol &= solution.piece;
+     n = input.n;
+     m = input.m;
+     S &= input.shapes;
+     if(sol.size!=n){
+       msg="The solution has "+sol.size+" rows, but it should have n ("+n+").";
+       stop;
+     }
+     for r,row in sol{
+       if (row.size!=m){
+	 msg="The solution has "+row.size+" columns at row "+(r+1)+", but it should have m ("+m+").";
+	 stop;
+       }
+     }
+     //check that all cells contain a valid shape identifier
+     for(i=0;i<n;i++){
+       for(j=0;j<m;j++){
+	 if(sol[n-1-(i)][j]<-1 or sol[n-1-(i)][j]>=S.size){
+	   msg="The cell ("+i+","+j+") contains a "+sol[n-1-(i)][j]+", which is not a valid shape identifier (a number between 0 and "+S.size-1+") nor an empty cell indicator (-1).";
+	   stop;
+	 }
+       }
+     }
+     //check that every number appears exactly 4 times
+     for(k=0;k<S.size;k++){
+       count=0;
+       for(i=0;i<n;i++){
+	 for(j=0;j<m;j++){
+	   if(sol[n-1-(i)][j]==k)count++;
+	 }
+       }
+       if(count!=4){
+	 msg="The shape with index "+k+" occupies "+count+" cells, and it should occupy 4.";
+	 stop;
+       }
+     }
+     //check that each shape has the correct shape
+     for(k=0;k<S.size;k++){
+       minRow = n; maxRow = -1;
+       minCol = m; maxCol = -1;
+       for(i=0;i<n;i++){
+	 for(j=0;j<m;j++){
+	   if(sol[n-1-(i)][j]==k){
+	     if(i<minRow)minRow=i;
+	     if(i>maxRow)maxRow=i;
+	     if(j<minCol)minCol=j;
+	     if(j>maxCol)maxCol=j;
+	   }
+	 }
+       }
+       if(S[k]==1){ // I
+	 if(not ((minRow==maxRow and maxCol==minCol+3) or
+		 (minCol==maxCol and maxRow==minRow+3))){
+	   msg="The shape with index "+k+" does not have the correct shape. It should have type 1";
+	   stop;
+	 }
+       }
+       else if(S[k]==2){ // T
+	 if(not (
+	    (maxRow==minRow+1 and maxCol==minCol+2 and
+	     ((sol[n-1-(maxRow)][minCol]!=k and sol[n-1-(maxRow)][maxCol]!=k) or
+	      (sol[n-1-(minRow)][minCol]!=k and sol[n-1-(minRow)][maxCol]!=k)))
+	    or
+	    (maxRow==minRow+2 and maxCol==minCol+1 and
+	     ((sol[n-1-(minRow)][minCol]!=k and sol[n-1-(maxRow)][minCol]!=k) or
+	      (sol[n-1-(minRow)][maxCol]!=k and sol[n-1-(maxRow)][maxCol]!=k)))
+		 )){
+	   msg="The shape with index "+k+" does not have the correct shape. It should have type 2";
+	   stop;
+	 }
+       }
+       else if(S[k]==3){ // L
+	 if(not (
+	    (maxRow==minRow+1 and maxCol==minCol+2 and
+	     ((sol[n-1-(maxRow)][minCol]!=k and sol[n-1-(maxRow)][minCol+1]!=k) or
+	      (sol[n-1-(minRow)][minCol+1]!=k and sol[n-1-(minRow)][maxCol]!=k)))
+	    or
+	    (maxRow==minRow+2 and maxCol==minCol+1 and
+	     ((sol[n-1-(minRow)][minCol]!=k and sol[n-1-(minRow+1)][minCol]!=k) or
+	      (sol[n-1-(minRow+1)][maxCol]!=k and sol[n-1-(maxRow)][maxCol]!=k)))
+		 )){
+	   msg="The shape with index "+k+" does not have the correct shape. It should have type 3";
+	   stop;
+	 }
+       }
+       else if(S[k]==4){ // L mirror
+	 if(not (
+	    (maxRow==minRow+1 and maxCol==minCol+2 and
+	     ((sol[n-1-(maxRow)][maxCol]!=k and sol[n-1-(maxRow)][minCol+1]!=k) or
+	      (sol[n-1-(minRow)][minCol+1]!=k and sol[n-1-(minRow)][minCol]!=k)))
+	    or
+	    (maxRow==minRow+2 and maxCol==minCol+1 and
+	     ((sol[n-1-(maxRow)][minCol]!=k and sol[n-1-(minRow+1)][minCol]!=k) or
+	      (sol[n-1-(minRow+1)][maxCol]!=k and sol[n-1-(minRow)][maxCol]!=k)))
+		 )){
+	   msg="The shape with index "+k+" does not have the correct shape. It should have type 4";
+	   stop;
+	 }
+       }
+       else if(S[k]==5){ // Z mirror
+	 if(not (
+	    (maxRow==minRow+1 and maxCol==minCol+2 and
+	     (sol[n-1-(maxRow)][minCol]!=k and sol[n-1-(minRow)][maxCol]!=k))
+	    or
+	    (maxRow==minRow+2 and maxCol==minCol+1 and
+	     (sol[n-1-(minRow)][minCol]!=k and sol[n-1-(maxRow)][maxCol]!=k))
+		 )){
+	   msg="The shape with index "+k+" does not have the correct shape. It should have type 5";
+	   stop;
+	 }
+       }
+       else if(S[k]==6){ // Z
+	 if(not (
+	    (maxRow==minRow+1 and maxCol==minCol+2 and
+	     (sol[n-1-(minRow)][minCol]!=k and sol[n-1-(maxRow)][maxCol]!=k))
+	    or
+	    (maxRow==minRow+2 and maxCol==minCol+1 and
+	     (sol[n-1-(minRow)][maxCol]!=k and sol[n-1-(maxRow)][minCol]!=k))
+		 )){
+	   msg="The shape with index "+k+" does not have the correct shape. It should have type 6";
+	   stop;
+	 }
+       }
+       else if(S[k]==7){ // O
+	 if(not (maxRow==minRow+1 and maxCol==minCol+1)){
+	   msg="The shape with index "+k+" does not have the correct shape. It should have type 7";
+	   stop;
+	 }
+       }
+     }
+     //check that no shape is floating
+     for(k=0;k<S.size;k++){
+       sup=0;
+       for(j=0;j<m;j++){
+	 if(sol[n-1-(0)][j]==k)sup=1;
+       }
+       for(i=1;i<n;i++){
+	 for(j=0;j<m;j++){
+	   if(sol[n-1-(i)][j]==k and sol[n-1-(i-1)][j]!=-1 and sol[n-1-(i-1)][j]!=k)sup=1;
+	 }
+       }
+       if(sup==0){
+	 msg="The shape with index "+k+" is not supported by any shape.";
+	 stop;
+       }
+     }
+     //check that no shape is supported on a posterior piece
+     for(i=1;i<n;i++){
+       for(j=0;j<m;j++){
+	 if(sol[n-1-(i)][j]!=-1 and sol[n-1-(i)][j] < sol[n-1-(i-1)][j]){
+	   msg="The shape with index "+sol[n-1-(i)][j]+" is supported by the shape with index "+sol[n-1-(i-1)][j]+", which is not valid because the shape with index "+sol[n-1-(i)][j]+" appeared earlier.";
+	   stop;
+	 }
+       }
+     }
+     valid=1;
+     msg="And it is correct.";
+}

@@ -1,0 +1,7 @@
+struct {
+   n: int
+   m: int
+   shapes: array of int
+   bitmasks: array of array of array of array of int
+}
+struct{piece: array of array of int}

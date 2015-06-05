@@ -547,10 +547,10 @@ void parsingcomparaciones(tnodo &nodo, vector<ttoken> &vt, int &ivt)
   }
 }
 
-void parsingandor(tnodo &nodo, vector<ttoken> &vt, int &ivt)
+void parsingand(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
   parsingcomparaciones(nodo, vt, ivt);
-  while (ivt < int(vt.size()) and (vt[ivt].tipo == "and" or vt[ivt].tipo == "or")) {
+  while (ivt < int(vt.size()) and (vt[ivt].tipo == "and")) {
     tnodo nodoaux = nodo;
     nodo = vt[ivt];
     nodo.hijo = vector<tnodo> (2);
@@ -560,16 +560,29 @@ void parsingandor(tnodo &nodo, vector<ttoken> &vt, int &ivt)
   }
 }
 
+void parsingor(tnodo &nodo, vector<ttoken> &vt, int &ivt)
+{
+  parsingand(nodo, vt, ivt);
+  while (ivt < int(vt.size()) and (vt[ivt].tipo == "or")) {
+    tnodo nodoaux = nodo;
+    nodo = vt[ivt];
+    nodo.hijo = vector<tnodo> (2);
+    nodo.hijo[0] = nodoaux;
+    ivt++;
+    parsingand(nodo.hijo[1], vt, ivt);
+  }
+}
+
 void parsingimpl(tnodo &nodo, vector<ttoken> &vt, int &ivt)
 {
-  parsingandor(nodo, vt, ivt);
+  parsingor(nodo, vt, ivt);
   if (ivt < int(vt.size()) and (vt[ivt].tipo == "implies")) { //not associative
     tnodo nodoaux = nodo;
     nodo = vt[ivt];
     nodo.hijo = vector<tnodo> (2);
     nodo.hijo[0] = nodoaux;
     ivt++;
-    parsingandor(nodo.hijo[1], vt, ivt);
+    parsingor(nodo.hijo[1], vt, ivt);
   }
 }
 

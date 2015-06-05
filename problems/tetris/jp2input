@@ -1,0 +1,84 @@
+main
+{
+  n = jp[0][0];
+  m = jp[0][1];
+  if (jp.size > 1)
+    for s in jp[1] {
+      shapes.push = s;
+      bitmasks.push;
+      if (s == 1){
+	bitmasks.back.push;
+	bitmasks.back.back.push = 1,1,1,1;
+	bitmasks.back.push;
+	bitmasks.back.back.push.push = 1;
+	bitmasks.back.back.push.push = 1;
+	bitmasks.back.back.push.push = 1;
+	bitmasks.back.back.push.push = 1;
+      }else if (s == 2){
+	bitmasks.back.push;
+	bitmasks.back.back.push = 0,1,0;
+	bitmasks.back.back.push = 1,1,1;
+	bitmasks.back.push;
+	bitmasks.back.back.push = 0,1;
+	bitmasks.back.back.push = 1,1;
+	bitmasks.back.back.push = 0,1;
+	bitmasks.back.push;
+	bitmasks.back.back.push = 1,1,1;
+	bitmasks.back.back.push = 0,1,0;
+	bitmasks.back.push;
+	bitmasks.back.back.push = 1,0;
+	bitmasks.back.back.push = 1,1;
+	bitmasks.back.back.push = 1,0;
+      }else if (s == 3){
+	bitmasks.back.push;
+	bitmasks.back.back.push = 0,0,1;
+	bitmasks.back.back.push = 1,1,1;
+	bitmasks.back.push;
+	bitmasks.back.back.push = 1,1;
+	bitmasks.back.back.push = 0,1;
+	bitmasks.back.back.push = 0,1;
+	bitmasks.back.push;
+	bitmasks.back.back.push = 1,1,1;
+	bitmasks.back.back.push = 1,0,0;
+	bitmasks.back.push;
+	bitmasks.back.back.push = 1,0;
+	bitmasks.back.back.push = 1,0;
+	bitmasks.back.back.push = 1,1;
+      }else if (s == 4){
+	bitmasks.back.push;
+	bitmasks.back.back.push = 1,1,1;
+	bitmasks.back.back.push = 0,0,1;
+	bitmasks.back.push;
+	bitmasks.back.back.push = 1,1;
+	bitmasks.back.back.push = 1,0;
+	bitmasks.back.back.push = 1,0;
+	bitmasks.back.push;
+	bitmasks.back.back.push = 1,0,0;
+	bitmasks.back.back.push = 1,1,1;
+	bitmasks.back.push;
+	bitmasks.back.back.push = 0,1;
+	bitmasks.back.back.push = 0,1;
+	bitmasks.back.back.push = 1,1;
+      }else if (s == 5){
+	bitmasks.back.push;
+	bitmasks.back.back.push = 0,1,1;
+	bitmasks.back.back.push = 1,1,0;
+	bitmasks.back.push;
+	bitmasks.back.back.push = 1,0;
+	bitmasks.back.back.push = 1,1;
+	bitmasks.back.back.push = 0,1;
+      }else if (s == 6){
+	bitmasks.back.push;
+	bitmasks.back.back.push = 1,1,0;
+	bitmasks.back.back.push = 0,1,1;
+	bitmasks.back.push;
+	bitmasks.back.back.push = 0,1;
+	bitmasks.back.back.push = 1,1;
+	bitmasks.back.back.push = 1,0;
+      }else if (s == 7){
+	bitmasks.back.push;
+	bitmasks.back.back.push = 1,1;
+	bitmasks.back.back.push = 1,1;
+      }
+    }
+}
