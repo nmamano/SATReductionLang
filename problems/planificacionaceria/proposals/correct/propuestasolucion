@@ -1,0 +1,91 @@
+reduction
+{
+//x_it: tasca i inicia al moment t
+//y_ip: tasca i platafoma p
+//z_ihp: tasca i ocupa la plataforma p a la hora h
+//w_ih: tasca i utilitza forn a la hora h
+//v_ih: tasca i utilitza refrigerador a la hora h
+
+  maxHour = h;
+  numTasks = n;
+  //all tasks assigned
+  for(i=0;i<numTasks;i++){
+    exactly 1 {
+      for(a=0;a<maxHour;a++)"x{i}{a}";
+    };
+    exactly 1 {
+      for(p=1;p<=3;p++)"y{i}{p}";
+    };
+  }
+  //all tasks ftasksish withtasks the time
+  for(i=0;i<numTasks;i++){
+    for(a=maxHour-6-tasks[i]+1;a<maxHour;a++){
+      not "x{i}{a}";
+    }
+  }
+  //tie variables x,y and z
+  for(i=0;i<numTasks;i++){
+    for(a=0;a<maxHour;a++){
+      for(p=1;p<=3;p++){
+        for(k=0;k<1+tasks[i]+5;k++){
+          "x{i}{a}" and "y{i}{p}" implies "z{i}{p}{a+k}";
+        }
+      }
+    }
+  }
+  //no task overlap tasks the same platform
+  for(a=0;a<maxHour;a++){
+    for(p=1;p<=3;p++){
+      atmost 1 {
+      for(i=0;i<numTasks;i++){
+        "z{i}{p}{a}";
+      }
+      };
+    }
+  }
+  //tie variables x and w
+  for(i=0;i<numTasks;i++){
+    for(a=0;a<maxHour;a++){
+      for(k=1;k<1+tasks[i];k++){
+        "x{i}{a}" implies "w{i}{a+k}";
+      }
+    }
+  }
+  //no tasksstant with more than 2 furnaces tasks use
+  for(a=0;a<maxHour;a++){
+    atmost 2 {
+      for(i=0;i<numTasks;i++){
+        "w{i}{a}";
+      }
+    };
+  }
+  //tie variables x and v
+  for(i=0;i<numTasks;i++){
+    for(a=0;a<maxHour;a++){
+      for(k=1+tasks[i];k<1+tasks[i]+5;k++){
+        "x{i}{a}" implies "v{i}{a+k}";
+      }
+    }
+  }  
+  //no instant with more than 1 refrigerator tasks use
+  for(a=0;a<maxHour;a++){
+    atmost 1 {
+      for(i=0;i<numTasks;i++){
+        "v{i}{a}";
+      }
+    };
+  }
+}
+
+
+
+reconstruction
+{
+  maxHour = h;
+  numTasks = n;
+  for(i=0;i<numTasks;i++){
+    for(a=0;a<maxHour;a++){
+      if("x{i}{a}") hour[i]=a;
+    }
+  }
+}

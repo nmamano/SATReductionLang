@@ -1,0 +1,6 @@
+main
+{
+  h=jp[0][0];
+  n=jp[0][1];
+  for (i=0;i<jp[0][1];++i) tasks[i]=jp[1][i];
+}

@@ -1,0 +1,91 @@
+// in: struct {
+//   input: the same input received by propuestasolucion
+//   solution: the solution reconstructed by propuestasolucion
+// }
+// out: struct {
+//   valid: int
+//   msg: string
+// }
+main {
+  valid = 0;
+  h = input.h;
+  n=input.n;
+  T&=input.tasks;
+  S&=solution.hour;
+  //check that all tasks have a strating time
+  if(S.size<n){
+    msg="The solution only contains "+S.size+" elements, but it should contain n ("+n+").";
+    stop;
+  }
+  //check that all starting times are valid
+  for(i=0;i<n;i++){
+    if(S[i]<0 or S[i]>=h){
+      msg="The "+i+"-th task has starting time "+S[i]+", which is not valid. It should be a value between 0 and h-1 ("+(h-1)+").";
+      stop;
+    }
+  }
+  //ceck that no task ends after the hour h
+  for(i=0;i<n;i++){
+    if(S[i]+T[i]+6>h){
+      msg="The task "+i+" has ending time "+(S[i]+T[i]+6)+", which exceeds the maximum hour h ("+h+").";
+      stop;
+    }
+  }
+  //check that no more than 3 tasks are on at any given time
+  for(i=0;i<n;i++){
+    minHour=S[i]; maxHour=S[i]+T[i]+6;
+    for(j=i+1;j<n;j++){
+      newMinHour=S[j]; newMaxHour=S[j]+T[j]+6;
+      if(newMinHour>minHour)minHour=newMinHour;
+      if(newMaxHour<maxHour)maxHour=newMaxHour;
+      for(k=j+1;k<n;k++){
+	newMinHour=S[k]; newMaxHour=S[k]+T[k]+6;
+	if(newMinHour>minHour)minHour=newMinHour;
+	if(newMaxHour<maxHour)maxHour=newMaxHour;
+	for(t=k+1;t<n;t++){
+	  newMinHour=S[t]; newMaxHour=S[t]+T[t]+6;
+	  if(newMinHour>minHour)minHour=newMinHour;
+	  if(newMaxHour<maxHour)maxHour=newMaxHour;
+	  if(minHour<maxHour){
+	    msg="The tasks "+i+", "+j+", "+k+", "+t+" overlap in the hour "+minHour+".";
+	    stop;
+	  }
+	}
+      }
+    }
+  }
+  //check that no 3 furnaces overlap
+  for(i=0;i<n;i++){
+    minHour=S[i]+1;maxHour=S[i]+T[i]+1;
+    for(j=i+1;j<n;j++){
+      newMinHour=S[j]+1;newMaxHour=S[j]+T[j]+1;
+      if(newMinHour>minHour)minHour=newMinHour;
+      if(newMaxHour<maxHour)maxHour=newMaxHour;
+      for(k=j+1;k<n;k++){
+	newMinHour=S[k]+1;newMaxHour=S[k]+T[k]+1;
+	if(newMinHour>minHour)minHour=newMinHour;
+	if(newMaxHour<maxHour)maxHour=newMaxHour;
+	if(minHour<maxHour){
+	  msg="The tasks "+i+", "+j+", "+k+" require a furnace in the hour "+minHour+".";
+	  stop;
+	}
+      }
+    }
+  }
+  //check no 2 refrigersators overlap
+  for(i=0;i<n;i++){
+    minHour=S[i]+T[i]+1;maxHour=minHour+5;
+    for(j=i+1;j<n;j++){
+      newMinHour=S[j]+T[j]+1;newMaxHour=newMinHour+5;
+      if(newMinHour>minHour)minHour=newMinHour;
+      if(newMaxHour<maxHour)maxHour=newMaxHour;
+      if(minHour<maxHour){
+	msg="The tasks "+i+", "+j+" require a refrigerator in the hour "+minHour+".";
+	stop;
+      }
+    }
+  }
+
+  valid=1;
+  msg="And it is correct.";
+}

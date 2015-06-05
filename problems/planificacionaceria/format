@@ -1,0 +1,6 @@
+struct {
+  h: int
+  n: int
+  tasks: array of int
+}
+struct{hour:array of int}
