@@ -1,3 +1,6 @@
+// Written by Carles Creus, Guillem Godoy, Nil Mamano
+
+
 #include <iostream>
 #include <cctype>
 #include <string>
@@ -28,7 +31,7 @@ using namespace std;
 bool DBG_MODE = false;
 
 //set this to false to make diffs directly between outputs
-bool OUTPUT_RUNTIMES = false; 
+bool OUTPUT_RUNTIMES = false;
 
 string inprefix = "__in__";
 string outprefix = "__out__";
@@ -36,7 +39,7 @@ string jpstring = "jp";
 
 //using char "}" because it cannot be parsed correctly,
 //so there are no conflicts with the user's logic variables' names
-char neglitchar = '}'; 
+char neglitchar = '}';
 
 typedef long long int ll;
 
@@ -177,7 +180,7 @@ void leeridentificador(const string &s, int &is, vector<ttoken> &vt, int linea, 
   } else if (isfield(id, outfields) and (vt.size() == 0 or vt[vt.size()-1].tipo != ".")) {
     vt.push_back(ttoken("outprefix", "", linea, is + 1 + desplazamientocolumna));
     vt.push_back(ttoken(".", "", linea, is + 1 + desplazamientocolumna));
-    vt.push_back(ttoken("identificador", id, linea, is + 1 + desplazamientocolumna));    
+    vt.push_back(ttoken("identificador", id, linea, is + 1 + desplazamientocolumna));
   } else {
     vt.push_back(ttoken("identificador", id, linea, is + 1 + desplazamientocolumna));
   }
@@ -216,7 +219,7 @@ void leerstring(const string &s, int &is, vector<ttoken> &vt, int linea, int des
     vt.push_back(ttoken("string", "", linea, isini + 1 + desplazamientocolumna));
     is = nextis;
     return;
-  } 
+  }
   string ss = s.substr(isini + 1, nextis - isini - 2); //todo lo que hay entre comillas
   int iss = 0;
   int columnacomillasabrir = isini + 1 + desplazamientocolumna;
@@ -270,7 +273,7 @@ void leertoken(const string &s, int &is, vector<ttoken> &vt, int linea, int desp
     return;
   }
   else {
-    for (set<string>::reverse_iterator it = cadenasclave.rbegin(); it != cadenasclave.rend(); ++it) { 
+    for (set<string>::reverse_iterator it = cadenasclave.rbegin(); it != cadenasclave.rend(); ++it) {
       string c = *it;
       if (int(s.size()) >= is + int(c.size()) and s.substr(is, int(c.size())) == c) {
         if (c == "//") {
@@ -364,7 +367,7 @@ void seesperabaver(vector<ttoken> &vt, int &ivt, string t)
     rechazar("Error: the end of the program was reached when we expected to see " + t + ".");
   string foundtype = vt[ivt].tipo;
   if (foundtype == "stringini") foundtype = "string";
-  if (foundtype == "outprefix") 
+  if (foundtype == "outprefix")
     rechazar(vt[ivt].linea, vt[ivt].columna, "we expected to see " + t + ", but we found " +
         "output variable \""+vt[ivt+2].texto+"\".");
   if (foundtype == inprefix)
@@ -805,7 +808,7 @@ void parsinginstruccion(tnodo &nodo, vector<ttoken> &vt, int &ivt)
     parsinginstruccion(nodo.hijo[1], vt, ivt);
   } else if (vt[ivt].tipo == "for") {
     ivt++; //points to the token after for
-    if (ivt == int(vt.size()) or (vt[ivt].tipo != "(" and vt[ivt].tipo != "identificador")) 
+    if (ivt == int(vt.size()) or (vt[ivt].tipo != "(" and vt[ivt].tipo != "identificador"))
       seesperabaver(vt, ivt, "{\"(\",\"ident\"}"); //looking at next token to discern for and foreach
     if (vt[ivt].tipo == "(") { //for normal
       nodo = vt[ivt-1];
@@ -1120,7 +1123,7 @@ class sat_solver {
         cout<<(S.model[it.second] == l_True)<<endl;
       }
   #elif defined(USE_PICOSAT)
-  #endif      
+  #endif
     }
 };
 
@@ -1158,7 +1161,7 @@ void subirastring(tvalor &v)
 }
 
 string negar(string s)
-{ 
+{
   if (int(s.size()) > 0 and s[0] == neglitchar) return s.substr(1);
   return string(1, neglitchar) + s;
 }
@@ -1296,7 +1299,7 @@ string ladderencoding(const string &tipo, int k, const vector<string>& lista, tv
 ////////////////////////////////////////////////////////////
 // Ejecucion del programa de entrada:
 
-enum Modo { 
+enum Modo {
   reduc,
   recon,
   inter
@@ -1555,7 +1558,7 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
     } else {
       tvalor t(nodo.texto);
       if (storestringformula) t.stringformula = nodo.texto;
-      return t;     
+      return t;
     }
   } else if (nodo.tipo == "stringparametrizado") {
     string substringsconcatenados = "";
@@ -1772,7 +1775,7 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
         rechazarruntime(nodo.linea, nodo.columna, "\"iff\" must be applied to logical formulas");
       }
       if (hijo1.x == 0) return hijo2.x == 0;
-      return hijo2.x != 0;      
+      return hijo2.x != 0;
     }
   } else if (nodo.tipo == "atmost" or nodo.tipo == "atleast" or nodo.tipo == "exactly") {
     if (MODE != reduc)
@@ -1782,7 +1785,7 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
       rechazarruntime(nodo.hijo[0].linea, nodo.hijo[0].columna, nodo.tipo+" must be followed by a number");
     } else if (count.x < 0) {
       rechazarruntime(nodo.hijo[0].linea, nodo.hijo[0].columna, nodo.tipo+" expects a non-negative integer");
-    } 
+    }
     tvalor scopeout;
     scopeout.format = out.format;
     ejecutainstruccion(nodo.hijo[1], in, scopeout, valor, memoria, modelo); //ignoramos el valor de retorno?
@@ -1811,7 +1814,7 @@ tvalor ejecutaexpresion(tnodo &nodo, tvalor &in, tvalor &out, map<string, tvalor
       if (MODE == reduc and (v[0].esstring() or v[1].esstring()))
         rechazarruntime(nodo.linea, nodo.columna, "Invalid operands on \"+\"");
       return v[0] + v[1];
-    } 
+    }
     if (nodo.tipo == "*") return v[0] * v[1];
     if (nodo.tipo == "/") return v[0] / v[1];
     if (nodo.tipo == "%") return v[0] % v[1];
@@ -2210,10 +2213,10 @@ void ejecuta(tnodo &nodo, vector<tvalor> &vin, vector<tvalor> &vout, tnodo &form
              string mensajeprefijoerror, Modo modo, vector<vector<string> > *historialesinsertsat = NULL)
 {
   prefijoerror = mensajeprefijoerror;
-  MODE = modo;  
+  MODE = modo;
   int tiempoejecucionini = (MODE == inter) ? infinito : finito;
   if (historialesinsertsat != NULL) {
-    *historialesinsertsat = vector<vector<string> >(int(vin.size()), vector<string>());    
+    *historialesinsertsat = vector<vector<string> >(int(vin.size()), vector<string>());
   }
 
   tvalor defecto;
@@ -2233,7 +2236,7 @@ void ejecuta(tnodo &nodo, vector<tvalor> &vin, vector<tvalor> &vout, tnodo &form
 void ejecutareconstruccion(tnodo &reconstructor, tvalor &in, tnodo &formatout, sat_solver const *modelo, string &muestrasolucion,
                            string &ficherovalidador, tnodo &validador, tnodo &formatvalidador, tvalor &validado)
 {
-  
+
   MODE = recon;
   prefijoerror = "";
   tiempoejecucion = infinito;
@@ -2247,7 +2250,7 @@ void ejecutareconstruccion(tnodo &reconstructor, tvalor &in, tnodo &formatout, s
   MODE = inter;
   prefijoerror = "Internal error running: " + ficherovalidador + "\n";
   tiempoejecucion = infinito;
-  
+
   tvalor jpysolucion;
   tnodo nodojpysolucion;
   construirstruct("input", in, "solution", out, nodojpysolucion, jpysolucion);
@@ -2560,7 +2563,7 @@ vector<string> getfieldsstruct(tnodo& nodo) {
   }
   vector<string> res;
   for (string f : nodo.listacampos()) {
-    res.push_back(f);    
+    res.push_back(f);
   }
   return res;
 }
@@ -2603,7 +2606,7 @@ int main(int argc, char *argv[])
 
   comprobarnoseusatipo(nodopropuestasolucion2sat, "outprefix",
                        "the output cannot be directly accessed in a reduction to SAT,\nuse logical expressions directly to create your formula.");
-  
+
   cout << "TIEMPO LECTURA Y PARSING = " << (OUTPUT_RUNTIMES ? tlectura.elapsedstring() : "-1") << endl;
 
   timer tejecucion1a;
